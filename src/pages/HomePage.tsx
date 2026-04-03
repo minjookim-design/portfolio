@@ -32,9 +32,9 @@ const DEGREES = [
   { degree: 'Diploma, Multimedia Design and Development', school: 'Humber College', period: '2018 – 2020' },
 ] as const
 
-/** Public profile URL and PDF in `public/resume.pdf` (add the file to deploy). */
-const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim/'
-const RESUME_URL = '/resume.pdf'
+/** LinkedIn profile; resume hosted on Google Drive. */
+const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true'
+const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
 
 const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
 const HOME_INTRO_SERIF = `${INSTRUMENT_SERIF} text-[25.2px] leading-tight`
@@ -742,9 +742,8 @@ export function HomePage() {
                     href={RESUME_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    download
                     className={`rounded-[10px] p-2 ${isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-black/[0.06]'}`}
-                    aria-label="Resume (PDF)"
+                    aria-label="Resume (opens in Google Drive)"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

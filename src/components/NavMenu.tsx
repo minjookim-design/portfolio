@@ -323,7 +323,7 @@ export function NavMenu() {
       <button
         onMouseEnter={() => setLinkedinHovered(true)}
         onMouseLeave={() => setLinkedinHovered(false)}
-        onClick={() => window.open('https://linkedin.com/in/minjookim', '_blank')}
+        onClick={() => window.open('https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true', '_blank')}
         className="flex items-center text-left"
         style={{
           color: linkedinHovered ? NEON : 'white',
@@ -336,8 +336,10 @@ export function NavMenu() {
 
       {/* ── RESUME ────────────────────────────────────────────────────── */}
       <button
+        type="button"
         onMouseEnter={() => setResumeHovered(true)}
         onMouseLeave={() => setResumeHovered(false)}
+        onClick={() => window.open('https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view', '_blank')}
         className="flex items-center text-left"
         style={{
           color: resumeHovered ? NEON : 'white',

@@ -96,8 +96,8 @@ export function PillNav() {
     }> = [
       { home: true, label: 'Home', to: '/' },
       { folder: true, label: 'Projects', to: '/projects' },
-      { linkedIn: true, label: 'LinkedIn', href: 'https://www.linkedin.com/in/minjoo-kim-kor/' },
-      { resume: true, label: 'Resume', href: 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view?pli=1' },
+      { linkedIn: true, label: 'LinkedIn', href: 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true' },
+      { resume: true, label: 'Resume', href: 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view' },
     ]
     return items
   }, [])
