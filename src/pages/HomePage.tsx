@@ -1,6 +1,10 @@
 import React, { Fragment, useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { HomeIntroScrambleText, usePrefersReducedMotion } from '../components/HomeIntroScrambleText'
+import { motion, type Variants } from 'framer-motion'
+import {
+  HomeIntroScrambleText,
+  HomeIntroTypewriterText,
+  usePrefersReducedMotion,
+} from '../components/HomeIntroScrambleText'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { usePageTheme } from '../context/PageThemeContext'
 import {
@@ -52,6 +56,9 @@ const HOVR_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-norm
 const HOME_INTRO_BIO =
   'I design multi-platform experiences by turning complex spatial and product challenges into simple, intuitive interactions. I focus on creating clear, human-centered flows across web, mobile, and VR, making emerging technologies feel approachable and usable. By collaborating closely with engineers, including Unity developers, I help bridge design intent with technical feasibility and real-world implementation.'
 
+/** Bio typewriter total duration; 0.7× speed → multiply prior ~3250ms baseline by 1/0.7 (each sentence’s share scales with this). */
+const HOME_INTRO_TYPEWRITER_MS = Math.round(3250 / 0.7)
+
 const SPLIT_DIVIDER_PX = 8
 const MIN_COL1_PX = 240
 const MIN_COL2_PX = 260
@@ -59,6 +66,145 @@ const MIN_COL3_PX = 300
 const INITIAL_COL1_PX = 420
 const INITIAL_COL2_PX = 340
 const SPLIT_WIDTH_STORAGE_KEY = 'home-split-widths'
+
+/** Pause after HOVR sub-menu finishes before the project column appears. */
+const MENU_UNFOLD_TO_REVEAL_DELAY_MS = 400
+
+/** Shared spring: crisp, high-end (menu snap, unfold, HOVR rail). */
+const HOME_ENTRANCE_SPRING = { type: 'spring' as const, stiffness: 120, damping: 18 }
+
+type HomeMenuSeqPhase = 'idle_before_intro' | 'snap' | 'unfold' | 'reveal' | 'done'
+
+function getMenuSnapAnimateKey(
+  introDone: boolean,
+  reduceMotion: boolean,
+  phase: HomeMenuSeqPhase,
+): 'hidden' | 'snap' | 'settled' {
+  if (!introDone) return 'hidden'
+  if (reduceMotion) return 'settled'
+  if (phase === 'snap') return 'snap'
+  return 'settled'
+}
+
+function getHovrUnfoldAnimateKey(
+  introDone: boolean,
+  reduceMotion: boolean,
+  phase: HomeMenuSeqPhase,
+): 'closed' | 'open' {
+  if (!introDone) return 'closed'
+  if (reduceMotion) return 'open'
+  if (phase === 'snap') return 'closed'
+  return 'open'
+}
+
+function buildHomeEntranceVariants(reduceMotion: boolean): {
+  menuSnapRoot: Variants
+  menuSnapRow: Variants
+  hovrUnfoldShell: Variants
+  hovrUnfoldSpyItem: Variants
+  detailsColumnShell: Variants
+  genericRailItem: Variants
+  genericRailContainer: Variants
+} {
+  const spring = reduceMotion ? ({ duration: 0 } as const) : HOME_ENTRANCE_SPRING
+  return {
+    menuSnapRoot: {
+      hidden: { opacity: 1 },
+      snap: {
+        opacity: 1,
+        transition: {
+          when: 'beforeChildren',
+          staggerChildren: reduceMotion ? 0 : 0.09,
+          delayChildren: reduceMotion ? 0 : 0.04,
+        },
+      },
+      settled: {
+        opacity: 1,
+        transition: { duration: 0 },
+      },
+    },
+    menuSnapRow: {
+      hidden: { opacity: 0, y: 72 },
+      snap: {
+        opacity: 1,
+        y: 0,
+        transition: spring,
+      },
+      settled: { opacity: 1, y: 0, transition: { duration: 0 } },
+    },
+    hovrUnfoldShell: {
+      closed: { transition: { duration: 0 } },
+      open: {
+        transition: {
+          when: 'beforeChildren',
+          delayChildren: reduceMotion ? 0 : 0.1,
+          staggerChildren: reduceMotion ? 0 : 0.052,
+        },
+      },
+    },
+    hovrUnfoldSpyItem: {
+      closed: { opacity: 0, y: -16 },
+      open: {
+        opacity: 1,
+        y: 0,
+        transition: spring,
+      },
+    },
+    detailsColumnShell: {
+      hidden: { opacity: 0, x: -24 },
+      visible: {
+        opacity: 1,
+        x: 0,
+        transition: spring,
+      },
+    },
+    genericRailItem: {
+      hidden: { opacity: 0, x: -36 },
+      visible: {
+        opacity: 1,
+        x: 0,
+        transition: spring,
+      },
+    },
+    genericRailContainer: {
+      hidden: {},
+      visible: {
+        transition: {
+          when: 'beforeChildren',
+          delayChildren: reduceMotion ? 0 : 0.12,
+          staggerChildren: reduceMotion ? 0 : 0.08,
+        },
+      },
+    },
+  }
+}
+
+function buildHovrHeroEntranceVariants(reduceMotion: boolean): {
+  heroContainer: Variants
+  heroItem: Variants
+} {
+  const spring = reduceMotion ? ({ duration: 0 } as const) : HOME_ENTRANCE_SPRING
+  return {
+    heroContainer: {
+      hidden: {},
+      visible: {
+        transition: {
+          when: 'beforeChildren',
+          delayChildren: reduceMotion ? 0 : 0.06,
+          staggerChildren: reduceMotion ? 0 : 0.065,
+        },
+      },
+    },
+    heroItem: {
+      hidden: { opacity: 0, x: reduceMotion ? 0 : -48 },
+      visible: {
+        opacity: 1,
+        x: 0,
+        transition: spring,
+      },
+    },
+  }
+}
 
 function readSplitWidthsFromSession(): { c1: number; c2: number } | null {
   try {
@@ -195,30 +341,55 @@ function HomeHovrCaseStudy({
   isMobile,
   sectionRefs,
   onMediaClick,
+  entranceActive,
+  reduceMotion,
+  onHeroEntranceComplete,
 }: {
   isDark: boolean
   isMobile: boolean
   sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
   onMediaClick: (src: string) => void
+  entranceActive: boolean
+  reduceMotion: boolean
+  onHeroEntranceComplete?: () => void
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroV = useMemo(() => buildHovrHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroState = entranceActive ? 'visible' : 'hidden'
+  const heroInitial = reduceMotion ? false : 'hidden'
 
   return (
     <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
-      <div className="mb-0 w-full">
-        <img
-          key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
-          src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
-          alt="HOVR Admin"
-          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
-        />
+      <motion.div
+        className="mb-0 w-full"
+        variants={heroV.heroContainer}
+        initial={heroInitial}
+        animate={heroState}
+      >
+        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+          <img
+            key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
+            src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
+            alt="HOVR Admin"
+            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          />
+        </motion.div>
 
-        <h1 className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]">
+        <motion.h1
+          variants={heroV.heroItem}
+          className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+        >
           HOVR Admin
-        </h1>
+        </motion.h1>
 
-        <div className="flex w-full flex-col gap-y-2">
+        <motion.div
+          variants={heroV.heroItem}
+          className="flex w-full flex-col gap-y-2"
+          onAnimationComplete={() => {
+            if (entranceActive) onHeroEntranceComplete?.()
+          }}
+        >
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{HOVR_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${HOVR_CASE_BODY_CLASS}`}>{HOVR_META_ROWS[0].value}</span>
@@ -238,8 +409,8 @@ function HomeHovrCaseStudy({
             className="mt-6 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
             onClick={() => onMediaClick('/hovr/timeline.jpg')}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {HOVR_SECTIONS.map((section, i) => (
         <motion.div
@@ -675,6 +846,75 @@ export function HomePage() {
 
   const introDone = introStage === 3
   const restRevealTransition = { duration: 1.6, ease: [0.45, 0, 0.55, 1] as const }
+  const entranceV = useMemo(() => buildHomeEntranceVariants(reduceMotion), [reduceMotion])
+  const postIntroInitial = reduceMotion ? false : 'hidden'
+
+  const [menuSeqPhase, setMenuSeqPhase] = useState<HomeMenuSeqPhase>('idle_before_intro')
+  const menuSeqPhaseRef = useRef(menuSeqPhase)
+  menuSeqPhaseRef.current = menuSeqPhase
+
+  useEffect(() => {
+    if (!introDone) return
+    if (reduceMotion) {
+      setMenuSeqPhase('done')
+      return
+    }
+    setMenuSeqPhase((p) => (p === 'idle_before_intro' ? 'snap' : p))
+  }, [introDone, reduceMotion])
+
+  const handleSnapStaggerComplete = useCallback(() => {
+    if (menuSeqPhaseRef.current !== 'snap') return
+    setMenuSeqPhase('unfold')
+  }, [])
+
+  const unfoldToRevealRef = useRef(false)
+  const revealAfterUnfoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (revealAfterUnfoldTimeoutRef.current != null) {
+        clearTimeout(revealAfterUnfoldTimeoutRef.current)
+        revealAfterUnfoldTimeoutRef.current = null
+      }
+    },
+    [],
+  )
+
+  const handleHovrLastSpyEntered = useCallback(() => {
+    if (menuSeqPhaseRef.current !== 'unfold' || unfoldToRevealRef.current) return
+    unfoldToRevealRef.current = true
+    if (revealAfterUnfoldTimeoutRef.current != null) clearTimeout(revealAfterUnfoldTimeoutRef.current)
+    const delayMs = reduceMotion ? 0 : MENU_UNFOLD_TO_REVEAL_DELAY_MS
+    revealAfterUnfoldTimeoutRef.current = window.setTimeout(() => {
+      revealAfterUnfoldTimeoutRef.current = null
+      setMenuSeqPhase('reveal')
+    }, delayMs)
+  }, [reduceMotion])
+
+  const heroSequenceDoneRef = useRef(false)
+  const handleHeroEntranceComplete = useCallback(() => {
+    if (menuSeqPhaseRef.current !== 'reveal' || heroSequenceDoneRef.current) return
+    heroSequenceDoneRef.current = true
+    setMenuSeqPhase('done')
+  }, [])
+
+  const menuSnapKey = getMenuSnapAnimateKey(introDone, reduceMotion, menuSeqPhase)
+  const hovrUnfoldKey = getHovrUnfoldAnimateKey(introDone, reduceMotion, menuSeqPhase)
+  const menuSnapInitial = reduceMotion ? false : 'hidden'
+
+  const isFolderOpenUi = useCallback(
+    (projectId: string) => {
+      if (!introDone) return false
+      if (reduceMotion) return openProjectId === projectId
+      if (menuSeqPhase === 'snap') return false
+      if (menuSeqPhase === 'unfold' || menuSeqPhase === 'reveal') return projectId === 'hovr'
+      return openProjectId === projectId
+    },
+    [introDone, reduceMotion, menuSeqPhase, openProjectId],
+  )
+
+  const detailsColumnEntrance = menuSeqPhase === 'reveal' || menuSeqPhase === 'done'
+  const menuColumnInteractive = menuSeqPhase === 'done'
 
   return (
     <div
@@ -780,11 +1020,12 @@ export function HomePage() {
                   {introStage >= 3 ? (
                     <p className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}>{HOME_INTRO_BIO}</p>
                   ) : (
-                    <HomeIntroScrambleText
+                    <HomeIntroTypewriterText
                       as="p"
                       className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}
                       text={HOME_INTRO_BIO}
-                      durationMs={2600}
+                      durationMs={HOME_INTRO_TYPEWRITER_MS}
+                      completeDelayMs={400}
                       onComplete={() => setIntroStage(3)}
                     />
                   )}
@@ -927,21 +1168,27 @@ export function HomePage() {
         />
 
         <motion.div
-          initial={false}
           animate={{ opacity: introDone ? 1 : 0 }}
-          transition={restRevealTransition}
+          transition={{ duration: reduceMotion ? 0 : 0.22 }}
           style={{
-            pointerEvents: introDone ? 'auto' : 'none',
+            pointerEvents: menuColumnInteractive ? 'auto' : 'none',
             ...(isSplitDesktop ? { width: colWidths.c2, minWidth: MIN_COL2_PX } : {}),
           }}
           aria-hidden={!introDone}
           className={`max-md:col-start-1 max-md:row-start-2 min-h-0 min-w-0 max-w-full overflow-y-auto max-md:overflow-visible md:h-full md:shrink-0 ${bodyFont} w-full`}
         >
-          <div className="flex w-full flex-col">
+          <motion.div
+            variants={entranceV.menuSnapRoot}
+            initial={menuSnapInitial}
+            animate={menuSnapKey}
+            onAnimationComplete={handleSnapStaggerComplete}
+            className="flex w-full flex-col"
+          >
             {HOME_PROJECTS.map((project) => {
-              const isOpen = openProjectId === project.id
+              const isOpen = isFolderOpenUi(project.id)
+              const isHovr = project.id === 'hovr'
               return (
-                <div key={project.id} className="w-full">
+                <motion.div key={project.id} variants={entranceV.menuSnapRow} className="w-full">
                   <div className="w-full">
                     <button
                       type="button"
@@ -958,61 +1205,99 @@ export function HomePage() {
                       {project.label}
                     </button>
                     <div
-                      className={`grid w-full transition-[grid-template-rows] duration-300 ease-in-out ${
+                      className={`grid w-full transition-[grid-template-rows] duration-[380ms] ease-[cubic-bezier(0.2,0.85,0.25,1)] ${
                         isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                       }`}
                     >
                       <div className="min-h-0 overflow-hidden">
-                        <div className="flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px]">
-                        {project.spy.map((s) => {
-                          const active =
-                            displayProject != null &&
-                            project.id === displayProject.id &&
-                            s.id === activeSpyId
-                          return (
-        <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => {
-                                setOpenProjectId(project.id)
-                                if (project.id === 'hovr') {
-                                  setHovrSpyFromScroll(s.id)
-                                  setSpyForProject(project.id, s.id)
-                                  scrollHovrSection(s.id)
-                                } else if (project.id === 'piikai') {
-                                  setPiikSpyFromScroll(s.id)
-                                  setSpyForProject(project.id, s.id)
-                                  scrollPiikSection(s.id)
-                                } else if (project.id === 'ar-fitting-room') {
-                                  setArFittingSpyFromScroll(s.id)
-                                  setSpyForProject(project.id, s.id)
-                                  scrollArFittingSection(s.id)
-                                } else if (project.id === 'jojo') {
-                                  setJojoSpyFromScroll(s.id)
-                                  setSpyForProject(project.id, s.id)
-                                  scrollJojoSection(s.id)
-                                } else {
-                                  setSpyForProject(project.id, s.id)
-                                }
-                              }}
-                              className={`flex w-full items-center px-1 text-left transition-colors ${PROJECT_SPY_LINK} ${
-                                active
-                                  ? `font-extrabold ${isDark ? 'text-[#FF5C5C]' : 'text-red-600'}`
-                                  : 'font-medium hover:font-semibold'
-                              }`}
-                            >
-                              <span className="max-md:whitespace-normal md:whitespace-nowrap">{s.label}</span>
-                            </button>
-                          )
-                        })}
-                        </div>
+                        {isHovr ? (
+                          <motion.div
+                            variants={entranceV.hovrUnfoldShell}
+                            initial={false}
+                            animate={hovrUnfoldKey}
+                            className="w-full will-change-transform"
+                          >
+                            <div className="flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px]">
+                              {project.spy.map((s, idx) => {
+                                const active =
+                                  displayProject != null &&
+                                  project.id === displayProject.id &&
+                                  s.id === activeSpyId
+                                const isLastSpy = idx === project.spy.length - 1
+                                return (
+                                  <motion.button
+                                    key={s.id}
+                                    type="button"
+                                    variants={entranceV.hovrUnfoldSpyItem}
+                                    onAnimationComplete={
+                                      isLastSpy ? handleHovrLastSpyEntered : undefined
+                                    }
+                                    onClick={() => {
+                                      setOpenProjectId(project.id)
+                                      setHovrSpyFromScroll(s.id)
+                                      setSpyForProject(project.id, s.id)
+                                      scrollHovrSection(s.id)
+                                    }}
+                                    className={`flex w-full items-center overflow-hidden px-1 text-left transition-colors ${PROJECT_SPY_LINK} ${
+                                      active
+                                        ? `font-extrabold ${isDark ? 'text-[#FF5C5C]' : 'text-red-600'}`
+                                        : 'font-medium hover:font-semibold'
+                                    }`}
+                                  >
+                                    <span className="max-md:whitespace-normal md:whitespace-nowrap">{s.label}</span>
+                                  </motion.button>
+                                )
+                              })}
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div className="flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px]">
+                            {project.spy.map((s) => {
+                              const active =
+                                displayProject != null &&
+                                project.id === displayProject.id &&
+                                s.id === activeSpyId
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenProjectId(project.id)
+                                    if (project.id === 'piikai') {
+                                      setPiikSpyFromScroll(s.id)
+                                      setSpyForProject(project.id, s.id)
+                                      scrollPiikSection(s.id)
+                                    } else if (project.id === 'ar-fitting-room') {
+                                      setArFittingSpyFromScroll(s.id)
+                                      setSpyForProject(project.id, s.id)
+                                      scrollArFittingSection(s.id)
+                                    } else if (project.id === 'jojo') {
+                                      setJojoSpyFromScroll(s.id)
+                                      setSpyForProject(project.id, s.id)
+                                      scrollJojoSection(s.id)
+                                    } else {
+                                      setSpyForProject(project.id, s.id)
+                                    }
+                                  }}
+                                  className={`flex w-full items-center px-1 text-left transition-colors ${PROJECT_SPY_LINK} ${
+                                    active
+                                      ? `font-extrabold ${isDark ? 'text-[#FF5C5C]' : 'text-red-600'}`
+                                      : 'font-medium hover:font-semibold'
+                                  }`}
+                                >
+                                  <span className="max-md:whitespace-normal md:whitespace-nowrap">{s.label}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         </motion.div>
 
         <motion.div
@@ -1030,11 +1315,11 @@ export function HomePage() {
 
         <motion.div
           ref={detailsColumnRef}
-          initial={false}
-          animate={{ opacity: introDone ? 1 : 0 }}
-          transition={restRevealTransition}
-          style={{ pointerEvents: introDone ? 'auto' : 'none' }}
-          aria-hidden={!introDone}
+          variants={entranceV.detailsColumnShell}
+          initial={postIntroInitial}
+          animate={detailsColumnEntrance ? 'visible' : 'hidden'}
+          style={{ pointerEvents: detailsColumnEntrance ? 'auto' : 'none' }}
+          aria-hidden={!detailsColumnEntrance}
           className={`relative z-0 max-md:col-start-1 max-md:row-start-3 flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] max-md:h-auto max-md:flex-none max-md:overflow-visible max-md:pl-0 md:h-full md:pl-[10px]`}
         >
           {displayProject == null ? null : displayProject.id === 'hovr' ? (
@@ -1043,6 +1328,9 @@ export function HomePage() {
               isMobile={isMobile}
               sectionRefs={hovrSectionRefs}
               onMediaClick={setSelectedMedia}
+              entranceActive={detailsColumnEntrance}
+              reduceMotion={reduceMotion}
+              onHeroEntranceComplete={handleHeroEntranceComplete}
             />
           ) : displayProject.id === 'piikai' ? (
             <HomePiikCaseStudy
@@ -1066,8 +1354,13 @@ export function HomePage() {
               onMediaClick={setSelectedMedia}
             />
           ) : (
-            <>
-              <div className="relative aspect-[577/277] w-full overflow-hidden rounded-none">
+            <motion.div
+              className="flex flex-col gap-6"
+              variants={entranceV.genericRailContainer}
+              initial={postIntroInitial}
+              animate={detailsColumnEntrance ? 'visible' : 'hidden'}
+            >
+              <motion.div variants={entranceV.genericRailItem} className="relative aspect-[577/277] w-full overflow-hidden rounded-none">
                 {activeSpy?.media?.endsWith('.mp4') ? (
                   <video
                     key={activeSpy.media}
@@ -1086,23 +1379,23 @@ export function HomePage() {
                     className="h-full w-full object-cover"
                   />
                 )}
-              </div>
+              </motion.div>
 
-              <div className="flex flex-col gap-4">
+              <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-4">
                 <p className="text-[clamp(1.75rem,8vw,2.5rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[40px]">
                   {displayProject.label}
                 </p>
                 <p className={`font-normal ${muted}`}>{displayProject.desc}</p>
-                {activeSpy && (
-                  <div className="flex flex-col gap-2">
-                    <CaseStudyRailTitle className="font-bold">
-                      {activeSpy.label}
-                    </CaseStudyRailTitle>
-                    <p className={`font-normal ${muted}`}>{activeSpy.body}</p>
-                  </div>
-                )}
-              </div>
-            </>
+              </motion.div>
+              {activeSpy && (
+                <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-2">
+                  <CaseStudyRailTitle className="font-bold">
+                    {activeSpy.label}
+                  </CaseStudyRailTitle>
+                  <p className={`font-normal ${muted}`}>{activeSpy.body}</p>
+                </motion.div>
+              )}
+            </motion.div>
           )}
         </motion.div>
         </div>
