@@ -1,147 +1,178 @@
-import { useState } from 'react'
+import { useState, useEffect, type RefObject } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ScrambleText } from './ScrambleText'
+import { useScrollSpy } from '../context/ScrollSpyContext'
 
-const PROJECTS = ['BMAD', 'HOVR Admin', 'JoJo', 'AR Fitting Room']
-
-const NEON = '#00FF00'
+const NEON = '#39ff14'
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
+export const HOVR_SECTIONS = [
+  { id: 'overview',        label: 'Overview' },
+  { id: 'the-goal',        label: 'The Goal' },
+  { id: 'research',        label: 'Research' },
+  { id: 'solution-sketch', label: 'Solution Sketch' },
+  { id: 'final-solution',  label: 'Final Solution' },
+  { id: 'takeaway',        label: 'Takeaway' },
+]
+
+// ── Animation variants ────────────────────────────────────────────────────────
+
 const listVariants = {
-  closed: {
-    transition: { staggerChildren: 0.05, staggerDirection: -1 },
-  },
-  open: {
-    transition: { staggerChildren: 0.08 },
-  },
+  closed: { transition: { staggerChildren: 0.04, staggerDirection: -1 } },
+  open:   { transition: { staggerChildren: 0.07 } },
 }
 
 const itemVariants = {
-  closed: {
-    opacity: 0,
-    y: -6,
-    transition: { ease: EASE, duration: 0.25 },
-  },
-  open: {
-    opacity: 1,
-    y: 0,
-    transition: { ease: EASE, duration: 0.35 },
-  },
+  closed: { opacity: 0, y: -6, transition: { ease: EASE, duration: 0.25 } },
+  open:   { opacity: 1, y:  0, transition: { ease: EASE, duration: 0.35 } },
 }
 
-// ── SVG Icons ─────────────────────────────────────────────────────────────────
+// ── Helper ────────────────────────────────────────────────────────────────────
 
+function scrollToSection(id: string, containerRef: RefObject<HTMLDivElement | null>) {
+  const container = containerRef.current
+  if (!container) return
+  const el = document.getElementById(id)
+  if (!el) return
+  const containerRect = container.getBoundingClientRect()
+  const elRect = el.getBoundingClientRect()
+  const targetTop = container.scrollTop + (elRect.top - containerRect.top)
+  container.scrollTo({ top: targetTop, behavior: 'smooth' })
+}
+
+// ── SVG Icons — exact paths extracted from Figma components page ──────────────
+
+/** pixel:folder — default/unfilled state */
 function FolderUnfilled() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flexShrink: 0 }}
-    >
-      <path
-        d="M18.3333 4.99984V4.1665H10.8333V3.33317H9.99992V2.49984H9.16658V1.6665H1.66659V2.49984H0.833252V17.4998H1.66659V18.3332H18.3333V17.4998H19.1666V4.99984H18.3333ZM17.4999 16.6665H2.49992V3.33317H8.33325V4.1665H9.16658V4.99984H9.99992V5.83317H17.4999V16.6665Z"
-        fill="currentColor"
-      />
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M17.5 3.33333L17.5 2.5L10 2.5L10 1.66667L9.16667 1.66667L9.16667 0.833333L8.33333 0.833333L8.33333 0L0.833333 0L0.833333 0.833333L0 0.833333L0 15.8333L0.833333 15.8333L0.833333 16.6667L17.5 16.6667L17.5 15.8333L18.3333 15.8333L18.3333 3.33333L17.5 3.33333ZM16.6667 15L1.66667 15L1.66667 1.66667L7.5 1.66667L7.5 2.5L8.33333 2.5L8.33333 3.33333L9.16667 3.33333L9.16667 4.16667L16.6667 4.16667L16.6667 15Z" fill="currentColor" />
     </svg>
   )
 }
 
-function FolderFilled() {
+/** pixel:folder-open-solid — selected/active state (2 paths: tab + open body) */
+function FolderOpenSolid() {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 22 22"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flexShrink: 0 }}
-    >
-      <path
-        d="M1.83341 14.6668H0.916748V2.75016H1.83341V1.8335H8.25008V2.75016H9.16675V3.66683H17.4167V4.5835H18.3334V8.25016H4.58341V9.16683H3.66675V11.0002H2.75008V12.8335H1.83341V14.6668Z"
-        fill="currentColor"
-      />
-      <path
-        d="M21.0833 9.1665V10.9998H20.1666V12.8332H19.2499V14.6665H18.3333V16.4998H17.4166V19.2498H16.4999V20.1665H2.74992V19.2498H1.83325V16.4998H2.74992V14.6665H3.66659V12.8332H4.58325V10.9998H5.49992V9.1665H21.0833Z"
-        fill="currentColor"
-      />
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M1.66665 13.3334H0.833313V2.50002H1.66665V1.66669H7.49998V2.50002H8.33331V3.33335H15.8333V4.16669H16.6666V7.50002H4.16665V8.33335H3.33331V10H2.49998V11.6667H1.66665V13.3334Z" fill="currentColor" />
+      <path d="M19.1667 8.33331V9.99998H18.3334V11.6666H17.5V13.3333H16.6667V15H15.8334V17.5H15V18.3333H2.50002V17.5H1.66669V15H2.50002V13.3333H3.33335V11.6666H4.16669V9.99998H5.00002V8.33331H19.1667Z" fill="currentColor" />
     </svg>
   )
 }
 
-function LinkIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 22 22"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flexShrink: 0 }}
-    >
-      <path
-        d="M14.6667 9.16683H15.5834V15.5835H14.6667V16.5002H13.7501V17.4168H12.8334V18.3335H11.9167V19.2502H11.0001V20.1668H10.0834V21.0835H4.58341V20.1668H3.66675V19.2502H2.75008V18.3335H1.83341V17.4168H0.916748V12.8335H1.83341V11.9168H2.75008V11.0002H3.66675V10.0835H4.58341V12.8335H3.66675V13.7502H2.75008V16.5002H3.66675V17.4168H4.58341V18.3335H5.50008V19.2502H9.16675V18.3335H10.0834V17.4168H11.0001V16.5002H11.9167V15.5835H12.8334V14.6668H13.7501V10.0835H12.8334V9.16683H11.9167V8.25016H12.8334V7.3335H13.7501V8.25016H14.6667V9.16683Z"
-        fill="currentColor"
-      />
-      <path
-        d="M21.0834 4.58317V9.1665H20.1667V10.0832H19.2501V10.9998H18.3334V11.9165H17.4167V9.1665H18.3334V8.24984H19.2501V5.49984H18.3334V4.58317H17.4167V3.6665H16.5001V2.74984H12.8334V3.6665H11.9167V4.58317H11.0001V5.49984H10.0834V6.4165H9.16675V7.33317H8.25008V11.9165H9.16675V12.8332H10.0834V13.7498H9.16675V14.6665H8.25008V13.7498H7.33341V12.8332H6.41675V6.4165H7.33341V5.49984H8.25008V4.58317H9.16675V3.6665H10.0834V2.74984H11.0001V1.83317H11.9167V0.916504H17.4167V1.83317H18.3334V2.74984H19.2501V3.6665H20.1667V4.58317H21.0834Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-function ResumeIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-      <path
-        d="M21.4167 3.6665V8.24984H20.5V9.1665H19.5833V10.0832H18.6667V10.9998H17.75V11.9165H16.8333V12.8332H15.9167V13.7498H15V14.6665H14.0833V15.5832H13.1667V16.4998H12.25V17.4165H9.5V16.4998H8.58333V15.5832H7.66667V12.8332H8.58333V11.9165H9.5V10.9998H10.4167V10.0832H11.3333V9.1665H12.25V8.24984H13.1667V7.33317H14.0833V6.4165H15V5.49984H15.9167V4.58317H16.8333V5.49984H17.75V6.4165H16.8333V7.33317H15.9167V8.24984H15V9.1665H14.0833V10.0832H13.1667V10.9998H12.25V11.9165H11.3333V12.8332H10.4167V13.7498H9.5V14.6665H10.4167V15.5832H11.3333V14.6665H12.25V13.7498H13.1667V12.8332H14.0833V11.9165H15V10.9998H15.9167V10.0832H16.8333V9.1665H17.75V8.24984H18.6667V7.33317H19.5833V4.58317H18.6667V3.6665H17.75V2.74984H15V3.6665H14.0833V4.58317H13.1667V5.49984H12.25V6.4165H11.3333V7.33317H10.4167V8.24984H9.5V9.1665H8.58333V10.0832H7.66667V10.9998H6.75V11.9165H5.83333V16.4998H6.75V17.4165H7.66667V18.3332H8.58333V19.2498H13.1667V18.3332H14.0833V17.4165H15V16.4998H15.9167V15.5832H16.8333V14.6665H17.75V13.7498H18.6667V12.8332H19.5833V11.9165H21.4167V13.7498H20.5V14.6665H19.5833V15.5832H18.6667V16.4998H17.75V17.4165H16.8333V18.3332H15.9167V19.2498H15V20.1665H14.0833V21.0832H8.58333V20.1665H6.75V19.2498H5.83333V18.3332H4.91667V16.4998H4V10.9998H4.91667V10.0832H5.83333V9.1665H6.75V8.24984H7.66667V7.33317H8.58333V6.4165H9.5V5.49984H10.4167V4.58317H11.3333V3.6665H12.25V2.74984H13.1667V1.83317H15V0.916504H18.6667V1.83317H19.5833V2.74984H20.5V3.6665H21.4167Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-// ── Lock Icon ────────────────────────────────────────────────────────────────
-
+/** pixel:lock — default/hover state */
 function LockIcon() {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ flexShrink: 0 }}
-    >
-      <path
-        d="M19.2499 10.9998V10.0832H16.4999V4.58317H15.5833V2.74984H14.6666V1.83317H12.8333V0.916504H9.16659V1.83317H7.33325V2.74984H6.41659V4.58317H5.49992V10.0832H2.74992V10.9998H1.83325V20.1665H2.74992V21.0832H19.2499V20.1665H20.1666V10.9998H19.2499ZM18.3333 11.9165V19.2498H3.66659V11.9165H18.3333ZM8.24992 4.58317V3.6665H9.16659V2.74984H12.8333V3.6665H13.7499V4.58317H14.6666V10.0832H7.33325V4.58317H8.24992Z"
-        fill="currentColor"
-      />
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M17.5 9.99998V9.16665H15V4.16665H14.1667V2.49998H13.3334V1.66665H11.6667V0.833313H8.33335V1.66665H6.66669V2.49998H5.83335V4.16665H5.00002V9.16665H2.50002V9.99998H1.66669V18.3333H2.50002V19.1666H17.5V18.3333H18.3334V9.99998H17.5ZM16.6667 10.8333V17.5H3.33335V10.8333H16.6667ZM7.50002 4.16665V3.33331H8.33335V2.49998H11.6667V3.33331H12.5V4.16665H13.3334V9.16665H6.66669V4.16665H7.50002Z" fill="currentColor" />
     </svg>
   )
 }
 
-// ── Dropdown sub-item ─────────────────────────────────────────────────────────
+/** pixel:lock-solid — selected state */
+function LockSolid() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M17.5 9.99998V9.16665H15V4.16665H14.1666V2.49998H13.3333V1.66665H11.6666V0.833313H8.33329V1.66665H6.66663V2.49998H5.83329V4.16665H4.99996V9.16665H2.49996V9.99998H1.66663V18.3333H2.49996V19.1666H17.5V18.3333H18.3333V9.99998H17.5ZM12.5 9.16665H7.49996V4.16665H8.33329V3.33331H11.6666V4.16665H12.5V9.16665Z" fill="currentColor" />
+    </svg>
+  )
+}
 
-function ProjectSubItem({ label, delay }: { label: string; delay: number }) {
+/** pixel:link — 2 overlapping chain links */
+function LinkIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M13.3334 8.33335H14.1667V14.1667H13.3334V15H12.5V15.8334H11.6667V16.6667H10.8334V17.5H10V18.3334H9.16671V19.1667H4.16671V18.3334H3.33337V17.5H2.50004V16.6667H1.66671V15.8334H0.833374V11.6667H1.66671V10.8334H2.50004V10H3.33337V9.16669H4.16671V11.6667H3.33337V12.5H2.50004V15H3.33337V15.8334H4.16671V16.6667H5.00004V17.5H8.33337V16.6667H9.16671V15.8334H10V15H10.8334V14.1667H11.6667V13.3334H12.5V9.16669H11.6667V8.33335H10.8334V7.50002H11.6667V6.66669H12.5V7.50002H13.3334V8.33335Z" fill="currentColor" />
+      <path d="M19.1667 4.16665V8.33331H18.3334V9.16665H17.5V9.99998H16.6667V10.8333H15.8334V8.33331H16.6667V7.49998H17.5V4.99998H16.6667V4.16665H15.8334V3.33331H15V2.49998H11.6667V3.33331H10.8334V4.16665H10V4.99998H9.16671V5.83331H8.33337V6.66665H7.50004V10.8333H8.33337V11.6666H9.16671V12.5H8.33337V13.3333H7.50004V12.5H6.66671V11.6666H5.83337V5.83331H6.66671V4.99998H7.50004V4.16665H8.33337V3.33331H9.16671V2.49998H10V1.66665H10.8334V0.833313H15.8334V1.66665H16.6667V2.49998H17.5V3.33331H18.3334V4.16665H19.1667Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+/** pixel:paperclip — resume icon */
+function PaperclipIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M19.972 3.35662V7.55241H19.1328V8.39157H18.2937V9.23073H17.4545V10.0699H16.6154V10.9091H15.7762V11.7482H14.937V12.5874H14.0979V13.4265H13.2587V14.2657H12.4196V15.1048H11.5804V15.944H9.06292V15.1048H8.22376V14.2657H7.3846V11.7482H8.22376V10.9091H9.06292V10.0699H9.90208V9.23073H10.7412V8.39157H11.5804V7.55241H12.4196V6.71325H13.2587V5.87409H14.0979V5.03494H14.937V4.19578H15.7762V5.03494H16.6154V5.87409H15.7762V6.71325H14.937V7.55241H14.0979V8.39157H13.2587V9.23073H12.4196V10.0699H11.5804V10.9091H10.7412V11.7482H9.90208V12.5874H9.06292V13.4265H9.90208V14.2657H10.7412V13.4265H11.5804V12.5874H12.4196V11.7482H13.2587V10.9091H14.0979V10.0699H14.937V9.23073H15.7762V8.39157H16.6154V7.55241H17.4545V6.71325H18.2937V4.19578H17.4545V3.35662H16.6154V2.51746H14.0979V3.35662H13.2587V4.19578H12.4196V5.03494H11.5804V5.87409H10.7412V6.71325H9.90208V7.55241H9.06292V8.39157H8.22376V9.23073H7.3846V10.0699H6.54544V10.9091H5.70628V15.1048H6.54544V15.944H7.3846V16.7832H8.22376V17.6223H12.4196V16.7832H13.2587V15.944H14.0979V15.1048H14.937V14.2657H15.7762V13.4265H16.6154V12.5874H17.4545V11.7482H18.2937V10.9091H19.972V12.5874H19.1328V13.4265H18.2937V14.2657H17.4545V15.1048H16.6154V15.944H15.7762V16.7832H14.937V17.6223H14.0979V18.4615H13.2587V19.3006H8.22376V18.4615H6.54544V17.6223H5.70628V16.7832H4.86712V15.1048H4.02797V10.0699H4.86712V9.23073H5.70628V8.39157H6.54544V7.55241H7.3846V6.71325H8.22376V5.87409H9.06292V5.03494H9.90208V4.19578H10.7412V3.35662H11.5804V2.51746H12.4196V1.6783H14.0979V0.839139H17.4545V1.6783H18.2937V2.51746H19.1328V3.35662H19.972Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+/** dinkie-icons:circle — scroll-spy default/hover */
+function CircleEmpty() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M16.6667 15H15V16.6667H16.6667V15ZM16.6667 15H18.3333V6.66669H16.6667V15ZM3.33333 18.3334H5V16.6667H3.33333V18.3334ZM1.66667 16.6667H3.33333V15H1.66667V16.6667ZM0 15H1.66667V6.66669H0V15ZM5 20H13.3333V18.3334H5V20ZM1.66667 6.66669H3.33333V5.00002H1.66667V6.66669ZM13.3333 18.3334H15V16.6667H13.3333V18.3334ZM3.33333 5.00002H5V3.33335H3.33333V5.00002ZM5 3.33335H13.3333V1.66669H5V3.33335ZM15 6.66669H16.6667V5.00002H15V6.66669ZM13.3333 5.00002H15V3.33335H13.3333V5.00002Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+/** dinkie-icons:circle-filled — scroll-spy active */
+function CircleFilled() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M5 20H13.3333V18.3334H16.6667V15H18.3333V6.66669H16.6667V3.33335H13.3333V1.66669H5V3.33335H1.66667V6.66669H0V15H1.66667V18.3334H5V20Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+// ── Sub-item components ───────────────────────────────────────────────────────
+
+function ProjectItem({
+  label,
+  icon,
+  isActive,
+  onClick,
+  delay,
+}: {
+  label: string
+  icon: React.ReactNode
+  isActive: boolean
+  onClick: () => void
+  delay: number
+}) {
   const [hovered, setHovered] = useState(false)
-  const isBMAD = label === 'BMAD'
+  const color = isActive || hovered ? NEON : 'white'
 
   return (
     <button
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="flex items-center gap-[8px] text-left"
-      style={{ color: hovered ? NEON : 'white' }}
+      className="flex items-center text-left"
+      style={{ color, gap: 10, padding: 8, background: 'transparent', border: 'none' }}
     >
-      {isBMAD
-        ? <LockIcon />
-        : hovered ? <FolderFilled /> : <FolderUnfilled />
-      }
+      {icon}
       <ScrambleText text={label} delay={delay} scrambleCycles={6} speed={30} />
+    </button>
+  )
+}
+
+function CircleNavItem({
+  section,
+  isActive,
+  delay,
+  scrollContainerRef,
+}: {
+  section: { id: string; label: string }
+  isActive: boolean
+  delay: number
+  scrollContainerRef: RefObject<HTMLDivElement | null>
+}) {
+  const [hovered, setHovered] = useState(false)
+  const color = isActive || hovered ? NEON : 'white'
+
+  return (
+    <button
+      onClick={() => scrollToSection(section.id, scrollContainerRef)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex items-center text-left"
+      style={{ color, gap: 10, padding: 8, background: 'transparent', border: 'none' }}
+    >
+      {isActive ? <CircleFilled /> : <CircleEmpty />}
+      <ScrambleText text={section.label} delay={delay} scrambleCycles={5} speed={30} />
     </button>
   )
 }
@@ -149,27 +180,44 @@ function ProjectSubItem({ label, delay }: { label: string; delay: number }) {
 // ── NavMenu ───────────────────────────────────────────────────────────────────
 
 export function NavMenu() {
-  const [projectsOpen, setProjectsOpen] = useState(false)
-  const [projectsHovered, setProjectsHovered] = useState(false)
-  const [aboutHovered, setAboutHovered] = useState(false)
-  const [linkedinHovered, setLinkedinHovered] = useState(false)
-  const [resumeHovered, setResumeHovered] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { activeSection, scrollContainerRef } = useScrollSpy()
 
-  const projectsActive = projectsHovered || projectsOpen
+  const isOnHovr  = location.pathname === '/projects/hovr'
+  const isOnBmad  = location.pathname === '/projects/bmad'
+  const isOnAbout = location.pathname === '/about'
+  const isOnProject = isOnHovr || isOnBmad
+
+  const [projectsOpen, setProjectsOpen] = useState(isOnProject)
+  const [projectsHovered, setProjectsHovered] = useState(false)
+  const [aboutHovered, setAboutHovered]       = useState(false)
+  const [linkedinHovered, setLinkedinHovered] = useState(false)
+  const [resumeHovered, setResumeHovered]     = useState(false)
+
+  useEffect(() => {
+    if (isOnProject) setProjectsOpen(true)
+  }, [isOnProject])
+
+  // Folder: open-solid when dropdown is open OR on a project page; unfilled otherwise
+  const projectsIsOpen = projectsOpen || isOnProject
+  const projectsColor  = projectsIsOpen || projectsHovered ? NEON : 'white'
 
   return (
-    <nav className="font-mono text-[14px] leading-[16px] flex flex-col gap-[20px]">
+    <nav className="font-mono text-[18px] leading-[20px] flex flex-col gap-5" style={{ mixBlendMode: 'difference', zIndex: 9999, position: 'relative' }}>
 
-      {/* ── PROJECTS ──────────────────────────────────────────────────────── */}
+      {/* ── PROJECTS ──────────────────────────────────────────────────── */}
       <div>
         <button
-          onClick={() => setProjectsOpen((v) => !v)}
+          onClick={() => {
+            if (!isOnProject) setProjectsOpen(v => !v)
+          }}
           onMouseEnter={() => setProjectsHovered(true)}
           onMouseLeave={() => setProjectsHovered(false)}
-          className="flex items-center gap-[8px]"
-          style={{ color: projectsActive ? NEON : 'white' }}
+          className="flex items-center text-left"
+          style={{ color: projectsColor, gap: 10, padding: 8, background: 'transparent', border: 'none' }}
         >
-          {projectsActive ? <FolderFilled /> : <FolderUnfilled />}
+          {projectsIsOpen ? <FolderOpenSolid /> : <FolderUnfilled />}
           <ScrambleText text="PROJECTS" delay={0} />
         </button>
 
@@ -180,48 +228,123 @@ export function NavMenu() {
               initial="closed"
               animate="open"
               exit="closed"
-              className="mt-[8px] pl-[28px] flex flex-col gap-[8px] list-none"
+              className="flex flex-col list-none"
+              style={{ paddingLeft: 26, gap: 8 }}
             >
-              {PROJECTS.map((project, i) => (
-                <motion.li key={project} variants={itemVariants}>
-                  <ProjectSubItem label={project} delay={i * 80} />
-                </motion.li>
-              ))}
+              {/* BMAD — locked */}
+              <motion.li key="bmad" variants={itemVariants}>
+                <ProjectItem
+                  label="BMAD"
+                  icon={isOnBmad ? <LockSolid /> : <LockIcon />}
+                  isActive={isOnBmad}
+                  onClick={() => navigate('/projects/bmad')}
+                  delay={0}
+                />
+              </motion.li>
+
+              {/* HOVR ADMIN */}
+              <motion.li key="hovr" variants={itemVariants}>
+                <ProjectItem
+                  label="HOVR ADMIN"
+                  icon={isOnHovr ? <FolderOpenSolid /> : <FolderUnfilled />}
+                  isActive={isOnHovr}
+                  onClick={() => navigate('/projects/hovr')}
+                  delay={80}
+                />
+
+                {/* Scroll-spy circle items — only on Hovr page */}
+                <AnimatePresence>
+                  {isOnHovr && (
+                    <motion.ul
+                      variants={listVariants}
+                      initial="closed"
+                      animate="open"
+                      exit="closed"
+                      className="flex flex-col list-none"
+                      style={{ paddingLeft: 26, gap: 8 }}
+                    >
+                      {HOVR_SECTIONS.map((section, i) => (
+                        <motion.li key={section.id} variants={itemVariants}>
+                          <CircleNavItem
+                            section={section}
+                            isActive={activeSection === section.id}
+                            delay={i * 50}
+                            scrollContainerRef={scrollContainerRef}
+                          />
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </motion.li>
+
+              {/* JOJO */}
+              <motion.li key="jojo" variants={itemVariants}>
+                <ProjectItem
+                  label="JOJO"
+                  icon={<FolderUnfilled />}
+                  isActive={false}
+                  onClick={() => {}}
+                  delay={160}
+                />
+              </motion.li>
+
+              {/* AR FITTING ROOM */}
+              <motion.li key="ar" variants={itemVariants}>
+                <ProjectItem
+                  label="AR FITTING ROOM"
+                  icon={<FolderUnfilled />}
+                  isActive={false}
+                  onClick={() => {}}
+                  delay={240}
+                />
+              </motion.li>
             </motion.ul>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── ABOUT ME ──────────────────────────────────────────────────────── */}
+      {/* ── ABOUT ME ──────────────────────────────────────────────────── */}
       <button
         onMouseEnter={() => setAboutHovered(true)}
         onMouseLeave={() => setAboutHovered(false)}
-        className="flex items-center gap-[8px] text-left"
-        style={{ color: aboutHovered ? NEON : 'white' }}
+        onClick={() => navigate('/about')}
+        className="flex items-center text-left"
+        style={{
+          color: isOnAbout || aboutHovered ? NEON : 'white',
+          gap: 10, padding: 8, background: 'transparent', border: 'none',
+        }}
       >
-        {aboutHovered ? <FolderFilled /> : <FolderUnfilled />}
+        {isOnAbout ? <FolderOpenSolid /> : <FolderUnfilled />}
         <ScrambleText text="ABOUT ME" delay={200} />
       </button>
 
-      {/* ── LINKEDIN ──────────────────────────────────────────────────────── */}
+      {/* ── LINKEDIN ──────────────────────────────────────────────────── */}
       <button
         onMouseEnter={() => setLinkedinHovered(true)}
         onMouseLeave={() => setLinkedinHovered(false)}
-        className="flex items-center gap-[8px] text-left"
-        style={{ color: linkedinHovered ? NEON : 'white' }}
+        onClick={() => window.open('https://linkedin.com/in/minjookim', '_blank')}
+        className="flex items-center text-left"
+        style={{
+          color: linkedinHovered ? NEON : 'white',
+          gap: 10, padding: 8, background: 'transparent', border: 'none',
+        }}
       >
         <LinkIcon />
         <ScrambleText text="LINKEDIN" delay={400} />
       </button>
 
-      {/* ── RESUME ────────────────────────────────────────────────────────── */}
+      {/* ── RESUME ────────────────────────────────────────────────────── */}
       <button
         onMouseEnter={() => setResumeHovered(true)}
         onMouseLeave={() => setResumeHovered(false)}
-        className="flex items-center gap-[8px] text-left"
-        style={{ color: resumeHovered ? NEON : 'white' }}
+        className="flex items-center text-left"
+        style={{
+          color: resumeHovered ? NEON : 'white',
+          gap: 10, padding: 8, background: 'transparent', border: 'none',
+        }}
       >
-        <ResumeIcon />
+        <PaperclipIcon />
         <ScrambleText text="RESUME" delay={600} />
       </button>
 

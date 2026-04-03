@@ -1,15 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Figma CSS variables */
 :root {
-  --color-bg-base: #000000;
-  --color-text-primary: #ffffff;
-  --number-space-04: 4px;
-  --number-space-24: 24px;
+  --color-bg-base: #e8e8e8;
+  --color-text-primary: #000000;
+  --color-neon: #39ff14;
+  --color-muted: #666666;
 }
 
 @layer base {
@@ -18,21 +17,19 @@
     margin: 0;
     padding: 0;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-    line-height: 16px;
-    background-color: #000000;
-    color: #ffffff;
+    font-size: 18px;
+    line-height: 20px;
+    background-color: #e8e8e8;
+    color: #000000;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Reset browser default paragraph margins — all spacing via Figma gap tokens */
   p {
     margin: 0;
     padding: 0;
   }
 
-  /* Reset button defaults so NavMenu buttons inherit design tokens cleanly */
   button {
     background: transparent;
     border: none;
@@ -42,6 +39,11 @@
     line-height: inherit;
     color: inherit;
     cursor: pointer;
+  }
+
+  /* Hide scrollbar but keep scroll functionality */
+  ::-webkit-scrollbar {
+    width: 0px;
   }
 }
 
