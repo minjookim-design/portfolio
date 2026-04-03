@@ -63,19 +63,19 @@ function ProjectMedia({ media }: { media: Media }) {
 function ProjectItem({ project }: { project: typeof PROJECTS[number] }) {
   const inner = (
     <div
-      className="w-[90vw] max-w-[1200px] h-[75vh] min-h-[600px] snap-center relative rounded-[32px] overflow-hidden shadow-2xl shrink-0 cursor-pointer"
+      className="w-[min(90vw,calc(100vw-1.5rem))] max-w-[1200px] min-h-[min(420px,72dvh)] h-[min(75dvh,720px)] max-md:min-h-[min(320px,58dvh)] max-md:h-auto max-md:aspect-[4/5] snap-center relative rounded-[24px] md:rounded-[32px] overflow-hidden shadow-2xl shrink-0 cursor-pointer"
       style={{ fontFamily: 'Arial, sans-serif' }}
     >
       <ProjectMedia media={project.media} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 p-10 md:p-16 flex flex-col items-start z-10">
-        <div className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm mb-4">
+      <div className="absolute bottom-0 left-0 z-10 flex flex-col items-start p-6 md:p-16">
+        <div className="mb-4 rounded-full bg-white px-4 py-2 text-xs font-bold text-black md:px-6 md:text-sm">
           Stream now
         </div>
-        <p className="text-white font-bold text-5xl md:text-7xl leading-none tracking-tight">
+        <p className="max-w-[95%] text-3xl font-bold leading-none tracking-tight text-white sm:text-4xl md:text-7xl">
           {project.label}
         </p>
-        <p className="mt-4 text-white/85 font-light text-base md:text-xl leading-relaxed max-w-3xl">
+        <p className="mt-3 max-w-3xl text-sm font-light leading-relaxed text-white/85 md:mt-4 md:text-base md:text-xl">
           {project.desc}
         </p>
       </div>

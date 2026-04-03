@@ -37,7 +37,7 @@ const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=t
 const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
 
 const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
-const HOME_INTRO_SERIF = `${INSTRUMENT_SERIF} text-[25.2px] leading-tight`
+const HOME_INTRO_SERIF = `${INSTRUMENT_SERIF} text-[22px] leading-tight md:text-[25.2px]`
 const CAREER_ROLE_SERIF = `${INSTRUMENT_SERIF} text-[18px] leading-tight`
 const HOME_MONO_SM = 'text-[12px] font-medium font-mono'
 /** Project column: section links (12px mono, 500 idle / 800 active). */
@@ -214,7 +214,7 @@ function HomeHovrCaseStudy({
           className="mb-[30px] block h-auto w-full max-w-full rounded-none"
         />
 
-        <h1 className="mb-[26px] mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">
+        <h1 className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]">
           HOVR Admin
         </h1>
 
@@ -678,157 +678,171 @@ export function HomePage() {
 
   return (
     <div
-      className={`fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-4 pb-16 pt-5 max-md:overflow-y-auto md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
+      className={`fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-visible md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
     >
-      <div
-        ref={splitContainerRef}
-        className="flex w-full min-w-0 max-w-full flex-1 flex-col gap-y-8 max-md:min-h-[100dvh] md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden"
-      >
+      {/* Mobile scroll lives here without overflow-x-hidden so the title bar can use position:sticky */}
+      <div className="flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col max-md:overflow-y-auto md:h-full md:min-h-0 md:overflow-hidden">
         <div
-          className={`flex min-h-0 min-w-0 flex-col gap-[150px] overflow-y-auto md:h-full md:shrink-0 ${bodyFont} w-full max-w-full`}
+          ref={splitContainerRef}
+          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-8 max-md:min-h-[100dvh] max-md:grid-rows-[auto_auto_auto_auto] md:flex md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden"
+        >
+        <div
+          className={`max-md:contents md:flex md:h-full md:min-h-0 md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:gap-[150px] md:overflow-y-auto ${bodyFont} md:w-full`}
           style={isSplitDesktop ? { width: colWidths.c1, minWidth: MIN_COL1_PX } : undefined}
         >
-          <div className="flex w-full flex-col gap-[10px]">
-            {introStage > 0 ? (
-              <p className={`shrink-0 font-bold whitespace-nowrap ${HOME_INTRO_SERIF}`}>Minjoo Kim</p>
-            ) : (
-              <HomeIntroScrambleText
-                as="p"
-                className={`shrink-0 font-bold whitespace-nowrap ${HOME_INTRO_SERIF}`}
-                text="Minjoo Kim"
-                durationMs={1300}
-                onComplete={() => setIntroStage(1)}
-              />
-            )}
-            {introStage >= 1 && (
-            <div className="flex w-full flex-col gap-2">
-              <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-1">
-                {introStage >= 2 ? (
-                  <p className={`shrink-0 font-bold ${HOME_INTRO_SERIF}`}>Product Designer</p>
-                ) : (
-                  <HomeIntroScrambleText
-                    as="p"
-                    className={`shrink-0 font-bold ${HOME_INTRO_SERIF}`}
-                    text="Product Designer"
-                    durationMs={750}
-                    onComplete={() => setIntroStage(2)}
-                  />
-                )}
-                {introStage >= 2 && (
-                <div className="flex shrink-0 items-center">
-                  <a
-                    href={LINKEDIN_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`rounded-[10px] p-2 ${isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-black/[0.06]'}`}
-                    aria-label="LinkedIn profile"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="block shrink-0"
-                      aria-hidden
-                    >
-                      <path
-                        d="M19 3C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19ZM18.5 18.5V13.2C18.5 12.3354 18.1565 11.5062 17.5452 10.8948C16.9338 10.2835 16.1046 9.94 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17C14.6813 12.17 15.0374 12.3175 15.2999 12.5801C15.5625 12.8426 15.71 13.1987 15.71 13.57V18.5H18.5ZM6.88 8.56C7.32556 8.56 7.75288 8.383 8.06794 8.06794C8.383 7.75288 8.56 7.32556 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19C6.43178 5.19 6.00193 5.36805 5.68499 5.68499C5.36805 6.00193 5.19 6.43178 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56ZM8.27 18.5V10.13H5.5V18.5H8.27Z"
-                        fill={iconFill}
-                      />
-                    </svg>
-                  </a>
-                  <a
-                    href={RESUME_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`rounded-[10px] p-2 ${isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-black/[0.06]'}`}
-                    aria-label="Resume (opens in Google Drive)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="block shrink-0"
-                      aria-hidden
-                    >
-                      <path
-                        d="M6.66637 22.7676H17.3335C19.4129 22.7676 20.4475 21.7129 20.4475 19.6236V10.5032C20.4475 9.20722 20.3069 8.64493 19.5034 7.82122L13.9585 2.18636C13.1957 1.40251 12.5725 1.23193 11.4377 1.23193H6.66637C4.59723 1.23193 3.55237 2.2965 3.55237 4.38622V19.6236C3.55237 21.7228 4.59723 22.7676 6.66637 22.7676ZM6.74651 21.1506C5.71194 21.1506 5.16937 20.5978 5.16937 19.5936V4.41622C5.16937 3.42193 5.71194 2.84893 6.7568 2.84893H11.2165V8.68522C11.2165 9.95079 11.8594 10.5735 13.1048 10.5735H18.8305V19.5936C18.8305 20.5978 18.2978 21.1506 17.2534 21.1506H6.74651ZM13.2857 9.05636C12.8939 9.05636 12.7328 8.89608 12.7328 8.49408V3.16051L18.5185 9.05679L13.2857 9.05636Z"
-                        fill={iconFill}
-                        stroke={iconFill}
-                        strokeWidth={0.5}
-                      />
-                    </svg>
-                  </a>
+          {/* Mobile: order 1 — name + Product Designer (+ links); sticky title bar. Desktop: top of intro column */}
+          <div
+            className={`max-md:col-start-1 max-md:row-start-1 md:shrink-0 max-md:sticky max-md:top-0 max-md:z-40 max-md:-mx-4 max-md:px-4 max-md:pb-3 ${
+              isDark
+                ? 'max-md:bg-[#111111] max-md:shadow-[0_1px_0_0_rgba(255,255,255,0.08)]'
+                : 'max-md:bg-[#e8e8e8] max-md:shadow-[0_1px_0_0_rgba(0,0,0,0.06)]'
+            }`}
+          >
+            <div className="flex min-w-0 w-full shrink-0 flex-col gap-[10px]">
+              {introStage > 0 ? (
+                <p className={`shrink-0 font-bold max-md:whitespace-normal md:whitespace-nowrap ${HOME_INTRO_SERIF}`}>Minjoo Kim</p>
+              ) : (
+                <HomeIntroScrambleText
+                  as="p"
+                  className={`shrink-0 font-bold max-md:whitespace-normal md:whitespace-nowrap ${HOME_INTRO_SERIF}`}
+                  text="Minjoo Kim"
+                  durationMs={1300}
+                  onComplete={() => setIntroStage(1)}
+                />
+              )}
+              {introStage >= 1 && (
+                <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-1">
+                  {introStage >= 2 ? (
+                    <p className={`shrink-0 font-bold ${HOME_INTRO_SERIF}`}>Product Designer</p>
+                  ) : (
+                    <HomeIntroScrambleText
+                      as="p"
+                      className={`shrink-0 font-bold ${HOME_INTRO_SERIF}`}
+                      text="Product Designer"
+                      durationMs={750}
+                      onComplete={() => setIntroStage(2)}
+                    />
+                  )}
+                  {introStage >= 2 && (
+                    <div className="flex shrink-0 items-center">
+                      <a
+                        href={LINKEDIN_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`rounded-[10px] p-2 ${isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-black/[0.06]'}`}
+                        aria-label="LinkedIn profile"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="block shrink-0"
+                          aria-hidden
+                        >
+                          <path
+                            d="M19 3C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19ZM18.5 18.5V13.2C18.5 12.3354 18.1565 11.5062 17.5452 10.8948C16.9338 10.2835 16.1046 9.94 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17C14.6813 12.17 15.0374 12.3175 15.2999 12.5801C15.5625 12.8426 15.71 13.1987 15.71 13.57V18.5H18.5ZM6.88 8.56C7.32556 8.56 7.75288 8.383 8.06794 8.06794C8.383 7.75288 8.56 7.32556 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19C6.43178 5.19 6.00193 5.36805 5.68499 5.68499C5.36805 6.00193 5.19 6.43178 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56ZM8.27 18.5V10.13H5.5V18.5H8.27Z"
+                            fill={iconFill}
+                          />
+                        </svg>
+                      </a>
+                      <a
+                        href={RESUME_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`rounded-[10px] p-2 ${isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-black/[0.06]'}`}
+                        aria-label="Resume (opens in Google Drive)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="block shrink-0"
+                          aria-hidden
+                        >
+                          <path
+                            d="M6.66637 22.7676H17.3335C19.4129 22.7676 20.4475 21.7129 20.4475 19.6236V10.5032C20.4475 9.20722 20.3069 8.64493 19.5034 7.82122L13.9585 2.18636C13.1957 1.40251 12.5725 1.23193 11.4377 1.23193H6.66637C4.59723 1.23193 3.55237 2.2965 3.55237 4.38622V19.6236C3.55237 21.7228 4.59723 22.7676 6.66637 22.7676ZM6.74651 21.1506C5.71194 21.1506 5.16937 20.5978 5.16937 19.5936V4.41622C5.16937 3.42193 5.71194 2.84893 6.7568 2.84893H11.2165V8.68522C11.2165 9.95079 11.8594 10.5735 13.1048 10.5735H18.8305V19.5936C18.8305 20.5978 18.2978 21.1506 17.2534 21.1506H6.74651ZM13.2857 9.05636C12.8939 9.05636 12.7328 8.89608 12.7328 8.49408V3.16051L18.5185 9.05679L13.2857 9.05636Z"
+                            fill={iconFill}
+                            stroke={iconFill}
+                            strokeWidth={0.5}
+                          />
+                        </svg>
+                      </a>
+                    </div>
+                  )}
                 </div>
-                )}
-              </div>
-              {introStage >= 2 &&
-                (introStage >= 3 ? (
-                  <p className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}>{HOME_INTRO_BIO}</p>
-                ) : (
-                  <HomeIntroScrambleText
-                    as="p"
-                    className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}
-                    text={HOME_INTRO_BIO}
-                    durationMs={2600}
-                    onComplete={() => setIntroStage(3)}
+              )}
+              {introStage >= 2 && (
+                <div className="flex w-full min-w-0 flex-col gap-2 max-md:mt-[10px]">
+                  {introStage >= 3 ? (
+                    <p className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}>{HOME_INTRO_BIO}</p>
+                  ) : (
+                    <HomeIntroScrambleText
+                      as="p"
+                      className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}
+                      text={HOME_INTRO_BIO}
+                      durationMs={2600}
+                      onComplete={() => setIntroStage(3)}
+                    />
+                  )}
+                </div>
+              )}
+              <motion.div
+                initial={false}
+                animate={{ opacity: introDone ? 1 : 0 }}
+                transition={restRevealTransition}
+                style={{ pointerEvents: introDone ? 'auto' : 'none' }}
+                aria-hidden={!introDone}
+                className="hidden w-full md:block"
+              >
+                <div
+                  className="relative mt-2 w-[min(55%,220px)] min-w-[120px] shrink-0 md:w-[40%]"
+                  role="img"
+                  aria-label="Minjoo"
+                >
+                  <img
+                    src="/me/me1.png"
+                    alt=""
+                    className="pointer-events-none block h-auto w-full rounded-[10px] opacity-0"
+                    draggable={false}
+                    aria-hidden
                   />
-                ))}
+                  <img
+                    src="/me/me1.png"
+                    alt=""
+                    draggable={false}
+                    aria-hidden
+                    className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
+                      meImg === 1 ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                  <img
+                    src="/me/me2.png"
+                    alt=""
+                    draggable={false}
+                    aria-hidden
+                    className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
+                      meImg === 2 ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                </div>
+              </motion.div>
             </div>
-            )}
+          </div>
+
+          {/* Desktop only: career / education / interests (photo in sticky intro above this) */}
+          <div className="hidden w-full min-w-0 max-w-full flex-col gap-16 md:flex md:gap-[150px]">
             <motion.div
               initial={false}
               animate={{ opacity: introDone ? 1 : 0 }}
               transition={restRevealTransition}
               style={{ pointerEvents: introDone ? 'auto' : 'none' }}
               aria-hidden={!introDone}
-              className="w-full"
+              className="flex w-full flex-col gap-16 md:gap-[150px]"
             >
-              <div
-                className="relative mt-2 w-[40%] min-w-[120px] shrink-0"
-                role="img"
-                aria-label="Minjoo"
-              >
-                <img
-                  src="/me/me1.png"
-                  alt=""
-                  className="pointer-events-none block h-auto w-full rounded-[10px] opacity-0"
-                  draggable={false}
-                  aria-hidden
-                />
-                <img
-                  src="/me/me1.png"
-                  alt=""
-                  draggable={false}
-                  aria-hidden
-                  className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
-                    meImg === 1 ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                <img
-                  src="/me/me2.png"
-                  alt=""
-                  draggable={false}
-                  aria-hidden
-                  className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
-                    meImg === 2 ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              </div>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={false}
-            animate={{ opacity: introDone ? 1 : 0 }}
-            transition={restRevealTransition}
-            style={{ pointerEvents: introDone ? 'auto' : 'none' }}
-            aria-hidden={!introDone}
-            className="flex w-full flex-col gap-[150px]"
-          >
           <div className="flex flex-col gap-[10px]">
             <p className={`shrink-0 font-bold whitespace-nowrap ${HOME_INTRO_SERIF}`}>Career</p>
             <div className="flex flex-col gap-[18px]">
@@ -837,7 +851,7 @@ export function HomePage() {
                   <p className={`font-bold ${CAREER_ROLE_SERIF}`}>{job.role}</p>
                   <div className="flex w-full flex-col gap-[6.4px] leading-[1.2]">
                     <p className={`w-full ${HOME_MONO_SM}`}>{job.company}</p>
-                    <p className={`shrink-0 whitespace-nowrap ${HOME_MONO_SM}`}>{job.period}</p>
+                    <p className={`shrink-0 max-md:whitespace-normal md:whitespace-nowrap ${HOME_MONO_SM}`}>{job.period}</p>
                   </div>
                 </div>
               ))}
@@ -867,14 +881,14 @@ export function HomePage() {
           <div className="flex flex-col gap-[10px]">
             <p className={`shrink-0 font-bold whitespace-nowrap ${HOME_INTRO_SERIF}`}>I studied at</p>
             <div className="flex w-full flex-col gap-[18px]">
-              <div className="grid w-full" style={{ gridTemplateColumns: '1fr auto', columnGap: 40, rowGap: 18 }}>
+              <div className="grid w-full max-md:grid-cols-1 md:grid-cols-[1fr_auto]" style={{ columnGap: 40, rowGap: 18 }}>
                 {DEGREES.map((edu) => (
                   <Fragment key={edu.degree}>
                     <div className={`flex flex-col gap-[6.4px] leading-[1.2] ${muted}`}>
                       <p className={`font-bold ${CAREER_ROLE_SERIF}`}>{edu.degree}</p>
                       <p className={`w-full ${HOME_MONO_SM}`}>{edu.school}</p>
                     </div>
-                    <p className={`shrink-0 self-start text-right whitespace-nowrap ${HOME_MONO_SM} leading-[1.2] ${muted}`}>
+                    <p className={`shrink-0 self-start max-md:pt-0 max-md:text-left md:text-right md:whitespace-nowrap ${HOME_MONO_SM} leading-[1.2] ${muted}`}>
                       {edu.period}
                     </p>
                   </Fragment>
@@ -896,6 +910,7 @@ export function HomePage() {
             </div>
           </div>
           </motion.div>
+        </div>
         </div>
 
         <motion.div
@@ -920,7 +935,7 @@ export function HomePage() {
             ...(isSplitDesktop ? { width: colWidths.c2, minWidth: MIN_COL2_PX } : {}),
           }}
           aria-hidden={!introDone}
-          className={`min-h-0 min-w-0 max-w-full overflow-y-auto md:h-full md:shrink-0 ${bodyFont} w-full`}
+          className={`max-md:col-start-1 max-md:row-start-2 min-h-0 min-w-0 max-w-full overflow-y-auto max-md:overflow-visible md:h-full md:shrink-0 ${bodyFont} w-full`}
         >
           <div className="flex w-full flex-col">
             {HOME_PROJECTS.map((project) => {
@@ -986,7 +1001,7 @@ export function HomePage() {
                                   : 'font-medium hover:font-semibold'
                               }`}
                             >
-                              <span className="whitespace-nowrap">{s.label}</span>
+                              <span className="max-md:whitespace-normal md:whitespace-nowrap">{s.label}</span>
                             </button>
                           )
                         })}
@@ -1020,7 +1035,7 @@ export function HomePage() {
           transition={restRevealTransition}
           style={{ pointerEvents: introDone ? 'auto' : 'none' }}
           aria-hidden={!introDone}
-          className={`relative z-0 flex h-full min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[10px] ${bodyFont} w-full`}
+          className={`relative z-0 max-md:col-start-1 max-md:row-start-3 flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] max-md:h-auto max-md:flex-none max-md:overflow-visible max-md:pl-0 md:h-full md:pl-[10px]`}
         >
           {displayProject == null ? null : displayProject.id === 'hovr' ? (
             <HomeHovrCaseStudy
@@ -1074,7 +1089,7 @@ export function HomePage() {
               </div>
 
               <div className="flex flex-col gap-4">
-                <p className="text-[40px] font-bold italic leading-none font-['Instrument_Serif',serif]">
+                <p className="text-[clamp(1.75rem,8vw,2.5rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[40px]">
                   {displayProject.label}
                 </p>
                 <p className={`font-normal ${muted}`}>{displayProject.desc}</p>
@@ -1090,6 +1105,7 @@ export function HomePage() {
             </>
           )}
         </motion.div>
+        </div>
       </div>
 
       {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}

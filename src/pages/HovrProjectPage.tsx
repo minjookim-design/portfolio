@@ -337,22 +337,22 @@ export function HovrProjectPage() {
           : { left: colLeft, right: colRight, top: 0, bottom: 0 }
         }
       >
-        <div style={{ paddingTop: 32, paddingLeft: 10, paddingBottom: isMobile ? 'calc(50vh + 100px)' : '50vh', fontFamily: 'Arial, sans-serif' }}>
+        <div style={{ paddingTop: 32, paddingLeft: isMobile ? 0 : 10, paddingRight: isMobile ? 0 : undefined, paddingBottom: isMobile ? 'calc(50vh + 6rem + env(safe-area-inset-bottom, 0px))' : '50vh', fontFamily: 'Arial, sans-serif' }}>
 
           {/* Title image */}
           <img
             key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
             src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
             alt="HOVR Admin"
-            style={{ width: 1000, height: 'auto', display: 'block', marginBottom: 30, borderRadius: 0 }}
+            style={{ width: '100%', maxWidth: 1000, height: 'auto', display: 'block', marginBottom: 30, borderRadius: 0 }}
           />
 
           {/* Title */}
           <h1
             style={{
-              fontSize:     40,
+              fontSize:     isMobile ? 'clamp(1.75rem, 6vw, 2.25rem)' : 40,
               fontWeight:   700,
-              lineHeight:   '32px',
+              lineHeight:   isMobile ? 1.1 : '32px',
               color:        '#000',
               marginBottom: 26,
               marginTop:    0,
@@ -365,9 +365,10 @@ export function HovrProjectPage() {
           <div
             style={{
               display:   'grid',
-              gridTemplateColumns: 'auto 1fr',
-              columnGap: 28,
-              fontSize:  14,
+              gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'auto 1fr',
+              columnGap: isMobile ? 12 : 28,
+              rowGap: isMobile ? 4 : undefined,
+              fontSize:  isMobile ? 13 : 14,
               lineHeight: '20px',
               color:     '#000',
               alignItems: 'start',
@@ -376,8 +377,8 @@ export function HovrProjectPage() {
           >
             {/* Team / Role */}
             <React.Fragment key={HOVR_META_ROWS[0].label}>
-              <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: 8 }}>{HOVR_META_ROWS[0].label}</span>
-              <span style={{ fontWeight: 400, paddingBottom: 8 }}>{HOVR_META_ROWS[0].value}</span>
+              <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: 8 }}>{HOVR_META_ROWS[0].label}</span>
+              <span style={{ fontWeight: 400, paddingBottom: 8, wordBreak: 'break-word' }}>{HOVR_META_ROWS[0].value}</span>
             </React.Fragment>
 
             {/* 10px gap before grouped rows */}
@@ -387,8 +388,8 @@ export function HovrProjectPage() {
             {/* Problem / Solution / Impact */}
             {HOVR_META_ROWS.slice(1).map(({ label, value }, i) => (
               <React.Fragment key={label}>
-                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
-                <span style={{ fontWeight: 400, paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0 }}>{value}</span>
+                <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
+                <span style={{ fontWeight: 400, paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0, wordBreak: 'break-word' }}>{value}</span>
               </React.Fragment>
             ))}
           </div>
@@ -397,7 +398,7 @@ export function HovrProjectPage() {
           <img
             src="/hovr/process.png"
             alt=""
-            style={{ width: 1000, height: 'auto', marginTop: 50, marginBottom: 200, borderRadius: 0, cursor: 'zoom-in' }}
+            style={{ width: '100%', maxWidth: 1000, height: 'auto', marginTop: 50, marginBottom: 200, borderRadius: 0, cursor: 'zoom-in' }}
             onClick={() => setSelectedMedia('/hovr/process.png')}
           />
 
@@ -431,7 +432,7 @@ export function HovrProjectPage() {
                   }}
                 >
                   {/* Left label */}
-                  <p style={{ fontWeight: 700, width: isMobile ? '100%' : 130, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  <p style={{ fontWeight: 700, width: isMobile ? '100%' : 130, flexShrink: 0, whiteSpace: isMobile ? 'normal' : 'nowrap' }}>
                     {section.label}
                   </p>
 

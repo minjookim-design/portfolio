@@ -37,8 +37,7 @@ function FooterEmail() {
 
   return (
     <motion.div
-      className="fixed z-[100] pointer-events-auto"
-      style={{ bottom: 16, left: 16 }}
+      className="fixed z-[100] pointer-events-auto left-4 max-w-[min(100%,calc(100vw-2rem))] max-md:bottom-[calc(16px+env(safe-area-inset-bottom,0px))] md:bottom-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={PHASE2_TRANSITION}
@@ -103,7 +102,7 @@ function AppShell() {
   const { isDark } = usePageTheme()
   return (
     <div
-      className={`relative h-screen w-screen overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
+      className={`relative h-screen min-h-[100dvh] w-screen max-w-[100vw] overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
     >
       <ThemeToggle />
       <FooterEmail />

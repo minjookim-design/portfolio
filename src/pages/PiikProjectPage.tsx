@@ -1019,24 +1019,32 @@ export function PiikProjectPage() {
           : { left: '50%', transform: 'translateX(-50%)', width: 'min(1100px, calc(100% - 80px))', right: 'auto', top: 0, bottom: 0, position: 'absolute', zIndex: 1 }
         }
       >
-        <div style={{ paddingTop: 0, paddingLeft: 10, paddingBottom: 0, fontFamily: 'Arial, sans-serif' }}>
+        <div
+          style={{
+            paddingTop: 0,
+            paddingLeft: isMobile ? 0 : 10,
+            paddingRight: isMobile ? 0 : undefined,
+            paddingBottom: isMobile ? 'max(6rem, calc(4rem + env(safe-area-inset-bottom, 0px)))' : 0,
+            fontFamily: 'Arial, sans-serif',
+          }}
+        >
 
           {/* ── Hero section ─────────────────────────────────────────────────── */}
           <div
             ref={heroRef}
             style={{
-              minHeight:      '100vh',
+              minHeight:      '100dvh',
               display:        'flex',
               flexDirection:  'column',
               justifyContent: 'center',
               alignItems:     'flex-start',
               textAlign:      'left',
-              padding:        40,
+              padding:        isMobile ? 16 : 40,
             }}
           >
             <h1
               style={{
-                fontSize:     100,
+                fontSize:     isMobile ? 'clamp(2.5rem, 14vw, 3.5rem)' : 100,
                 fontWeight:   800,
                 lineHeight:   1,
                 color:        '#000000',
@@ -1051,9 +1059,10 @@ export function PiikProjectPage() {
             <div
               style={{
                 display:             'grid',
-                gridTemplateColumns: 'auto 1fr',
-                columnGap:           28,
-                fontSize:            14,
+                gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'auto 1fr',
+                columnGap:           isMobile ? 12 : 28,
+                rowGap:              isMobile ? 4 : undefined,
+                fontSize:            isMobile ? 13 : 14,
                 lineHeight:          '20px',
                 color:               '#000000',
                 alignItems:          'start',
@@ -1062,15 +1071,15 @@ export function PiikProjectPage() {
               }}
             >
               <React.Fragment key={PIIK_META_ROWS[0].label}>
-                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: 8 }}>{PIIK_META_ROWS[0].label}</span>
-                <span style={{ fontWeight: 700, paddingBottom: 8 }}>{PIIK_META_ROWS[0].value}</span>
+                <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: 8 }}>{PIIK_META_ROWS[0].label}</span>
+                <span style={{ fontWeight: 700, paddingBottom: 8, wordBreak: 'break-word' }}>{PIIK_META_ROWS[0].value}</span>
               </React.Fragment>
               <div style={{ paddingTop: 10 }} />
               <div style={{ paddingTop: 10 }} />
               {PIIK_META_ROWS.slice(1).map(({ label, value }, i) => (
                 <React.Fragment key={label}>
-                  <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
-                  <span style={{ fontWeight: 700, paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0 }}>{value}</span>
+                  <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
+                  <span style={{ fontWeight: 700, paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0, wordBreak: 'break-word' }}>{value}</span>
                 </React.Fragment>
               ))}
             </div>
@@ -1099,16 +1108,16 @@ export function PiikProjectPage() {
                     flexDirection: 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    '30vh',
-                    paddingBottom: '30vh',
+                    paddingTop:    isMobile ? '12vh' : '30vh',
+                    paddingBottom: isMobile ? '12vh' : '30vh',
                     color:         isDark ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
                     {section.label}
                   </p>
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: isMobile ? 16 : 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
                     {section.heading}
                   </p>
                 </motion.div>
@@ -1123,14 +1132,21 @@ export function PiikProjectPage() {
                     flexDirection: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 'row' : 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    '30vh',
-                    paddingBottom: section.id === 'final-solution' ? 'calc(30vh + 200px)' : '30vh',
+                    paddingTop:    isMobile ? '12vh' : '30vh',
+                    paddingBottom:
+                      section.id === 'final-solution'
+                        ? isMobile
+                          ? 'calc(12vh + 120px)'
+                          : 'calc(30vh + 200px)'
+                        : isMobile
+                          ? '12vh'
+                          : '30vh',
                     color:         (section.id === 'research' || section.id === 'final-solution') ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                     gap:           (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 60 : '1.5rem',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? 56 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? 100 : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 200 : undefined }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? (isMobile ? 32 : 56) : isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? (isMobile ? 40 : 100) : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 200 : undefined }}>
                     {section.label}
                   </p>
 

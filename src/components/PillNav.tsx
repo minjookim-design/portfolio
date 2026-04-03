@@ -165,11 +165,22 @@ export function PillNav() {
 
             {isProjects && isProjectsOpen && (
               <motion.div
-                className={`absolute top-0 left-[calc(100%+1rem)] backdrop-blur-xl border ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`}
-                style={{ fontFamily: 'Arial, sans-serif', minWidth: 380 }}
-                initial={{ x: -16, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -8, opacity: 0 }}
+                className={
+                  isMobile
+                    ? `fixed left-3 right-3 z-[10001] max-h-[min(380px,50vh)] overflow-y-auto overscroll-contain backdrop-blur-xl border ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
+                    : `absolute top-0 left-[calc(100%+1rem)] backdrop-blur-xl border ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
+                }
+                style={
+                  isMobile
+                    ? {
+                        fontFamily: 'Arial, sans-serif',
+                        bottom: 'max(5.5rem, calc(4.25rem + env(safe-area-inset-bottom, 0px)))',
+                      }
+                    : { fontFamily: 'Arial, sans-serif', minWidth: 380 }
+                }
+                initial={isMobile ? { y: 12, opacity: 0 } : { x: -16, opacity: 0 }}
+                animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+                exit={isMobile ? { y: 8, opacity: 0 } : { x: -8, opacity: 0 }}
                 transition={{
                   duration: 0.35,
                   ease: 'easeOut',
@@ -203,7 +214,7 @@ export function ThemeToggle() {
     <motion.button
       type="button"
       aria-label="Toggle theme"
-      className={`absolute top-4 right-4 z-[110] rounded-[20px] backdrop-blur-3xl backdrop-saturate-[200%] border flex items-center px-3 py-2 gap-2 ${
+      className={`absolute z-[110] rounded-[20px] backdrop-blur-3xl backdrop-saturate-[200%] border flex items-center px-3 py-2 gap-2 top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] ${
         isDark ? 'bg-black/60 border-white/20' : 'bg-white/60 border-black/10'
       }`}
       initial={{ x: 16, opacity: 0 }}
