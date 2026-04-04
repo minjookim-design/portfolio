@@ -7,6 +7,7 @@ import {
 } from '../components/HomeIntroScrambleText'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { usePageTheme } from '../context/PageThemeContext'
+import { useHomeFooterAttribution } from '../context/HomeFooterAttributionContext'
 import {
   HOVR_SECTIONS,
   HOVR_META_ROWS,
@@ -360,7 +361,11 @@ function HomeHovrCaseStudy({
   const heroInitial = reduceMotion ? false : 'hidden'
 
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
+    <div
+      ref={rootRef}
+      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
+      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
+    >
       <motion.div
         className="mb-0 w-full"
         variants={heroV.heroContainer}
@@ -916,18 +921,45 @@ export function HomePage() {
   const detailsColumnEntrance = menuSeqPhase === 'reveal' || menuSeqPhase === 'done'
   const menuColumnInteractive = menuSeqPhase === 'done'
 
+  const homeFooterAttribution = useHomeFooterAttribution()
+  const setHomeHovrAttributionReady =
+    homeFooterAttribution?.setHomeHovrAttributionReady
+
+  const HOVR_FOOTER_ATTRIBUTION_DELAY_MS = 300
+
+  useEffect(() => {
+    if (!setHomeHovrAttributionReady) return
+    setHomeHovrAttributionReady(false)
+    return () => setHomeHovrAttributionReady(false)
+  }, [setHomeHovrAttributionReady])
+
+  useEffect(() => {
+    if (!setHomeHovrAttributionReady) return
+    const hovrShowing =
+      detailsColumnEntrance && displayProject?.id === 'hovr'
+    if (!hovrShowing) return
+    const id = window.setTimeout(() => {
+      setHomeHovrAttributionReady(true)
+    }, HOVR_FOOTER_ATTRIBUTION_DELAY_MS)
+    return () => clearTimeout(id)
+  }, [
+    detailsColumnEntrance,
+    displayProject?.id,
+    setHomeHovrAttributionReady,
+  ])
+
   return (
     <div
       className={`fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-visible md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
     >
       {/* Mobile scroll lives here without overflow-x-hidden so the title bar can use position:sticky */}
-      <div className="flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col max-md:overflow-y-auto md:h-full md:min-h-0 md:overflow-hidden">
+      <div className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden">
         <div
           ref={splitContainerRef}
-          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-8 max-md:min-h-[100dvh] max-md:grid-rows-[auto_auto_auto_auto] md:flex md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden"
+          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-8 max-md:min-h-[100dvh] max-md:grid-rows-[auto_auto_auto_auto] md:flex md:h-full md:min-h-0 md:max-h-full md:flex-row md:items-stretch md:gap-0 md:overflow-hidden"
         >
         <div
-          className={`max-md:contents md:flex md:h-full md:min-h-0 md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:gap-[150px] md:overflow-y-auto ${bodyFont} md:w-full`}
+          className={`max-md:contents md:flex md:h-full md:min-h-0 md:max-h-full md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:gap-[150px] md:self-stretch md:overflow-y-auto ${bodyFont} md:w-full`}
           style={isSplitDesktop ? { width: colWidths.c1, minWidth: MIN_COL1_PX } : undefined}
         >
           {/* Mobile: order 1 — name + Product Designer (+ links); sticky title bar. Desktop: top of intro column */}
@@ -1175,7 +1207,7 @@ export function HomePage() {
             ...(isSplitDesktop ? { width: colWidths.c2, minWidth: MIN_COL2_PX } : {}),
           }}
           aria-hidden={!introDone}
-          className={`max-md:col-start-1 max-md:row-start-2 min-h-0 min-w-0 max-w-full overflow-y-auto max-md:overflow-visible md:h-full md:shrink-0 ${bodyFont} w-full`}
+          className={`max-md:col-start-1 max-md:row-start-2 min-h-0 min-w-0 max-w-full overflow-y-auto max-md:overflow-visible md:h-full md:max-h-full md:shrink-0 md:self-stretch ${bodyFont} w-full`}
         >
           <motion.div
             variants={entranceV.menuSnapRoot}
@@ -1320,7 +1352,7 @@ export function HomePage() {
           animate={detailsColumnEntrance ? 'visible' : 'hidden'}
           style={{ pointerEvents: detailsColumnEntrance ? 'auto' : 'none' }}
           aria-hidden={!detailsColumnEntrance}
-          className={`relative z-0 max-md:col-start-1 max-md:row-start-3 flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] max-md:h-auto max-md:flex-none max-md:overflow-visible max-md:pl-0 md:h-full md:pl-[10px]`}
+          className={`relative z-0 max-md:col-start-1 max-md:row-start-3 flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] max-md:h-auto max-md:flex-none max-md:overflow-visible max-md:pl-0 md:h-full md:min-h-full md:max-h-full md:self-stretch md:pl-[10px]`}
         >
           {displayProject == null ? null : displayProject.id === 'hovr' ? (
             <HomeHovrCaseStudy
