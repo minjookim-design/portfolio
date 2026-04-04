@@ -5,6 +5,41 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>portfolio</title>
+    <!--
+      Critical theme: parsed before first paint. Matches PageThemeContext (system when unset).
+      next-themes equivalent: attribute="class" + enableSystem — class on <html> is immediate; no transition here.
+    -->
+    <style id="portfolio-theme-critical">
+      html {
+        background-color: #e8e8e8;
+      }
+      html.dark {
+        background-color: #111111;
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        background-color: #e8e8e8;
+      }
+      html.dark body {
+        background-color: #111111;
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var key = 'portfolio-theme'
+          var raw = localStorage.getItem(key)
+          var dark =
+            raw === 'dark' ||
+            (raw !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', dark)
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

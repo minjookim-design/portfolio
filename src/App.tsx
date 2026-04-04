@@ -191,7 +191,7 @@ function AppShell() {
   const { isDark } = usePageTheme()
   return (
     <div
-      className={`relative h-screen min-h-[100dvh] w-screen max-w-[100vw] overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
+      className={`theme-surface-transition relative h-screen min-h-[100dvh] w-screen max-w-[100vw] overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
     >
       <ThemeToggle />
       <FooterEmail />

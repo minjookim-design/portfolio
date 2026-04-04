@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-import { usePageTheme } from '../context/PageThemeContext'
 import { Link } from 'react-router-dom'
 
 // ── Project data ───────────────────────────────────────────────────────────────
@@ -92,14 +90,10 @@ function ProjectItem({ project }: { project: typeof PROJECTS[number] }) {
 // ── Projects page ──────────────────────────────────────────────────────────────
 
 export function ProjectsPage() {
-  const { setIsDark } = usePageTheme()
-
-  useEffect(() => { setIsDark(false) }, [setIsDark])
-
   return (
     <>
       <div
-        className="flex flex-col w-full h-screen overflow-y-auto snap-y snap-mandatory gap-8 pb-[20vh] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none"
+        className="theme-surface-transition flex flex-col w-full h-screen overflow-y-auto snap-y snap-mandatory gap-8 pb-[20vh] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none"
         style={{ backgroundColor: '#111111' }}
       >
         {PROJECTS.map((project) => (

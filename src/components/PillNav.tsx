@@ -109,7 +109,7 @@ export function PillNav() {
       style={isMobile ? { bottom: 16, left: 16, width: 'calc(100% - 32px)', zIndex: 9999 } : { left: isNarrow ? 16 : 'calc(8.33% + 15px)' }}
     >
       <motion.div
-        className={`flex gap-[11px] p-[10px] rounded-[100px] backdrop-blur-xl border pointer-events-auto ${glassClass} ${
+        className={`flex gap-[11px] p-[10px] rounded-[100px] backdrop-blur-xl border pointer-events-auto transition-none ${glassClass} ${
           isMobile ? 'flex-row items-center justify-around' : 'flex-col'
         }`}
         initial={{ opacity: 0 }}
@@ -167,8 +167,8 @@ export function PillNav() {
               <motion.div
                 className={
                   isMobile
-                    ? `fixed left-3 right-3 z-[10001] max-h-[min(380px,50vh)] overflow-y-auto overscroll-contain backdrop-blur-xl border ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
-                    : `absolute top-0 left-[calc(100%+1rem)] backdrop-blur-xl border ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
+                    ? `fixed left-3 right-3 z-[10001] max-h-[min(380px,50vh)] overflow-y-auto overscroll-contain backdrop-blur-xl border transition-none ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
+                    : `absolute top-0 left-[calc(100%+1rem)] backdrop-blur-xl border transition-none ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
                 }
                 style={
                   isMobile
@@ -208,19 +208,19 @@ export function PillNav() {
 }
 
 export function ThemeToggle() {
-  const { isDark, setIsDark } = usePageTheme()
+  const { isDark, toggleTheme } = usePageTheme()
 
   return (
     <motion.button
       type="button"
       aria-label="Toggle theme"
-      className={`absolute z-[110] rounded-[20px] backdrop-blur-3xl backdrop-saturate-[200%] border flex items-center px-3 py-2 gap-2 top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] ${
+      className={`absolute z-[110] rounded-[20px] backdrop-blur-3xl backdrop-saturate-[200%] border flex items-center px-3 py-2 gap-2 transition-none top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] ${
         isDark ? 'bg-black/60 border-white/20' : 'bg-white/60 border-black/10'
       }`}
       initial={{ x: 16, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      onClick={() => setIsDark(!isDark)}
+      onClick={() => toggleTheme()}
     >
       <div className="relative flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none">

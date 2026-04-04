@@ -11,7 +11,26 @@
   --color-muted: #666666;
 }
 
+html.dark {
+  --color-bg-base: #111111;
+  --color-text-primary: #ffffff;
+  --color-muted: #b8b8b8;
+}
+
+/*
+  Flash-free reload: no transition on html/body (avoids animating from wrong initial paint).
+  Manual toggle smoothness: `.theme-surface-transition` on App shell / Home / nav / toggle only.
+*/
 @layer base {
+  html {
+    background-color: #e8e8e8;
+  }
+
+  html.dark {
+    background-color: #111111;
+    color-scheme: dark;
+  }
+
   html,
   body {
     margin: 0;
@@ -19,7 +38,6 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 18px;
     line-height: 20px;
-    background-color: #e8e8e8;
     color: #000000;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -27,9 +45,24 @@
     max-width: 100vw;
   }
 
+  body {
+    background-color: #e8e8e8;
+  }
+
+  html.dark body {
+    background-color: #111111;
+  }
+
   p {
     margin: 0;
     padding: 0;
+  }
+
+  .theme-surface-transition {
+    transition:
+      background-color 0.5s ease,
+      color 0.5s ease,
+      border-color 0.5s ease;
   }
 
   button {
