@@ -24,6 +24,10 @@ import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
+import {
+  HOME_ENTRANCE_SPRING,
+  buildCaseStudyHeroEntranceVariants,
+} from './homeCaseStudyHeroMotion'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -70,9 +74,6 @@ const SPLIT_WIDTH_STORAGE_KEY = 'home-split-widths'
 
 /** Pause after HOVR sub-menu finishes before the project column appears. */
 const MENU_UNFOLD_TO_REVEAL_DELAY_MS = 400
-
-/** Shared spring: crisp, high-end (menu snap, unfold, HOVR rail). */
-const HOME_ENTRANCE_SPRING = { type: 'spring' as const, stiffness: 120, damping: 18 }
 
 type HomeMenuSeqPhase = 'idle_before_intro' | 'snap' | 'unfold' | 'reveal' | 'done'
 
@@ -175,33 +176,6 @@ function buildHomeEntranceVariants(reduceMotion: boolean): {
           delayChildren: reduceMotion ? 0 : 0.12,
           staggerChildren: reduceMotion ? 0 : 0.08,
         },
-      },
-    },
-  }
-}
-
-function buildHovrHeroEntranceVariants(reduceMotion: boolean): {
-  heroContainer: Variants
-  heroItem: Variants
-} {
-  const spring = reduceMotion ? ({ duration: 0 } as const) : HOME_ENTRANCE_SPRING
-  return {
-    heroContainer: {
-      hidden: {},
-      visible: {
-        transition: {
-          when: 'beforeChildren',
-          delayChildren: reduceMotion ? 0 : 0.06,
-          staggerChildren: reduceMotion ? 0 : 0.065,
-        },
-      },
-    },
-    heroItem: {
-      hidden: { opacity: 0, x: reduceMotion ? 0 : -48 },
-      visible: {
-        opacity: 1,
-        x: 0,
-        transition: spring,
       },
     },
   }
@@ -356,7 +330,7 @@ function HomeHovrCaseStudy({
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
-  const heroV = useMemo(() => buildHovrHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
 
@@ -1219,6 +1193,7 @@ export function HomePage() {
             {HOME_PROJECTS.map((project) => {
               const isOpen = isFolderOpenUi(project.id)
               const isHovr = project.id === 'hovr'
+              const useHovrStyleUnfold = isHovr || project.id === 'piikai'
               return (
                 <motion.div key={project.id} variants={entranceV.menuSnapRow} className="w-full">
                   <div className="w-full">
@@ -1242,7 +1217,7 @@ export function HomePage() {
                       }`}
                     >
                       <div className="min-h-0 overflow-hidden">
-                        {isHovr ? (
+                        {useHovrStyleUnfold ? (
                           <motion.div
                             variants={entranceV.hovrUnfoldShell}
                             initial={false}
@@ -1262,13 +1237,19 @@ export function HomePage() {
                                     type="button"
                                     variants={entranceV.hovrUnfoldSpyItem}
                                     onAnimationComplete={
-                                      isLastSpy ? handleHovrLastSpyEntered : undefined
+                                      isHovr && isLastSpy ? handleHovrLastSpyEntered : undefined
                                     }
                                     onClick={() => {
                                       setOpenProjectId(project.id)
-                                      setHovrSpyFromScroll(s.id)
-                                      setSpyForProject(project.id, s.id)
-                                      scrollHovrSection(s.id)
+                                      if (project.id === 'hovr') {
+                                        setHovrSpyFromScroll(s.id)
+                                        setSpyForProject(project.id, s.id)
+                                        scrollHovrSection(s.id)
+                                      } else if (project.id === 'piikai') {
+                                        setPiikSpyFromScroll(s.id)
+                                        setSpyForProject(project.id, s.id)
+                                        scrollPiikSection(s.id)
+                                      }
                                     }}
                                     className={`flex w-full items-center overflow-hidden px-1 text-left transition-colors ${PROJECT_SPY_LINK} ${
                                       active
@@ -1295,11 +1276,7 @@ export function HomePage() {
                                   type="button"
                                   onClick={() => {
                                     setOpenProjectId(project.id)
-                                    if (project.id === 'piikai') {
-                                      setPiikSpyFromScroll(s.id)
-                                      setSpyForProject(project.id, s.id)
-                                      scrollPiikSection(s.id)
-                                    } else if (project.id === 'ar-fitting-room') {
+                                    if (project.id === 'ar-fitting-room') {
                                       setArFittingSpyFromScroll(s.id)
                                       setSpyForProject(project.id, s.id)
                                       scrollArFittingSection(s.id)
@@ -1370,6 +1347,9 @@ export function HomePage() {
               isMobile={isMobile}
               sectionRefs={piikSectionRefs}
               onMediaClick={setSelectedMedia}
+              entranceActive={detailsColumnEntrance}
+              reduceMotion={reduceMotion}
+              onHeroEntranceComplete={handleHeroEntranceComplete}
             />
           ) : displayProject.id === 'ar-fitting-room' ? (
             <HomeArFittingCaseStudy

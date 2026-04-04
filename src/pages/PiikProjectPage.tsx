@@ -1,9 +1,10 @@
-import React, { Fragment, useState, useEffect, useLayoutEffect, useRef } from 'react'
+import React, { Fragment, useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
+import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 // ── Section data ───────────────────────────────────────────────────────────────
 
@@ -645,28 +646,59 @@ export function HomePiikCaseStudy({
   isMobile,
   sectionRefs,
   onMediaClick,
+  entranceActive,
+  reduceMotion,
+  onHeroEntranceComplete,
 }: {
   isDark: boolean
   isMobile: boolean
   sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
   onMediaClick: (src: string) => void
+  entranceActive: boolean
+  reduceMotion: boolean
+  onHeroEntranceComplete?: () => void
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroState = entranceActive ? 'visible' : 'hidden'
+  const heroInitial = reduceMotion ? false : 'hidden'
 
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
-      <div className="mb-[150px] w-full">
-        <img
-          key={isDark ? 'piik-thumb-dark' : 'piik-thumb-light'}
-          src={isDark ? PIIK_HERO_THUMB_DARK : PIIK_HERO_THUMB_LIGHT}
-          alt="Piik AI"
-          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
-        />
-        <h1 className="mb-[26px] mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">
+    <div
+      ref={rootRef}
+      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
+      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
+    >
+      <motion.div
+        className="mb-0 w-full"
+        variants={heroV.heroContainer}
+        initial={heroInitial}
+        animate={heroState}
+      >
+        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+          <img
+            key={isDark ? 'piik-thumb-dark' : 'piik-thumb-light'}
+            src={isDark ? PIIK_HERO_THUMB_DARK : PIIK_HERO_THUMB_LIGHT}
+            alt="Piik AI"
+            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          />
+        </motion.div>
+
+        <motion.h1
+          variants={heroV.heroItem}
+          className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+        >
           Piik AI
-        </h1>
-        <div className="flex w-full flex-col gap-y-2">
+        </motion.h1>
+
+        <motion.div
+          variants={heroV.heroItem}
+          className="mb-[150px] flex w-full flex-col gap-y-2"
+          onAnimationComplete={() => {
+            if (entranceActive) onHeroEntranceComplete?.()
+          }}
+        >
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${PIIK_HOME_META_LABEL_CLASS}`}>{PIIK_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${PIIK_HOME_META_BODY_CLASS}`}>{PIIK_META_ROWS[0].value}</span>
@@ -680,8 +712,8 @@ export function HomePiikCaseStudy({
               </Fragment>
             ))}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {PIIK_SECTIONS.map((section, i) => (
         <motion.div
