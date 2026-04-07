@@ -22,6 +22,7 @@ import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import { useHomeSplitColumnGuide } from '../components/HomeSplitOnboarding'
 import { HOME_ENTRANCE_SPRING } from './homeCaseStudyHeroMotion'
 
 const CAREER_JOBS = [
@@ -717,11 +718,42 @@ export function HomePage() {
   }, [reduceMotion])
 
   const heroSequenceDoneRef = useRef(false)
+  const revealFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const handleHeroEntranceComplete = useCallback(() => {
     if (menuSeqPhaseRef.current !== 'reveal' || heroSequenceDoneRef.current) return
+    if (revealFallbackTimerRef.current != null) {
+      clearTimeout(revealFallbackTimerRef.current)
+      revealFallbackTimerRef.current = null
+    }
     heroSequenceDoneRef.current = true
     setMenuSeqPhase('done')
   }, [])
+
+  /** If hero `onAnimationComplete` never fires (wrong project, Framer edge case), still reach `done` so split onboarding can run. */
+  useEffect(() => {
+    if (menuSeqPhase !== 'reveal' || isMobile || reduceMotion) return
+    if (revealFallbackTimerRef.current != null) {
+      clearTimeout(revealFallbackTimerRef.current)
+    }
+    revealFallbackTimerRef.current = window.setTimeout(() => {
+      revealFallbackTimerRef.current = null
+      if (menuSeqPhaseRef.current !== 'reveal' || heroSequenceDoneRef.current) return
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[HomePage] menu reveal fallback: forcing menuSeqPhase done (hero entrance callback may not have fired)',
+        )
+      }
+      heroSequenceDoneRef.current = true
+      setMenuSeqPhase('done')
+    }, 6500)
+    return () => {
+      if (revealFallbackTimerRef.current != null) {
+        clearTimeout(revealFallbackTimerRef.current)
+        revealFallbackTimerRef.current = null
+      }
+    }
+  }, [menuSeqPhase, isMobile, reduceMotion])
 
   const menuSnapKey = getMenuSnapAnimateKey(introDone, reduceMotion, menuSeqPhase)
   const hovrUnfoldKey = getHovrUnfoldAnimateKey(introDone, reduceMotion, menuSeqPhase)
@@ -740,6 +772,16 @@ export function HomePage() {
 
   const detailsColumnEntrance = menuSeqPhase === 'reveal' || menuSeqPhase === 'done'
   const menuColumnInteractive = menuSeqPhase === 'done'
+
+  const splitOnboardingDivider1Ref = useRef<HTMLDivElement>(null)
+  const splitColumnGuide = useHomeSplitColumnGuide({
+    entranceComplete: menuSeqPhase === 'done',
+    isMobile,
+    reduceMotion,
+    isDark,
+    firstDividerRef: splitOnboardingDivider1Ref,
+    ...(import.meta.env.DEV ? { menuSeqPhaseForDev: menuSeqPhase } : {}),
+  })
 
   const homeFooterAttribution = useHomeFooterAttribution()
   const setHomeHovrAttributionReady =
@@ -1141,6 +1183,7 @@ export function HomePage() {
         </div>
 
         <motion.div
+          ref={splitOnboardingDivider1Ref}
           initial={false}
           animate={{ opacity: introDone ? 1 : 0 }}
           transition={restRevealTransition}
@@ -1149,9 +1192,11 @@ export function HomePage() {
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize intro column"
-          className="hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:block md:w-2 md:self-stretch"
-          onPointerDown={handleDividerPointerDown(1)}
-        />
+          className="relative z-[5] hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:block md:w-2 md:self-stretch"
+          onPointerDown={splitColumnGuide.wrapDividerPointerDown(handleDividerPointerDown(1))}
+        >
+          {splitColumnGuide.renderBarGlow()}
+        </motion.div>
 
         <motion.div
           animate={{ opacity: introDone ? 1 : 0 }}
@@ -1354,6 +1399,7 @@ export function HomePage() {
         </AnimatePresence>
       )}
 
+      {splitColumnGuide.renderTooltip()}
       {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
     </div>
   )
