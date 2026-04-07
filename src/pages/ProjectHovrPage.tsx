@@ -1,4 +1,5 @@
 import { ScrollSection } from '../components/ScrollSection'
+import { OptimizedImage } from '../components/OptimizedImage'
 
 const NEON = '#39ff14'
 const YELLOW = '#ffee00'
@@ -137,10 +138,13 @@ export function ProjectHovrPage() {
             In the existing admin panel, support staff must manually click on each uploaded document
             to review them, making the driver approval process time-consuming.
           </p>
-          <img
+          <OptimizedImage
             src="/hovr/Product-research.jpg"
             alt="Product research"
             style={{ width: '100%', objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, 674px"
+            placeholder="blur"
+            quality={85}
           />
         </div>
       </ScrollSection>
@@ -206,10 +210,13 @@ export function ProjectHovrPage() {
               body="A visual cue showing whether the typed and scanned information matches will help users verify the document's accuracy before approval."
             />
           </div>
-          <img
+          <OptimizedImage
             src="/hovr/card-design 1.jpg"
             alt="Card design exploration"
             style={{ width: '100%', objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, 674px"
+            placeholder="blur"
+            quality={85}
           />
         </div>
       </ScrollSection>
@@ -218,10 +225,14 @@ export function ProjectHovrPage() {
       <ScrollSection id="final-solution">
         <div style={{ maxWidth: 674 }}>
           <SectionTitle>Final Solution</SectionTitle>
-          <img
+          <OptimizedImage
             src="/hovr/final-solution.jpg"
             alt="Final solution"
             style={{ width: '100%', objectFit: 'cover', marginBottom: 40 }}
+            sizes="(max-width: 768px) 100vw, 674px"
+            priority
+            placeholder="blur"
+            quality={85}
           />
 
           {/* Bulk Approval */}

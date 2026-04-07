@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 
 // ── Project data ───────────────────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ const PROJECTS: Array<{
   },
 ]
 
-function ProjectMedia({ media }: { media: Media }) {
+function ProjectMedia({ media, priority }: { media: Media; priority?: boolean }) {
   if (media.type === 'video') {
     return (
       <video
@@ -55,16 +56,32 @@ function ProjectMedia({ media }: { media: Media }) {
     )
   }
 
-  return <img src={media.src} className="absolute inset-0 w-full h-full object-cover" alt="" />
+  return (
+    <OptimizedImage
+      src={media.src}
+      className="absolute inset-0 h-full w-full object-cover"
+      alt=""
+      sizes={IMAGE_SIZES.projectCard}
+      priority={priority}
+      placeholder="blur"
+      quality={85}
+    />
+  )
 }
 
-function ProjectItem({ project }: { project: typeof PROJECTS[number] }) {
+function ProjectItem({
+  project,
+  mediaPriority,
+}: {
+  project: (typeof PROJECTS)[number]
+  mediaPriority?: boolean
+}) {
   const inner = (
     <div
       className="w-[min(90vw,calc(100vw-1.5rem))] max-w-[1200px] min-h-[min(420px,72dvh)] h-[min(75dvh,720px)] max-md:min-h-[min(320px,58dvh)] max-md:h-auto max-md:aspect-[4/5] snap-center relative rounded-[24px] md:rounded-[32px] overflow-hidden shadow-2xl shrink-0 cursor-pointer"
       style={{ fontFamily: 'Arial, sans-serif' }}
     >
-      <ProjectMedia media={project.media} />
+      <ProjectMedia media={project.media} priority={mediaPriority} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 z-10 flex flex-col items-start p-6 md:p-16">
         <div className="mb-4 rounded-full bg-white px-4 py-2 text-xs font-bold text-black md:px-6 md:text-sm">
@@ -96,8 +113,8 @@ export function ProjectsPage() {
         className="theme-surface-transition flex flex-col w-full h-screen overflow-y-auto snap-y snap-mandatory gap-8 pb-[20vh] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none"
         style={{ backgroundColor: '#111111' }}
       >
-        {PROJECTS.map((project) => (
-          <ProjectItem key={project.id} project={project} />
+        {PROJECTS.map((project, index) => (
+          <ProjectItem key={project.id} project={project} mediaPriority={index === 0} />
         ))}
       </div>
     </>

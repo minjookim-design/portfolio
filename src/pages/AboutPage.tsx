@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence } from 'framer-motion'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 
 // ── Section data ───────────────────────────────────────────────────────────────
 
@@ -194,7 +195,14 @@ export function AboutPage() {
                       </Fragment>
                     ))}
                   </div>
-                  <img src="/me/gradphoto-portfolio.jpg" alt="" style={{ width: 600, height: 'auto', display: 'block' }} />
+                  <OptimizedImage
+                    src="/me/gradphoto-portfolio.jpg"
+                    alt=""
+                    style={{ width: 600, height: 'auto', display: 'block', maxWidth: '100%' }}
+                    sizes={IMAGE_SIZES.homeIntroFull}
+                    placeholder="blur"
+                    quality={85}
+                  />
                 </div>
               ) : 'funWorks' in section ? (
                 // ── Fun Works I do ──────────────────────────────────────────
@@ -216,7 +224,14 @@ export function AboutPage() {
                   <p className="font-bold">{section.title}</p>
                   {section.body && <p className="font-normal">{section.body}</p>}
                   {section.id === 'who-is-minjoo' && (
-                    <img src={`/me/me${meImg}.png`} alt="Minjoo" style={{ display: 'block', width: '40%', height: 'auto', borderRadius: 10 }} />
+                    <OptimizedImage
+                      src={`/me/me${meImg}.png`}
+                      alt="Minjoo"
+                      style={{ display: 'block', width: '40%', height: 'auto', borderRadius: 10, maxWidth: '100%' }}
+                      sizes="(max-width: 768px) 60vw, 320px"
+                      placeholder="blur"
+                      quality={85}
+                    />
                   )}
                 </div>
               )}

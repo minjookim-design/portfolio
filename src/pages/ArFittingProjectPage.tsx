@@ -4,6 +4,7 @@ import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { Lightbox } from './HovrProjectPage'
 import {
   AR_FITTING_SECTIONS,
@@ -41,10 +42,13 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
   if (src) {
     return (
       <div className="overflow-hidden rounded-none">
-        <img
+        <OptimizedImage
           src={src}
           alt=""
           className="w-full h-auto cursor-zoom-in"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          placeholder="blur"
+          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -84,12 +88,16 @@ export function PiikCaseStudyCarouselBlock({ srcs, onMediaClick }: { srcs: strin
       >
         {srcs.map((src, ci) =>
           src ? (
-            <img
+            <OptimizedImage
               key={src + ci}
               src={src}
               alt=""
               className="cursor-zoom-in flex-shrink-0"
               style={{ width: '80%', height: 'auto', borderRadius: 0 }}
+              sizes={IMAGE_SIZES.carouselSlide80}
+              placeholder="blur"
+              quality={85}
+              priority={ci === 0}
               onClick={() => onMediaClick?.(src)}
             />
           ) : (
@@ -175,11 +183,15 @@ export function HomeArFittingCaseStudy({
   return (
     <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
       <div className="mb-[150px] w-full">
-        <img
+        <OptimizedImage
           key={isDark ? 'ar-thumb-dark' : 'ar-thumb-light'}
           src={isDark ? AR_FITTING_THUMB_DARK : AR_FITTING_THUMB_LIGHT}
           alt="AR Fitting Room"
           className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          priority
+          placeholder="blur"
+          quality={85}
         />
         <h1 className="mb-[10px] mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">
           AR Fitting Room

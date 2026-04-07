@@ -4,6 +4,7 @@ import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 // ── Section data ───────────────────────────────────────────────────────────────
@@ -181,11 +182,14 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
             />
           ) : (
-            <img
+            <OptimizedImage
               src={src}
               alt=""
               className="rounded-none object-contain"
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
+              sizes={IMAGE_SIZES.lightbox}
+              priority
+              quality={85}
             />
           )}
         </motion.div>
@@ -216,10 +220,13 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
   if (src) {
     return (
       <div className="overflow-hidden rounded-none">
-        <img
+        <OptimizedImage
           src={src}
           alt=""
           className="w-full h-auto cursor-zoom-in"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          placeholder="blur"
+          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -240,11 +247,14 @@ function PiikCarouselSlideMedia({
   onMediaClick,
   style,
   className,
+  slideIndex = 0,
 }: {
   src: string
   onMediaClick?: (src: string) => void
   style?: React.CSSProperties
   className?: string
+  /** First slide can hint higher priority when carousel is above the fold. */
+  slideIndex?: number
 }) {
   const cn = className ?? 'cursor-zoom-in'
   if (src.endsWith('.mp4')) {
@@ -261,7 +271,19 @@ function PiikCarouselSlideMedia({
       />
     )
   }
-  return <img src={src} alt="" className={cn} style={style} onClick={() => onMediaClick?.(src)} />
+  return (
+    <OptimizedImage
+      src={src}
+      alt=""
+      className={cn}
+      style={style}
+      sizes={IMAGE_SIZES.carouselSlide80}
+      placeholder="blur"
+      quality={85}
+      priority={slideIndex === 0}
+      onClick={() => onMediaClick?.(src)}
+    />
+  )
 }
 
 export function PiikCaseStudyCarouselBlock({
@@ -365,6 +387,7 @@ export function PiikCaseStudyCarouselBlock({
                   >
                     <PiikCarouselSlideMedia
                       src={src}
+                      slideIndex={ci}
                       onMediaClick={onMediaClick}
                       className="cursor-zoom-in"
                       style={{
@@ -416,6 +439,7 @@ export function PiikCaseStudyCarouselBlock({
                   {src ? (
                     <PiikCarouselSlideMedia
                       src={src}
+                      slideIndex={ci}
                       onMediaClick={onMediaClick}
                       className="cursor-zoom-in"
                       style={{
@@ -507,6 +531,7 @@ export function PiikCaseStudyCarouselBlock({
               >
                 <PiikCarouselSlideMedia
                   src={src}
+                  slideIndex={ci}
                   onMediaClick={onMediaClick}
                   className="cursor-zoom-in"
                   style={{
@@ -567,6 +592,7 @@ export function PiikCaseStudyCarouselBlock({
             <PiikCarouselSlideMedia
               key={src + ci}
               src={src}
+              slideIndex={ci}
               onMediaClick={onMediaClick}
               className="cursor-zoom-in flex-shrink-0"
               style={{ width: '80%', height: 'auto', borderRadius: 0 }}
@@ -677,11 +703,15 @@ export function HomePiikCaseStudy({
         animate={heroState}
       >
         <motion.div variants={heroV.heroItem} className="overflow-hidden">
-          <img
+          <OptimizedImage
             key={isDark ? 'piik-thumb-dark' : 'piik-thumb-light'}
             src={isDark ? PIIK_HERO_THUMB_DARK : PIIK_HERO_THUMB_LIGHT}
             alt="Piik AI"
             className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+            quality={85}
           />
         </motion.div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { usePageTheme } from '../context/PageThemeContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 
 // ── Section data ───────────────────────────────────────────────────────────────
 
@@ -150,11 +151,14 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
             />
           ) : (
-            <img
+            <OptimizedImage
               src={src}
               alt=""
               className="rounded-none object-contain"
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
+              sizes={IMAGE_SIZES.lightbox}
+              priority
+              quality={85}
             />
           )}
         </motion.div>
@@ -184,10 +188,13 @@ export function MediaBlock({ src, onMediaClick }: { src: string; onMediaClick?: 
   if (src) {
     return (
       <div className="overflow-hidden rounded-none">
-        <img
+        <OptimizedImage
           src={src}
           alt=""
           className="w-full h-auto cursor-zoom-in"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          placeholder="blur"
+          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -225,13 +232,17 @@ export function CarouselBlock({ srcs, onMediaClick }: { srcs: string[]; onMediaC
           gap: 16,
         }}
       >
-        {srcs.map((src) => (
-          <img
+        {srcs.map((src, ci) => (
+          <OptimizedImage
             key={src}
             src={src}
             alt=""
             className="cursor-zoom-in flex-shrink-0"
             style={{ width: '80%', height: 'auto', borderRadius: 0 }}
+            sizes={IMAGE_SIZES.carouselSlide80}
+            placeholder="blur"
+            quality={85}
+            priority={ci === 0}
             onClick={() => onMediaClick?.(src)}
           />
         ))}
@@ -340,11 +351,15 @@ export function HovrProjectPage() {
         <div style={{ paddingTop: 32, paddingLeft: isMobile ? 0 : 10, paddingRight: isMobile ? 0 : undefined, paddingBottom: isMobile ? 'calc(50vh + 6rem + env(safe-area-inset-bottom, 0px))' : '50vh', fontFamily: 'Arial, sans-serif' }}>
 
           {/* Title image */}
-          <img
+          <OptimizedImage
             key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
             src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
             alt="HOVR Admin"
             style={{ width: '100%', maxWidth: 1000, height: 'auto', display: 'block', marginBottom: 30, borderRadius: 0 }}
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+            quality={85}
           />
 
           {/* Title */}
@@ -395,10 +410,13 @@ export function HovrProjectPage() {
           </div>
 
           {/* Process image */}
-          <img
+          <OptimizedImage
             src="/hovr/process.png"
             alt=""
             style={{ width: '100%', maxWidth: 1000, height: 'auto', marginTop: 50, marginBottom: 200, borderRadius: 0, cursor: 'zoom-in' }}
+            sizes={IMAGE_SIZES.caseStudyFull}
+            placeholder="blur"
+            quality={85}
             onClick={() => setSelectedMedia('/hovr/process.png')}
           />
 

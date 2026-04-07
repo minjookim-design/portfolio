@@ -1,6 +1,7 @@
 import React, { Fragment, useState, useEffect, useRef } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { usePageTheme } from '../context/PageThemeContext'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
@@ -110,11 +111,14 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
             />
           ) : (
-            <img
+            <OptimizedImage
               src={src}
               alt=""
               className="rounded-none object-contain"
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
+              sizes={IMAGE_SIZES.lightbox}
+              priority
+              quality={85}
             />
           )}
         </motion.div>
@@ -147,7 +151,15 @@ function MediaBlock({ src, onMediaClick, playbackRate }: { src: string; onMediaC
   if (src) {
     return (
       <div className="overflow-hidden rounded-none">
-        <img src={src} alt="" className="h-auto w-full cursor-zoom-in" onClick={() => onMediaClick?.(src)} />
+        <OptimizedImage
+          src={src}
+          alt=""
+          className="h-auto w-full cursor-zoom-in"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          placeholder="blur"
+          quality={85}
+          onClick={() => onMediaClick?.(src)}
+        />
       </div>
     )
   }
@@ -886,11 +898,15 @@ export function HomeJojoCaseStudy({
   return (
     <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
       <div className="mb-[150px] w-full">
-        <img
+        <OptimizedImage
           key={isDark ? 'jojo-thumb-dark' : 'jojo-thumb-light'}
           src={isDark ? JOJO_HERO_THUMB_DARK : JOJO_HERO_THUMB_LIGHT}
           alt="JoJo"
           className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          priority
+          placeholder="blur"
+          quality={85}
         />
         <h1 className="mb-2 mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">JoJo</h1>
         <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[20px] font-bold italic leading-tight`}>Think Beyond AI</p>
@@ -917,10 +933,13 @@ export function HomeJojoCaseStudy({
               allowFullScreen
             />
           </div>
-          <img
+          <OptimizedImage
             src="/jojo/timeline.jpg"
             alt=""
             className="mt-6 block h-auto w-full max-w-full cursor-zoom-in rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            placeholder="blur"
+            quality={85}
             onClick={() => onMediaClick('/jojo/timeline.jpg')}
           />
         </div>

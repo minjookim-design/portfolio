@@ -22,6 +22,7 @@ import { HomeArFittingCaseStudy } from './ArFittingProjectPage'
 import { AR_FITTING_SECTIONS, AR_FITTING_THUMB_LIGHT, AR_FITTING_THUMB_DARK } from './arFittingHomeData'
 import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
+import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import {
@@ -347,11 +348,15 @@ function HomeHovrCaseStudy({
         animate={heroState}
       >
         <motion.div variants={heroV.heroItem} className="overflow-hidden">
-          <img
+          <OptimizedImage
             key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
             src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
             alt="HOVR Admin"
             className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+            quality={85}
           />
         </motion.div>
 
@@ -382,10 +387,13 @@ function HomeHovrCaseStudy({
               </Fragment>
             ))}
           </div>
-          <img
+          <OptimizedImage
             src="/hovr/timeline.jpg"
             alt=""
             className="mt-6 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            placeholder="blur"
+            quality={85}
             onClick={() => onMediaClick('/hovr/timeline.jpg')}
           />
         </motion.div>
@@ -1050,14 +1058,15 @@ export function HomePage() {
                   role="img"
                   aria-label="Minjoo"
                 >
-                  <img
+                  <OptimizedImage
                     src="/me/me1.png"
                     alt=""
                     className="pointer-events-none block h-auto w-full rounded-[10px] opacity-0"
                     draggable={false}
                     aria-hidden
+                    sizes={IMAGE_SIZES.homeIntroPhoto}
                   />
-                  <img
+                  <OptimizedImage
                     src="/me/me1.png"
                     alt=""
                     draggable={false}
@@ -1065,8 +1074,11 @@ export function HomePage() {
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 1 ? 'opacity-100' : 'opacity-0'
                     }`}
+                    sizes={IMAGE_SIZES.homeIntroPhoto}
+                    placeholder="blur"
+                    quality={85}
                   />
-                  <img
+                  <OptimizedImage
                     src="/me/me2.png"
                     alt=""
                     draggable={false}
@@ -1074,6 +1086,9 @@ export function HomePage() {
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 2 ? 'opacity-100' : 'opacity-0'
                     }`}
+                    sizes={IMAGE_SIZES.homeIntroPhoto}
+                    placeholder="blur"
+                    quality={85}
                   />
                 </div>
               </motion.div>
@@ -1141,7 +1156,14 @@ export function HomePage() {
                   </Fragment>
                 ))}
               </div>
-              <img src="/me/gradphoto-portfolio.jpg" alt="" className="block h-auto w-full" />
+              <OptimizedImage
+                src="/me/gradphoto-portfolio.jpg"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+                quality={85}
+              />
             </div>
           </div>
 
@@ -1151,9 +1173,30 @@ export function HomePage() {
               Cats · Travel · Mechanical keyboards · Drawing & Painting · K-Drama
             </p>
             <div className="flex w-full flex-col gap-0">
-              <img src="/me/cat.jpg" alt="" className="block h-auto w-full" />
-              <img src="/me/2.jpg" alt="" className="block h-auto w-full" />
-              <img src="/me/3.jpg" alt="" className="block h-auto w-full" />
+              <OptimizedImage
+                src="/me/cat.jpg"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+                quality={85}
+              />
+              <OptimizedImage
+                src="/me/2.jpg"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+                quality={85}
+              />
+              <OptimizedImage
+                src="/me/3.jpg"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+                quality={85}
+              />
             </div>
           </div>
           </motion.div>
@@ -1384,11 +1427,14 @@ export function HomePage() {
                     autoPlay
                   />
                 ) : (
-                  <img
+                  <OptimizedImage
                     key={genericHeroImgSrc}
                     src={genericHeroImgSrc}
                     alt=""
                     className="h-full w-full object-cover"
+                    sizes={IMAGE_SIZES.caseStudyFull}
+                    placeholder="blur"
+                    quality={85}
                   />
                 )}
               </motion.div>
