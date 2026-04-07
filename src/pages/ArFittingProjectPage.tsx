@@ -1,8 +1,8 @@
-import React, { Fragment, useState, useEffect, useRef } from 'react'
+import React, { Fragment, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { Lightbox } from './HovrProjectPage'
@@ -12,6 +12,7 @@ import {
   AR_FITTING_THUMB_LIGHT,
   AR_FITTING_THUMB_DARK,
 } from './arFittingHomeData'
+import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 /** Match `HomePage` third-column case study typography (same as Piik). */
 const AR_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
@@ -19,6 +20,26 @@ const AR_HOME_META_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[16px] leading-tigh
 const AR_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
 const AR_HOME_SECTION_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
 const AR_HOME_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
+
+function arSectionBodyParagraphLeadClass(
+  section: { heading?: string; bodyLeadParagraphIndices?: number[] },
+  paragraphIndex: number,
+): string {
+  const hasHeading = Boolean(section.heading && String(section.heading).trim() !== '')
+  const indices = section.bodyLeadParagraphIndices
+  if (Array.isArray(indices) && indices.length > 0) {
+    return !hasHeading && indices.includes(paragraphIndex) ? AR_HOME_SECTION_LABEL_CLASS : ''
+  }
+  return !hasHeading && paragraphIndex === 0 ? AR_HOME_SECTION_LABEL_CLASS : ''
+}
+
+function arSectionBodyParagraphFollowClass(
+  section: { heading?: string },
+  paragraphIndex: number,
+): string {
+  const hasHeading = Boolean(section.heading && String(section.heading).trim() !== '')
+  return hasHeading && paragraphIndex === 0 ? '-mt-[10px]' : ''
+}
 
 // ── Media block ────────────────────────────────────────────────────────────────
 
@@ -59,6 +80,64 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
       className="w-full rounded-none bg-white/20 backdrop-blur-xl border border-white/40"
       style={{ height: 280 }}
     />
+  )
+}
+
+/** Primary media (left) + optional image/GIF (right). Row height follows the left asset; right scales to fit that height. */
+function ArCaseStudyMediaWithBeside({
+  primarySrc,
+  besideSrc,
+  gapPx,
+  onMediaClick,
+  playbackRate,
+}: {
+  primarySrc: string
+  besideSrc: string
+  gapPx: number
+  onMediaClick?: (src: string) => void
+  playbackRate?: number
+}) {
+  const leftWrapRef = useRef<HTMLDivElement>(null)
+  const [leftHeightPx, setLeftHeightPx] = useState<number | undefined>(undefined)
+
+  useLayoutEffect(() => {
+    const el = leftWrapRef.current
+    if (!el) return
+    const sync = () => setLeftHeightPx(el.getBoundingClientRect().height)
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [primarySrc, besideSrc])
+
+  return (
+    <div className="flex min-w-0 w-full flex-row items-start" style={{ gap: gapPx }}>
+      <div ref={leftWrapRef} className="min-w-0 flex-1 basis-0">
+        <PiikCaseStudyMediaBlock
+          src={primarySrc}
+          onMediaClick={onMediaClick}
+          playbackRate={playbackRate}
+        />
+      </div>
+      <div
+        className="flex w-fit max-w-full shrink-0 items-center justify-center overflow-hidden rounded-none"
+        style={leftHeightPx != null && leftHeightPx > 0 ? { height: leftHeightPx } : undefined}
+      >
+        <OptimizedImage
+          src={besideSrc}
+          alt=""
+          className="h-full w-auto max-h-full max-w-full cursor-zoom-in object-contain"
+          sizes={IMAGE_SIZES.caseStudyFull}
+          placeholder="blur"
+          quality={85}
+          onClick={() => onMediaClick?.(besideSrc)}
+          onLoad={() => {
+            const el = leftWrapRef.current
+            if (el) setLeftHeightPx(el.getBoundingClientRect().height)
+          }}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -160,6 +239,125 @@ export function PiikCaseStudyPhoneCarousel({ srcs, captions, onMediaClick }: { s
   )
 }
 
+type ArFittingCaseStudySub = {
+  heading?: React.ReactNode
+  body?: string
+  subheading?: string
+  bodyStyle?: React.CSSProperties
+  media?: string
+  mediaAbove?: string
+  mediaAboveMarginBottomPx?: number
+  mediaBeside?: { src: string; gapPx?: number }
+  mediaPlaybackRate?: number
+  phoneCarousel?: { srcs: string[]; captions: PhoneCaption[] }
+  postContent?: { heading?: React.ReactNode; body?: string; media?: string }[]
+}
+
+function ArFittingHomeSubContent({
+  sub,
+  onMediaClick,
+  sectionId,
+  subIndex,
+}: {
+  sub: ArFittingCaseStudySub
+  onMediaClick: (src: string) => void
+  sectionId: string
+  subIndex: number
+}) {
+  const mtClass = subIndex === 2 && sectionId !== 'user-testings' ? 'mt-10' : ''
+  return (
+    <div className={`flex flex-col gap-4 ${mtClass}`}>
+      {sub.mediaAbove ? (
+        <div
+          style={
+            typeof sub.mediaAboveMarginBottomPx === 'number'
+              ? { marginBottom: sub.mediaAboveMarginBottomPx }
+              : undefined
+          }
+        >
+          <PiikCaseStudyMediaBlock
+            src={sub.mediaAbove}
+            onMediaClick={onMediaClick}
+            playbackRate={sub.mediaPlaybackRate}
+          />
+        </div>
+      ) : null}
+      {sub.heading && <p className={AR_HOME_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+      {sub.subheading != null && sub.subheading !== '' && (
+        <p className={`${AR_HOME_SECTION_LABEL_CLASS}${sub.heading ? ' -mt-[10px]' : ''}`}>
+          {sub.subheading}
+        </p>
+      )}
+      {sub.body &&
+        sub.body.split('\n\n').map((para, pi) => {
+          if (!para) return null
+          const subHasTitle =
+            Boolean(sub.heading) || Boolean(sub.subheading != null && sub.subheading !== '')
+          const leadClass = !subHasTitle && pi === 0 ? AR_HOME_SECTION_LABEL_CLASS : ''
+          const followClass = subHasTitle && pi === 0 ? '-mt-[10px]' : ''
+          return (
+            <p
+              key={pi}
+              className={[leadClass, followClass].filter(Boolean).join(' ') || undefined}
+              style={sub.bodyStyle}
+            >
+              {para}
+            </p>
+          )
+        })}
+      {sub.media &&
+        (sub.mediaBeside?.src ? (
+          <ArCaseStudyMediaWithBeside
+            primarySrc={sub.media}
+            besideSrc={sub.mediaBeside.src}
+            gapPx={sub.mediaBeside.gapPx ?? 10}
+            onMediaClick={onMediaClick}
+            playbackRate={sub.mediaPlaybackRate}
+          />
+        ) : (
+          <PiikCaseStudyMediaBlock
+            src={sub.media}
+            onMediaClick={onMediaClick}
+            playbackRate={sub.mediaPlaybackRate}
+          />
+        ))}
+      {sub.phoneCarousel ? (
+        <PiikCaseStudyPhoneCarousel
+          srcs={sub.phoneCarousel.srcs}
+          captions={sub.phoneCarousel.captions}
+          onMediaClick={onMediaClick}
+        />
+      ) : null}
+      {sub.postContent?.map((pc, pi) => (
+        <Fragment key={pi}>
+          {pc.heading && <p className={`mt-20 ${AR_HOME_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+          {pc.body &&
+            pc.body.split('\n\n').map((para, ri) => {
+              if (!para) return null
+              const hasPcHeading = Boolean(pc.heading)
+              return (
+                <p
+                  key={ri}
+                  className={
+                    [
+                      !hasPcHeading && ri === 0 ? `mt-10 ${AR_HOME_SECTION_LABEL_CLASS}` : '',
+                      hasPcHeading && ri === 0 ? '-mt-[10px]' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  }
+                >
+                  {para}
+                </p>
+              )
+            })}
+          {pc.media && <PiikCaseStudyMediaBlock src={pc.media} onMediaClick={onMediaClick} />}
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
 // ── Home (/) third column — same case study content as ArFittingProjectPage ─────────
 
 function arSectionNavLabel(s: (typeof AR_FITTING_SECTIONS)[number]): string {
@@ -171,33 +369,67 @@ export function HomeArFittingCaseStudy({
   isMobile,
   sectionRefs,
   onMediaClick,
+  entranceActive,
+  reduceMotion,
+  onHeroEntranceComplete,
 }: {
   isDark: boolean
   isMobile: boolean
   sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
   onMediaClick: (src: string) => void
+  entranceActive: boolean
+  reduceMotion: boolean
+  onHeroEntranceComplete?: () => void
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroState = entranceActive ? 'visible' : 'hidden'
+  const heroInitial = reduceMotion ? false : 'hidden'
 
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
-      <div className="mb-[150px] w-full">
-        <OptimizedImage
-          key={isDark ? 'ar-thumb-dark' : 'ar-thumb-light'}
-          src={isDark ? AR_FITTING_THUMB_DARK : AR_FITTING_THUMB_LIGHT}
-          alt="AR Fitting Room"
-          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
-          sizes={IMAGE_SIZES.caseStudyFull}
-          priority
-          placeholder="blur"
-          quality={85}
-        />
-        <h1 className="mb-[10px] mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">
+    <div
+      ref={rootRef}
+      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
+      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
+    >
+      <motion.div
+        className="mb-[150px] w-full"
+        variants={heroV.heroContainer}
+        initial={heroInitial}
+        animate={heroState}
+      >
+        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+          <OptimizedImage
+            key={isDark ? 'ar-thumb-dark' : 'ar-thumb-light'}
+            src={isDark ? AR_FITTING_THUMB_DARK : AR_FITTING_THUMB_LIGHT}
+            alt="AR Fitting Room"
+            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+            quality={85}
+          />
+        </motion.div>
+
+        <motion.h1
+          variants={heroV.heroItem}
+          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+        >
           AR Fitting Room
-        </h1>
-        <p className={`mb-[26px] mt-0 ${AR_HOME_META_BODY_CLASS}`}>Product Design · Accessibility Design</p>
-        <div className="flex w-full flex-col gap-y-2">
+        </motion.h1>
+
+        <motion.p variants={heroV.heroItem} className={`mb-[26px] mt-0 ${AR_HOME_META_BODY_CLASS}`}>
+          Award-winning · Product Design · Accessibility Design
+        </motion.p>
+
+        <motion.div
+          variants={heroV.heroItem}
+          className="flex w-full flex-col gap-y-2"
+          onAnimationComplete={() => {
+            if (entranceActive) onHeroEntranceComplete?.()
+          }}
+        >
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${AR_HOME_META_LABEL_CLASS}`}>{AR_FITTING_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${AR_HOME_META_BODY_CLASS}`}>{AR_FITTING_META_ROWS[0].value}</span>
@@ -211,8 +443,8 @@ export function HomeArFittingCaseStudy({
               </Fragment>
             ))}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {AR_FITTING_SECTIONS.map((section, i) => (
         <motion.div
@@ -246,88 +478,43 @@ export function HomeArFittingCaseStudy({
             >
               {'subSections' in section && section.subSections ? (
                 <div className="flex flex-col gap-10">
-                  {(
-                    section.subSections as {
-                      heading?: React.ReactNode
-                      body?: string
-                      subheading?: string
-                      bodyStyle?: React.CSSProperties
-                      media?: string
-                      mediaPlaybackRate?: number
-                      phoneCarousel?: { srcs: string[]; captions: PhoneCaption[] }
-                      postContent?: { heading?: React.ReactNode; body?: string; media?: string }[]
-                    }[]
-                  ).map((sub, si) => (
-                    <div key={si} className={`flex flex-col gap-4 ${si === 2 && section.id !== 'user-testings' ? 'mt-10' : ''}`}>
-                      {sub.heading && <p className={AR_HOME_SECTION_LABEL_CLASS}>{sub.heading}</p>}
-                      {sub.subheading != null && sub.subheading !== '' && (
-                        <p
-                          className={`${AR_HOME_SECTION_LABEL_CLASS}${sub.heading ? ' -mt-[10px]' : ''}`}
-                        >
-                          {sub.subheading}
-                        </p>
-                      )}
-                      {sub.body &&
-                        sub.body.split('\n\n').map((para, pi) => (
-                          <p
-                            key={pi}
-                            className={
-                              (sub.heading || (sub.subheading != null && sub.subheading !== '')) && pi === 0
-                                ? '-mt-[10px]'
-                                : undefined
-                            }
-                            style={sub.bodyStyle}
-                          >
-                            {para}
-                          </p>
-                        ))}
-                      {sub.media && (
-                        <PiikCaseStudyMediaBlock
-                          src={sub.media}
-                          onMediaClick={onMediaClick}
-                          playbackRate={sub.mediaPlaybackRate}
-                        />
-                      )}
-                      {sub.phoneCarousel ? (
-                        <PiikCaseStudyPhoneCarousel
-                          srcs={sub.phoneCarousel.srcs}
-                          captions={sub.phoneCarousel.captions}
-                          onMediaClick={onMediaClick}
-                        />
-                      ) : null}
-                      {sub.postContent?.map((pc, pi) => (
-                        <Fragment key={pi}>
-                          {pc.heading && <p className={`mt-20 ${AR_HOME_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
-                          {pc.body &&
-                            pc.body.split('\n\n').map((para, ri) => (
-                              <p
-                                key={ri}
-                                className={
-                                  [
-                                    !pc.heading && ri === 0 ? 'mt-10' : '',
-                                    pc.heading && ri === 0 ? '-mt-[10px]' : '',
-                                  ]
-                                    .filter(Boolean)
-                                    .join(' ') || undefined
-                                }
-                              >
-                                {para}
-                              </p>
-                            ))}
-                          {pc.media && <PiikCaseStudyMediaBlock src={pc.media} onMediaClick={onMediaClick} />}
-                        </Fragment>
-                      ))}
-                    </div>
+                  {(section.subSections as ArFittingCaseStudySub[]).map((sub, si) => (
+                    <ArFittingHomeSubContent
+                      key={si}
+                      sub={sub}
+                      onMediaClick={onMediaClick}
+                      sectionId={section.id}
+                      subIndex={si}
+                    />
                   ))}
                 </div>
               ) : (
                 <>
-                  {section.heading && <p className={AR_HOME_SECTION_LABEL_CLASS}>{section.heading}</p>}
-                  {section.body.split('\n\n').map((para, idx) => (
-                    <p key={idx} className={section.heading && idx === 0 ? '-mt-[10px]' : undefined}>
-                      {para}
-                    </p>
-                  ))}
+                  {section.heading && String(section.heading).trim() !== '' && (
+                    <p className={AR_HOME_SECTION_LABEL_CLASS}>{section.heading}</p>
+                  )}
+                  {section.body.split('\n\n').map((para, idx) => {
+                    if (!para) return null
+                    const leadClass = arSectionBodyParagraphLeadClass(section, idx)
+                    const followClass = arSectionBodyParagraphFollowClass(section, idx)
+                    const midSrc =
+                      'midMedia' in section && section.midMedia ? String(section.midMedia) : ''
+                    const midAfter =
+                      'midMediaAfterParagraphIndex' in section &&
+                      typeof section.midMediaAfterParagraphIndex === 'number'
+                        ? section.midMediaAfterParagraphIndex
+                        : -1
+                    return (
+                      <Fragment key={idx}>
+                        <p className={[leadClass, followClass].filter(Boolean).join(' ') || undefined}>
+                          {para}
+                        </p>
+                        {midSrc && midAfter === idx ? (
+                          <PiikCaseStudyMediaBlock src={midSrc} onMediaClick={onMediaClick} />
+                        ) : null}
+                      </Fragment>
+                    )
+                  })}
                   {Array.isArray(section.media)
                     ? section.media.map((m) => <PiikCaseStudyMediaBlock key={m} src={m} onMediaClick={onMediaClick} />)
                     : section.media && <PiikCaseStudyMediaBlock src={section.media} onMediaClick={onMediaClick} />}
@@ -367,17 +554,27 @@ export function ArFittingProjectPage() {
   const bgColor = useTransform(goalProgress, [0, 1], ['#3D4E6D', '#E8E8E8'])
 
   // sectionRefs[0] = hero, sectionRefs[1..N] = AR_FITTING_SECTIONS
-  const { setIsDark } = usePageTheme()
+  const { isDark: themeIsDark, setIsDark } = usePageTheme()
+  const reduceMotion = useReducedMotion()
   const sectionRefs   = useRef<(HTMLDivElement | null)[]>([])
+  const mobileArSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const scrollSpyRef  = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
 
-  // Sync isDark to global context
-  useEffect(() => { setIsDark(isDark) }, [isDark, setIsDark])
-  useEffect(() => { return () => setIsDark(true) }, [setIsDark])
+  // AR Fitting Room opens in light mode (mobile rail + desktop hero); scroll can still darken in-page on desktop.
+  useLayoutEffect(() => {
+    setIsDark(false)
+  }, [setIsDark])
 
-  // Force body/html transparent so fixed backgrounds show through
+  // Sync scroll-driven dark sections to global context (desktop only — mobile uses home-style rail + theme toggle).
   useEffect(() => {
+    if (isMobile) return
+    setIsDark(isDark)
+  }, [isMobile, isDark, setIsDark])
+
+  // Force body/html transparent so fixed backgrounds show through (desktop AR page only).
+  useEffect(() => {
+    if (isMobile) return
     const root = document.getElementById('root') as HTMLElement | null
     const appWrapper = root?.firstElementChild as HTMLElement | null
     document.body.style.backgroundColor = 'transparent'
@@ -390,7 +587,7 @@ export function ArFittingProjectPage() {
       if (root) root.style.backgroundColor = ''
       if (appWrapper) appWrapper.style.backgroundColor = ''
     }
-  }, [])
+  }, [isMobile])
 
   useEffect(() => {
     const check = () => setSpyRight(window.innerWidth < 1700 ? 16 : colRight)
@@ -445,8 +642,9 @@ export function ArFittingProjectPage() {
         ? (() => { const c = overviewEl.offsetTop + overviewEl.offsetHeight / 2; return c >= bandTop && c <= bandBottom })()
         : false
       const problemsEl = sectionRefs.current[3]
+      // Ideation merged into Solution Sketch; challenge is now ref[6], final-solution ref[8]
       const researchEl = sectionRefs.current[6]
-      const finalEl    = sectionRefs.current[9]
+      const finalEl = sectionRefs.current[8]
       let inDark = false
       if (problemsEl && researchEl && finalEl) {
         const overlayStart = problemsEl.offsetTop - vh * 0.4
@@ -478,6 +676,34 @@ export function ArFittingProjectPage() {
     // Target: content label lands at bandTop (40%), so scrollTop = el.offsetTop + 0.3vh - 0.4vh
     const targetScrollTop = el.offsetTop - vh * 0.1
     container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
+  }
+
+  const mobileArText = themeIsDark ? 'text-[#FFFFFF]' : 'text-black'
+
+  if (isMobile) {
+    return (
+      <>
+        <div
+          className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
+            themeIsDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+          } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+        >
+          <div
+            className={`theme-surface-transition relative z-0 flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden pl-[6px] md:pl-[10px] ${mobileArText}`}
+          >
+            <HomeArFittingCaseStudy
+              isDark={themeIsDark}
+              isMobile={isMobile}
+              sectionRefs={mobileArSectionRefs}
+              onMediaClick={setSelectedMedia}
+              entranceActive
+              reduceMotion={Boolean(reduceMotion)}
+            />
+          </div>
+        </div>
+        {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
+      </>
+    )
   }
 
   return (
@@ -514,9 +740,7 @@ export function ArFittingProjectPage() {
       <div
         ref={scrollRef}
         className="absolute overflow-y-auto"
-        style={isMobile
-          ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
-          : isMedium
+        style={isMedium
           ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
           : isNarrow
           ? { left: '50%', transform: 'translateX(-50%)', width: 'min(800px, calc(100% - 80px))', right: 'auto', top: 0, bottom: 0, position: 'absolute', zIndex: 1 }
@@ -526,9 +750,9 @@ export function ArFittingProjectPage() {
         <div
           style={{
             paddingTop: 0,
-            paddingLeft: isMobile ? 0 : 10,
-            paddingRight: isMobile ? 0 : undefined,
-            paddingBottom: isMobile ? 'max(6rem, calc(4rem + env(safe-area-inset-bottom, 0px)))' : 0,
+            paddingLeft: 10,
+            paddingRight: undefined,
+            paddingBottom: 0,
             fontFamily: 'Arial, sans-serif',
           }}
         >
@@ -543,12 +767,12 @@ export function ArFittingProjectPage() {
               justifyContent: 'center',
               alignItems:     'flex-start',
               textAlign:      'left',
-              padding:        isMobile ? 16 : 40,
+              padding:        40,
             }}
           >
             <h1
               style={{
-                fontSize:     isMobile ? 'clamp(1.75rem, 8vw, 2.75rem)' : 100,
+                fontSize:     100,
                 fontWeight:   800,
                 lineHeight:   1,
                 color:        '#000000',
@@ -562,7 +786,7 @@ export function ArFittingProjectPage() {
             <p
               style={{
                 fontFamily: 'Arial, sans-serif',
-                fontSize: isMobile ? 14 : 16,
+                fontSize: 16,
                 fontWeight: 700,
                 lineHeight: '20px',
                 color: '#000000',
@@ -570,16 +794,16 @@ export function ArFittingProjectPage() {
                 marginBottom: 20,
               }}
             >
-              Product Design · Accessibility Design
+              Award-winning · Product Design · Accessibility Design
             </p>
 
             <div
               style={{
                 display:             'grid',
-                gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'auto 1fr',
-                columnGap:           isMobile ? 12 : 28,
-                rowGap:              isMobile ? 4 : undefined,
-                fontSize:            isMobile ? 13 : 14,
+                gridTemplateColumns: 'auto 1fr',
+                columnGap:           28,
+                rowGap:              undefined,
+                fontSize:            14,
                 lineHeight:          '20px',
                 color:               '#000000',
                 alignItems:          'start',
@@ -588,14 +812,14 @@ export function ArFittingProjectPage() {
               }}
             >
               <React.Fragment key={AR_FITTING_META_ROWS[0].label}>
-                <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: 8 }}>{AR_FITTING_META_ROWS[0].label}</span>
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: 8 }}>{AR_FITTING_META_ROWS[0].label}</span>
                 <span style={{ fontWeight: 700, paddingBottom: 8, wordBreak: 'break-word' }}>{AR_FITTING_META_ROWS[0].value}</span>
               </React.Fragment>
               <div style={{ paddingTop: 10 }} />
               <div style={{ paddingTop: 10 }} />
               {AR_FITTING_META_ROWS.slice(1).map(({ label, value }, i) => (
                 <React.Fragment key={label}>
-                  <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: i < AR_FITTING_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
+                  <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: i < AR_FITTING_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
                   <span style={{ fontWeight: 700, paddingBottom: i < AR_FITTING_META_ROWS.length - 2 ? 8 : 0, wordBreak: 'break-word' }}>{value}</span>
                 </React.Fragment>
               ))}
@@ -625,16 +849,16 @@ export function ArFittingProjectPage() {
                     flexDirection: 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    isMobile ? '12vh' : '30vh',
-                    paddingBottom: isMobile ? '12vh' : '30vh',
+                    paddingTop:    '30vh',
+                    paddingBottom: '30vh',
                     color:         isDark ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
                     {section.label}
                   </p>
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: isMobile ? 16 : 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
                     {section.heading}
                   </p>
                   {section.body
@@ -655,6 +879,17 @@ export function ArFittingProjectPage() {
                         </p>
                       ))
                     : null}
+                  {Array.isArray(section.media)
+                    ? section.media.map((m) => (
+                        <div key={m} style={{ marginTop: '1.5rem', maxWidth: '800px', width: '100%' }}>
+                          <PiikCaseStudyMediaBlock src={m} onMediaClick={setSelectedMedia} />
+                        </div>
+                      ))
+                    : section.media ? (
+                        <div style={{ marginTop: '1.5rem', maxWidth: '800px', width: '100%' }}>
+                          <PiikCaseStudyMediaBlock src={section.media} onMediaClick={setSelectedMedia} />
+                        </div>
+                      ) : null}
                 </motion.div>
               ) : (
                 <motion.div
@@ -667,28 +902,49 @@ export function ArFittingProjectPage() {
                     flexDirection: (!isNarrow && section.id !== 'goal' && section.id !== 'user-testings' && section.id !== 'final-solution') ? 'row' : 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    isMobile ? '12vh' : '30vh',
+                    paddingTop:    '30vh',
                     paddingBottom:
-                      section.id === 'final-solution'
-                        ? isMobile
-                          ? 'calc(12vh + 120px)'
-                          : 'calc(30vh + 200px)'
-                        : isMobile
-                          ? '12vh'
-                          : '30vh',
+                      section.id === 'final-solution' ? 'calc(30vh + 200px)' : '30vh',
                     color:         (section.id === 'user-testings' || section.id === 'final-solution') ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                     gap:           (!isNarrow && section.id !== 'goal' && section.id !== 'user-testings' && section.id !== 'final-solution') ? 60 : '1.5rem',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? (isMobile ? 32 : 56) : isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? (isMobile ? 40 : 100) : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'goal' && section.id !== 'user-testings' && section.id !== 'final-solution') ? 200 : undefined }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? 56 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? 100 : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'goal' && section.id !== 'user-testings' && section.id !== 'final-solution') ? 200 : undefined }}>
                     {section.label}
                   </p>
 
                   {'subSections' in section && section.subSections ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 40, flex: 1 }}>
-                      {(section.subSections as { heading: React.ReactNode; body: string; media: string }[]).map((sub, si) => (
+                      {(section.subSections as {
+                        heading: React.ReactNode
+                        body: string
+                        media: string
+                        mediaAbove?: string
+                        mediaAboveMarginBottomPx?: number
+                        mediaBeside?: { src: string; gapPx?: number }
+                        subheading?: string
+                        bodyStyle?: React.CSSProperties
+                        mediaPlaybackRate?: number
+                        phoneCarousel?: { srcs: string[]; captions: PhoneCaption[] }
+                        postContent?: { heading?: React.ReactNode; body?: string; media?: string }[]
+                      }[]).map((sub, si) => (
                         <div key={si} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          {sub.mediaAbove ? (
+                            <div
+                              style={
+                                typeof sub.mediaAboveMarginBottomPx === 'number'
+                                  ? { marginBottom: sub.mediaAboveMarginBottomPx }
+                                  : undefined
+                              }
+                            >
+                              <PiikCaseStudyMediaBlock
+                                src={sub.mediaAbove}
+                                onMediaClick={setSelectedMedia}
+                                playbackRate={'mediaPlaybackRate' in sub ? sub.mediaPlaybackRate as number : undefined}
+                              />
+                            </div>
+                          ) : null}
                           {sub.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{sub.heading}</p>}
                           {'subheading' in sub && sub.subheading != null && (
                             <p
@@ -705,7 +961,22 @@ export function ArFittingProjectPage() {
                           {sub.body && sub.body.split('\n\n').map((para, pi) => (
                             <p key={pi} style={{ fontWeight: 400, margin: 0, ...('bodyStyle' in sub ? sub.bodyStyle as React.CSSProperties : {}) }}>{para}</p>
                           ))}
-                          {sub.media && <PiikCaseStudyMediaBlock src={sub.media} onMediaClick={setSelectedMedia} playbackRate={'mediaPlaybackRate' in sub ? sub.mediaPlaybackRate as number : undefined} />}
+                          {sub.media &&
+                            (sub.mediaBeside?.src ? (
+                              <ArCaseStudyMediaWithBeside
+                                primarySrc={sub.media}
+                                besideSrc={sub.mediaBeside.src}
+                                gapPx={sub.mediaBeside.gapPx ?? 10}
+                                onMediaClick={setSelectedMedia}
+                                playbackRate={'mediaPlaybackRate' in sub ? sub.mediaPlaybackRate as number : undefined}
+                              />
+                            ) : (
+                              <PiikCaseStudyMediaBlock
+                                src={sub.media}
+                                onMediaClick={setSelectedMedia}
+                                playbackRate={'mediaPlaybackRate' in sub ? sub.mediaPlaybackRate as number : undefined}
+                              />
+                            ))}
                           {'phoneCarousel' in sub && sub.phoneCarousel ? (
                             <PiikCaseStudyPhoneCarousel
                               srcs={(sub.phoneCarousel as { srcs: string[]; captions: PhoneCaption[] }).srcs}
@@ -728,9 +999,35 @@ export function ArFittingProjectPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
                       {section.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{section.heading}</p>}
-                      {section.body.split('\n\n').map((para, pi) => (
-                        <p key={pi} style={{ fontWeight: 400, margin: 0 }}>{para}</p>
-                      ))}
+                      {section.body.split('\n\n').map((para, pi) => {
+                        const leadClass = arSectionBodyParagraphLeadClass(section, pi)
+                        const midSrc =
+                          'midMedia' in section && section.midMedia ? String(section.midMedia) : ''
+                        const midAfter =
+                          'midMediaAfterParagraphIndex' in section &&
+                          typeof section.midMediaAfterParagraphIndex === 'number'
+                            ? section.midMediaAfterParagraphIndex
+                            : -1
+                        return (
+                          <Fragment key={pi}>
+                            <p
+                              className={leadClass || undefined}
+                              style={
+                                leadClass
+                                  ? { margin: 0 }
+                                  : { fontWeight: 400, fontSize: 16, lineHeight: '22px', margin: 0 }
+                              }
+                            >
+                              {para}
+                            </p>
+                            {midSrc && midAfter === pi ? (
+                              <div style={{ maxWidth: '800px', width: '100%' }}>
+                                <PiikCaseStudyMediaBlock src={midSrc} onMediaClick={setSelectedMedia} />
+                              </div>
+                            ) : null}
+                          </Fragment>
+                        )
+                      })}
                       {Array.isArray(section.media)
                         ? section.media.map((m) => <PiikCaseStudyMediaBlock key={m} src={m} onMediaClick={setSelectedMedia} />)
                         : section.media && <PiikCaseStudyMediaBlock src={section.media} onMediaClick={setSelectedMedia} />}
@@ -749,7 +1046,6 @@ export function ArFittingProjectPage() {
         ref={scrollSpyRef}
         className="fixed top-1/2 -translate-y-1/2 flex flex-col items-end gap-3 not-italic"
         style={{
-          display:    isMobile ? 'none' : undefined,
           right:      spyRight,
           fontSize:   14,
           lineHeight: '16px',

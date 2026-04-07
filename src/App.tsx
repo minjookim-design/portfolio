@@ -5,6 +5,10 @@ import { usePrefersReducedMotion } from './components/HomeIntroScrambleText'
 import { usePageTheme } from './context/PageThemeContext'
 import { useHomeFooterAttribution } from './context/HomeFooterAttributionContext'
 import { ThemeToggle } from './components/PillNav'
+import { MobileProjectBackButton } from './components/MobileProjectBackButton'
+import { MobileQuickNav } from './components/MobileQuickNav'
+import { HomeMobileProjectProvider } from './context/HomeMobileProjectContext'
+import { useRedirectHomeWhenDesktop } from './hooks/useRedirectHomeWhenDesktop'
 import { HomePage } from './pages/HomePage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { HovrProjectPage } from './pages/HovrProjectPage'
@@ -12,6 +16,13 @@ import { JojoProjectPage } from './pages/JojoProjectPage'
 import { PiikProjectPage } from './pages/PiikProjectPage'
 import { ArFittingProjectPage } from './pages/ArFittingProjectPage'
 import { ProjectBmadPage } from './pages/ProjectBmadPage'
+
+/** Standalone `/projects/*` case studies: mobile only; desktop redirects before children mount. */
+function MobileOnlyCaseStudyRoute({ children }: { children: React.ReactNode }) {
+  const allow = useRedirectHomeWhenDesktop({ blockChildMountOnDesktop: true })
+  if (!allow) return null
+  return <>{children}</>
+}
 // scrambleCycles=20 × speed=35ms → 700ms per scramble (per user spec)
 // Nav + bio fade-in uses exact values from Figma: delay=2.2s, duration=0.7s
 const PHASE2_TRANSITION = {
@@ -124,7 +135,7 @@ function FooterEmail() {
 
   return (
     <motion.div
-      className="fixed z-[100] pointer-events-auto left-4 w-fit max-w-[min(100%,calc(100vw-2rem))] pt-4 max-md:bottom-[calc(16px+env(safe-area-inset-bottom,0px))] md:bottom-4"
+      className="fixed z-[100] pointer-events-auto left-4 w-fit max-w-[min(100%,calc(100vw-2rem))] pt-4 max-md:bottom-[max(1rem,env(safe-area-inset-bottom,0px))] md:bottom-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={PHASE2_TRANSITION}
@@ -190,21 +201,60 @@ function FooterEmail() {
 function AppShell() {
   const { isDark } = usePageTheme()
   return (
-    <div
-      className={`theme-surface-transition relative h-screen min-h-[100dvh] w-screen max-w-[100vw] overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
-    >
-      <ThemeToggle />
-      <FooterEmail />
-      <Routes>
-        <Route index element={<HomePage />} />
-        <Route path="projects" element={<ProjectsPage />} />
-        <Route path="projects/bmad" element={<ProjectBmadPage />} />
-        <Route path="projects/hovr" element={<HovrProjectPage />} />
-        <Route path="projects/jojo" element={<JojoProjectPage />} />
-        <Route path="projects/piik" element={<PiikProjectPage />} />
-        <Route path="projects/ar-fitting-room" element={<ArFittingProjectPage />} />
-      </Routes>
-    </div>
+    <HomeMobileProjectProvider>
+      <div
+        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
+      >
+        <MobileProjectBackButton />
+        <MobileQuickNav />
+        <ThemeToggle />
+        <FooterEmail />
+        <Routes>
+          <Route index element={<HomePage />} />
+          <Route path="projects" element={<ProjectsPage />} />
+          <Route
+            path="projects/bmad"
+            element={
+              <MobileOnlyCaseStudyRoute>
+                <ProjectBmadPage />
+              </MobileOnlyCaseStudyRoute>
+            }
+          />
+          <Route
+            path="projects/hovr"
+            element={
+              <MobileOnlyCaseStudyRoute>
+                <HovrProjectPage />
+              </MobileOnlyCaseStudyRoute>
+            }
+          />
+          <Route
+            path="projects/jojo"
+            element={
+              <MobileOnlyCaseStudyRoute>
+                <JojoProjectPage />
+              </MobileOnlyCaseStudyRoute>
+            }
+          />
+          <Route
+            path="projects/piik"
+            element={
+              <MobileOnlyCaseStudyRoute>
+                <PiikProjectPage />
+              </MobileOnlyCaseStudyRoute>
+            }
+          />
+          <Route
+            path="projects/ar-fitting-room"
+            element={
+              <MobileOnlyCaseStudyRoute>
+                <ArFittingProjectPage />
+              </MobileOnlyCaseStudyRoute>
+            }
+          />
+        </Routes>
+      </div>
+    </HomeMobileProjectProvider>
   )
 }
 

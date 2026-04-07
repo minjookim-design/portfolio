@@ -9,8 +9,16 @@ import {
 /** Keep in sync with the inline script in `index.html`. */
 export const THEME_STORAGE_KEY = 'portfolio-theme'
 
-function readInitialIsDark(): boolean {
+/** Matches `useIsNarrow(768)` / Tailwind `md` breakpoint (mobile = width ≤ 768px). */
+export const MOBILE_THEME_QUERY = '(max-width: 768px)'
+
+function isMobileViewport(): boolean {
   if (typeof window === 'undefined') return false
+  return window.matchMedia(MOBILE_THEME_QUERY).matches
+}
+
+/** Theme from storage + system — use when viewport is not mobile. */
+function readDesktopIsDarkFromStorage(): boolean {
   try {
     const raw = localStorage.getItem(THEME_STORAGE_KEY)
     if (raw === 'dark') return true
@@ -19,6 +27,13 @@ function readInitialIsDark(): boolean {
   } catch {
     return false
   }
+}
+
+function readInitialIsDark(): boolean {
+  if (typeof window === 'undefined') return false
+  // Mobile: always light on load (ignore saved dark / system).
+  if (isMobileViewport()) return false
+  return readDesktopIsDarkFromStorage()
 }
 
 export function applyDocumentTheme(isDark: boolean) {
@@ -54,6 +69,21 @@ export function PageThemeProvider({ children }: { children: React.ReactNode }) {
   useLayoutEffect(() => {
     applyDocumentTheme(isDark)
   }, [isDark])
+
+  // Keep mobile ≤768px in light mode; restore desktop preference when widening (from storage + system).
+  useLayoutEffect(() => {
+    const mq = window.matchMedia(MOBILE_THEME_QUERY)
+    const syncViewportTheme = () => {
+      if (mq.matches) {
+        setIsDarkState(false)
+      } else {
+        setIsDarkState(readDesktopIsDarkFromStorage())
+      }
+    }
+    syncViewportTheme()
+    mq.addEventListener('change', syncViewportTheme)
+    return () => mq.removeEventListener('change', syncViewportTheme)
+  }, [])
 
   const setIsDark = useCallback((v: boolean) => {
     setIsDarkState(v)

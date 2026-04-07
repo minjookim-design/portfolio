@@ -55,7 +55,6 @@ const PHASE2_TRANSITION = {
 const PROJECTS = [
   { id: 'hovr', label: 'HOVR', desc: '84.9% Faster Driver Approvals via OCR Automation' },
   { id: 'piikai', label: 'Piik AI', desc: '75% Support Ticket Drop through Behavioral Analysis' },
-  { id: 'jojo', label: 'JoJo', desc: 'Beyond Passive AI: Fostering Digital Balance & Critical Thinking' },
   { id: 'ar-fitting-room', label: 'AR-Fitting Room', desc: 'Award-Winning Accessible Design: AR Solution for Inclusive Fashion' },
 ]
 
@@ -66,7 +65,6 @@ export function PillNav() {
   const [isProjectsOpen, setIsProjectsOpen] = useState(false)
   const navRef = useRef<HTMLDivElement>(null)
   const isNarrow = useIsNarrow(1500)
-  const isMobile = useIsNarrow(768)
   const { isDark } = usePageTheme()
 
   const iconColor = isDark ? '#FFFFFF' : '#000000'
@@ -105,13 +103,11 @@ export function PillNav() {
   return (
     <div
       ref={navRef}
-      className={isMobile ? 'fixed z-[100]' : 'absolute top-1/2 -translate-y-1/2 z-[100]'}
-      style={isMobile ? { bottom: 16, left: 16, width: 'calc(100% - 32px)', zIndex: 9999 } : { left: isNarrow ? 16 : 'calc(8.33% + 15px)' }}
+      className="max-md:hidden absolute top-1/2 z-[100] -translate-y-1/2"
+      style={{ left: isNarrow ? 16 : 'calc(8.33% + 15px)' }}
     >
       <motion.div
-        className={`flex gap-[11px] p-[10px] rounded-[100px] backdrop-blur-xl border pointer-events-auto transition-none ${glassClass} ${
-          isMobile ? 'flex-row items-center justify-around' : 'flex-col'
-        }`}
+        className={`flex flex-col gap-[11px] p-[10px] rounded-[100px] backdrop-blur-xl border pointer-events-auto transition-none ${glassClass}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={PHASE2_TRANSITION}
@@ -131,14 +127,14 @@ export function PillNav() {
           <div
             key={item.label}
             className="relative"
-            onMouseEnter={() => !isMobile && setHoveredLabel(item.label)}
-            onMouseLeave={() => !isMobile && setHoveredLabel(null)}
+            onMouseEnter={() => setHoveredLabel(item.label)}
+            onMouseLeave={() => setHoveredLabel(null)}
           >
             <motion.button
               aria-label={item.label}
               className="flex items-center justify-center w-[50px] h-[50px] rounded-full"
               animate={{ backgroundColor: isActive ? 'rgba(128,128,128,0.15)' : 'rgba(0,0,0,0)' }}
-              whileHover={isMobile ? undefined : { scale: 1.1, backgroundColor: 'rgba(128,128,128,0.12)' }}
+              whileHover={{ scale: 1.1, backgroundColor: 'rgba(128,128,128,0.12)' }}
               whileTap={{ scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               onClick={() => {
@@ -165,22 +161,11 @@ export function PillNav() {
 
             {isProjects && isProjectsOpen && (
               <motion.div
-                className={
-                  isMobile
-                    ? `fixed left-3 right-3 z-[10001] max-h-[min(380px,50vh)] overflow-y-auto overscroll-contain backdrop-blur-xl border transition-none ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
-                    : `absolute top-0 left-[calc(100%+1rem)] backdrop-blur-xl border transition-none ${glassClass} rounded-[20px] p-[10px] flex flex-col gap-3`
-                }
-                style={
-                  isMobile
-                    ? {
-                        fontFamily: 'Arial, sans-serif',
-                        bottom: 'max(5.5rem, calc(4.25rem + env(safe-area-inset-bottom, 0px)))',
-                      }
-                    : { fontFamily: 'Arial, sans-serif', minWidth: 380 }
-                }
-                initial={isMobile ? { y: 12, opacity: 0 } : { x: -16, opacity: 0 }}
-                animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
-                exit={isMobile ? { y: 8, opacity: 0 } : { x: -8, opacity: 0 }}
+                className={`absolute top-0 left-[calc(100%+1rem)] z-[10001] flex max-h-[min(380px,70vh)] min-w-[380px] flex-col gap-3 overflow-y-auto overscroll-contain rounded-[20px] border p-[10px] backdrop-blur-xl transition-none ${glassClass}`}
+                style={{ fontFamily: 'Arial, sans-serif' }}
+                initial={{ x: -16, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -8, opacity: 0 }}
                 transition={{
                   duration: 0.35,
                   ease: 'easeOut',
@@ -190,7 +175,7 @@ export function PillNav() {
                   <motion.div
                     key={p.id}
                     className="flex flex-col gap-1 rounded-[10px] px-4 py-3"
-                    whileHover={isMobile ? undefined : { backgroundColor: 'rgba(128,128,128,0.12)' }}
+                    whileHover={{ backgroundColor: 'rgba(128,128,128,0.12)' }}
                     transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   >
                     <p style={{ fontSize: 14, lineHeight: '16px', fontWeight: 700, color: iconColor }}>{p.label}</p>

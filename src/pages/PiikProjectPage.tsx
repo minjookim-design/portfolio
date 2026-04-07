@@ -2,7 +2,7 @@ import React, { Fragment, useMemo, useState, useEffect, useLayoutEffect, useRef 
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
@@ -717,10 +717,14 @@ export function HomePiikCaseStudy({
 
         <motion.h1
           variants={heroV.heroItem}
-          className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
         >
           Piik AI
         </motion.h1>
+
+        <motion.p variants={heroV.heroItem} className={`mb-[26px] mt-0 ${PIIK_HOME_META_BODY_CLASS}`}>
+          Product Design · AI Knowledge Platform · Early-Stage Startup Team Member
+        </motion.p>
 
         <motion.div
           variants={heroV.heroItem}
@@ -925,17 +929,27 @@ export function PiikProjectPage() {
   const bgColor = useTransform(goalProgress, [0, 1], ['#3D4E6D', '#E8E8E8'])
 
   // sectionRefs[0] = hero, sectionRefs[1..N] = PIIK_SECTIONS
-  const { setIsDark } = usePageTheme()
+  const { isDark: themeIsDark, setIsDark } = usePageTheme()
+  const reduceMotion = useReducedMotion()
   const sectionRefs   = useRef<(HTMLDivElement | null)[]>([])
+  const mobilePiikSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const scrollSpyRef  = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
 
-  // Sync isDark to global context
-  useEffect(() => { setIsDark(isDark) }, [isDark, setIsDark])
-  useEffect(() => { return () => setIsDark(true) }, [setIsDark])
+  // Piik opens in light mode (mobile rail + desktop hero); scroll can still darken in-page on desktop.
+  useLayoutEffect(() => {
+    setIsDark(false)
+  }, [setIsDark])
 
-  // Force body/html transparent so fixed backgrounds show through
+  // Sync scroll-driven dark sections to global context (desktop only — mobile uses home-style rail + theme toggle).
   useEffect(() => {
+    if (isMobile) return
+    setIsDark(isDark)
+  }, [isMobile, isDark, setIsDark])
+
+  // Force body/html transparent so fixed backgrounds show through (desktop Piik page only).
+  useEffect(() => {
+    if (isMobile) return
     const root = document.getElementById('root') as HTMLElement | null
     const appWrapper = root?.firstElementChild as HTMLElement | null
     document.body.style.backgroundColor = 'transparent'
@@ -948,7 +962,7 @@ export function PiikProjectPage() {
       if (root) root.style.backgroundColor = ''
       if (appWrapper) appWrapper.style.backgroundColor = ''
     }
-  }, [])
+  }, [isMobile])
 
   useEffect(() => {
     const check = () => setSpyRight(window.innerWidth < 1700 ? 16 : colRight)
@@ -1038,6 +1052,34 @@ export function PiikProjectPage() {
     container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
   }
 
+  const mobilePiikText = themeIsDark ? 'text-[#FFFFFF]' : 'text-black'
+
+  if (isMobile) {
+    return (
+      <>
+        <div
+          className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
+            themeIsDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+          } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+        >
+          <div
+            className={`theme-surface-transition relative z-0 flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden pl-[6px] md:pl-[10px] ${mobilePiikText}`}
+          >
+            <HomePiikCaseStudy
+              isDark={themeIsDark}
+              isMobile={isMobile}
+              sectionRefs={mobilePiikSectionRefs}
+              onMediaClick={setSelectedMedia}
+              entranceActive
+              reduceMotion={Boolean(reduceMotion)}
+            />
+          </div>
+        </div>
+        {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
+      </>
+    )
+  }
+
   return (
     <>
       {/* ── Color background layer (behind image) ────────────────────────────── */}
@@ -1072,9 +1114,7 @@ export function PiikProjectPage() {
       <div
         ref={scrollRef}
         className="absolute overflow-y-auto"
-        style={isMobile
-          ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
-          : isMedium
+        style={isMedium
           ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
           : isNarrow
           ? { left: '50%', transform: 'translateX(-50%)', width: 'min(800px, calc(100% - 80px))', right: 'auto', top: 0, bottom: 0, position: 'absolute', zIndex: 1 }
@@ -1084,9 +1124,9 @@ export function PiikProjectPage() {
         <div
           style={{
             paddingTop: 0,
-            paddingLeft: isMobile ? 0 : 10,
-            paddingRight: isMobile ? 0 : undefined,
-            paddingBottom: isMobile ? 'max(6rem, calc(4rem + env(safe-area-inset-bottom, 0px)))' : 0,
+            paddingLeft: 10,
+            paddingRight: undefined,
+            paddingBottom: 0,
             fontFamily: 'Arial, sans-serif',
           }}
         >
@@ -1101,12 +1141,12 @@ export function PiikProjectPage() {
               justifyContent: 'center',
               alignItems:     'flex-start',
               textAlign:      'left',
-              padding:        isMobile ? 16 : 40,
+              padding:        40,
             }}
           >
             <h1
               style={{
-                fontSize:     isMobile ? 'clamp(2.5rem, 14vw, 3.5rem)' : 100,
+                fontSize:     100,
                 fontWeight:   800,
                 lineHeight:   1,
                 color:        '#000000',
@@ -1121,10 +1161,10 @@ export function PiikProjectPage() {
             <div
               style={{
                 display:             'grid',
-                gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'auto 1fr',
-                columnGap:           isMobile ? 12 : 28,
-                rowGap:              isMobile ? 4 : undefined,
-                fontSize:            isMobile ? 13 : 14,
+                gridTemplateColumns: 'auto 1fr',
+                columnGap:           28,
+                rowGap:              undefined,
+                fontSize:            14,
                 lineHeight:          '20px',
                 color:               '#000000',
                 alignItems:          'start',
@@ -1133,14 +1173,14 @@ export function PiikProjectPage() {
               }}
             >
               <React.Fragment key={PIIK_META_ROWS[0].label}>
-                <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: 8 }}>{PIIK_META_ROWS[0].label}</span>
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: 8 }}>{PIIK_META_ROWS[0].label}</span>
                 <span style={{ fontWeight: 700, paddingBottom: 8, wordBreak: 'break-word' }}>{PIIK_META_ROWS[0].value}</span>
               </React.Fragment>
               <div style={{ paddingTop: 10 }} />
               <div style={{ paddingTop: 10 }} />
               {PIIK_META_ROWS.slice(1).map(({ label, value }, i) => (
                 <React.Fragment key={label}>
-                  <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
+                  <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
                   <span style={{ fontWeight: 700, paddingBottom: i < PIIK_META_ROWS.length - 2 ? 8 : 0, wordBreak: 'break-word' }}>{value}</span>
                 </React.Fragment>
               ))}
@@ -1170,16 +1210,16 @@ export function PiikProjectPage() {
                     flexDirection: 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    isMobile ? '12vh' : '30vh',
-                    paddingBottom: isMobile ? '12vh' : '30vh',
+                    paddingTop:    '30vh',
+                    paddingBottom: '30vh',
                     color:         isDark ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
                     {section.label}
                   </p>
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: isMobile ? 16 : 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
                     {section.heading}
                   </p>
                 </motion.div>
@@ -1194,21 +1234,15 @@ export function PiikProjectPage() {
                     flexDirection: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 'row' : 'column',
                     alignItems:    'flex-start',
                     textAlign:     'left',
-                    paddingTop:    isMobile ? '12vh' : '30vh',
+                    paddingTop:    '30vh',
                     paddingBottom:
-                      section.id === 'final-solution'
-                        ? isMobile
-                          ? 'calc(12vh + 120px)'
-                          : 'calc(30vh + 200px)'
-                        : isMobile
-                          ? '12vh'
-                          : '30vh',
+                      section.id === 'final-solution' ? 'calc(30vh + 200px)' : '30vh',
                     color:         (section.id === 'research' || section.id === 'final-solution') ? '#FFFFFF' : '#000000',
                     fontFamily:    'Arial, sans-serif',
                     gap:           (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 60 : '1.5rem',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? (isMobile ? 32 : 56) : isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? (isMobile ? 40 : 100) : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 200 : undefined }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: section.id === 'final-solution' ? 56 : 40, lineHeight: 1, margin: 0, marginBottom: section.id === 'final-solution' ? 100 : 0, flexShrink: 0, width: (!isNarrow && section.id !== 'the-goal' && section.id !== 'research' && section.id !== 'final-solution') ? 200 : undefined }}>
                     {section.label}
                   </p>
 
@@ -1288,7 +1322,6 @@ export function PiikProjectPage() {
         ref={scrollSpyRef}
         className="fixed top-1/2 -translate-y-1/2 flex flex-col items-end gap-3 not-italic"
         style={{
-          display:    isMobile ? 'none' : undefined,
           right:      spyRight,
           fontSize:   14,
           lineHeight: '16px',

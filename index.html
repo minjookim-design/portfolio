@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>portfolio</title>
     <!--
-      Critical theme: parsed before first paint. Matches PageThemeContext (system when unset).
+      Critical theme: parsed before first paint. Matches PageThemeContext (mobile ≤768px always light on load; desktop uses storage + system).
       next-themes equivalent: attribute="class" + enableSystem — class on <html> is immediate; no transition here.
     -->
     <style id="portfolio-theme-critical">
@@ -30,10 +30,14 @@
         try {
           var key = 'portfolio-theme'
           var raw = localStorage.getItem(key)
-          var dark =
-            raw === 'dark' ||
-            (raw !== 'light' &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var mobile = window.matchMedia('(max-width: 768px)').matches
+          var dark = false
+          if (!mobile) {
+            dark =
+              raw === 'dark' ||
+              (raw !== 'light' &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches)
+          }
           document.documentElement.classList.toggle('dark', dark)
           document.documentElement.dataset.theme = dark ? 'dark' : 'light'
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'

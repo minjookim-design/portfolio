@@ -1,8 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { Fragment, useMemo, useState, useEffect, useRef } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
+import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { usePageTheme } from '../context/PageThemeContext'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
+import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
+
+/** Home third column + `HomeHovrCaseStudy` / mobile `/projects/hovr` typography. */
+const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
+const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[16px] leading-tight font-bold`
+const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
+const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[18px] leading-tight font-bold`
+const HOVR_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
 
 // ── Section data ───────────────────────────────────────────────────────────────
 
@@ -257,10 +267,196 @@ export function CarouselBlock({ srcs, onMediaClick }: { srcs: string[]; onMediaC
   )
 }
 
+// ── Home (/) third column — same case study content as HovrProjectPage (mobile route uses this too) ─
+
+export function HomeHovrCaseStudy({
+  isDark,
+  isMobile,
+  sectionRefs,
+  onMediaClick,
+  entranceActive,
+  reduceMotion,
+  onHeroEntranceComplete,
+}: {
+  isDark: boolean
+  isMobile: boolean
+  sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
+  onMediaClick: (src: string) => void
+  entranceActive: boolean
+  reduceMotion: boolean
+  onHeroEntranceComplete?: () => void
+}) {
+  const fg = isDark ? '#FFFFFF' : '#000000'
+  const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroState = entranceActive ? 'visible' : 'hidden'
+  const heroInitial = reduceMotion ? false : 'hidden'
+
+  return (
+    <div
+      ref={rootRef}
+      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
+      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
+    >
+      <motion.div
+        className="mb-0 w-full"
+        variants={heroV.heroContainer}
+        initial={heroInitial}
+        animate={heroState}
+      >
+        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+          <OptimizedImage
+            key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
+            src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
+            alt="HOVR Admin"
+            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+            quality={85}
+          />
+        </motion.div>
+
+        <motion.h1
+          variants={heroV.heroItem}
+          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+        >
+          HOVR Admin
+        </motion.h1>
+
+        <motion.p variants={heroV.heroItem} className={`mb-[26px] mt-0 ${HOVR_CASE_BODY_CLASS}`}>
+          UX/UI Design · Internal Tools
+        </motion.p>
+
+        <motion.div
+          variants={heroV.heroItem}
+          className="flex w-full flex-col gap-y-2"
+          onAnimationComplete={() => {
+            if (entranceActive) onHeroEntranceComplete?.()
+          }}
+        >
+          <div className="flex w-full items-center gap-x-[20px]">
+            <span className={`shrink-0 whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{HOVR_META_ROWS[0].label}</span>
+            <span className={`min-w-0 flex-1 ${HOVR_CASE_BODY_CLASS}`}>{HOVR_META_ROWS[0].value}</span>
+          </div>
+          <div className="h-[10px] shrink-0" aria-hidden />
+          <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
+            {HOVR_META_ROWS.slice(1).map(({ label, value }) => (
+              <Fragment key={label}>
+                <span className={`whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{label}</span>
+                <span className={`min-w-0 ${HOVR_CASE_BODY_CLASS}`}>{value}</span>
+              </Fragment>
+            ))}
+          </div>
+          <OptimizedImage
+            src="/hovr/timeline.jpg"
+            alt=""
+            className="mt-6 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            placeholder="blur"
+            quality={85}
+            onClick={() => onMediaClick('/hovr/timeline.jpg')}
+          />
+        </motion.div>
+      </motion.div>
+
+      {HOVR_SECTIONS.map((section, i) => (
+        <motion.div
+          key={section.id}
+          ref={(el) => {
+            sectionRefs.current[i] = el
+          }}
+          className="mb-[200px] last:mb-0"
+          style={{ transformOrigin: 'top center' }}
+          initial={{ y: 24, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, ease: [0.44, 0, 0.3, 0.99] }}
+        >
+          <div
+            className="flex items-start gap-5"
+            style={{
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? 20 : railGapPx,
+            }}
+          >
+            <CaseStudyRailTitle
+              className={`shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
+            >
+              {section.label}
+            </CaseStudyRailTitle>
+
+            <div
+              className={`flex min-w-0 w-full flex-col gap-4 ${HOVR_SECTION_BODY_CLASS}`}
+              style={{ width: isMobile ? '100%' : undefined }}
+            >
+              {'subSections' in section && section.subSections ? (
+                <div className="flex flex-col gap-10">
+                  {(section.subSections as { heading: React.ReactNode; body: string; media: string }[]).map((sub, si) => (
+                    <div key={si} className={`flex flex-col gap-4 ${si === 2 ? 'mt-10' : ''}`}>
+                      {sub.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+                      {sub.body &&
+                        sub.body.split('\n\n').map((para, pi) => (
+                          <p key={pi} className={sub.heading && pi === 0 ? '-mt-[10px]' : undefined}>
+                            {para}
+                          </p>
+                        ))}
+                      <MediaBlock src={sub.media} onMediaClick={onMediaClick} />
+                      {'postContent' in sub &&
+                        (sub.postContent as { heading?: React.ReactNode; body?: string; media?: string }[]).map((pc, pi) => (
+                          <Fragment key={pi}>
+                            {pc.heading && <p className={`mt-20 ${HOVR_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+                            {pc.body &&
+                              pc.body.split('\n\n').map((para, ri) => (
+                                <p
+                                  key={ri}
+                                  className={
+                                    [
+                                      !pc.heading && ri === 0 ? 'mt-10' : '',
+                                      pc.heading && ri === 0 ? '-mt-[10px]' : '',
+                                    ]
+                                      .filter(Boolean)
+                                      .join(' ') || undefined
+                                  }
+                                >
+                                  {para}
+                                </p>
+                              ))}
+                            {pc.media && <MediaBlock src={pc.media} onMediaClick={onMediaClick} />}
+                          </Fragment>
+                        ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {section.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{section.heading}</p>}
+                  {section.body.split('\n\n').map((para, idx) => (
+                    <p key={idx} className={section.heading && idx === 0 ? '-mt-[10px]' : undefined}>
+                      {para}
+                    </p>
+                  ))}
+                  {Array.isArray(section.media)
+                    ? section.media.map((m) => <MediaBlock key={m} src={m} onMediaClick={onMediaClick} />)
+                    : section.media && <MediaBlock src={section.media} onMediaClick={onMediaClick} />}
+                  {'carousel' in section && section.carousel && (
+                    <CarouselBlock srcs={section.carousel as string[]} onMediaClick={onMediaClick} />
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
 // ── HOVR project page ──────────────────────────────────────────────────────────
 
 export function HovrProjectPage() {
-  const { isDark } = usePageTheme()
+  const { isDark: themeIsDark } = usePageTheme()
+  const reduceMotion = useReducedMotion()
   const colLeft  = 'calc(25% + 12px)'
   const colRight = 'calc(8.33% + 15px)'
   const isNarrow = useIsNarrow(1200)
@@ -272,6 +468,7 @@ export function HovrProjectPage() {
 
   const scrollRef    = useRef<HTMLDivElement>(null)
   const sectionRefs  = useRef<(HTMLDivElement | null)[]>([])
+  const mobileHovrSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const scrollSpyRef = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
 
@@ -283,6 +480,7 @@ export function HovrProjectPage() {
   }, [])
 
   useEffect(() => {
+    if (isMobile) return
     const container = scrollRef.current
     if (!container) return
 
@@ -320,7 +518,7 @@ export function HovrProjectPage() {
     update()
     container.addEventListener('scroll', update, { passive: true })
     return () => container.removeEventListener('scroll', update)
-  }, [])
+  }, [isMobile])
 
   const scrollToSection = (index: number) => {
     const el        = sectionRefs.current[index]
@@ -333,27 +531,68 @@ export function HovrProjectPage() {
     container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
   }
 
+  const mobileHovrText = themeIsDark ? 'text-[#FFFFFF]' : 'text-black'
+
+  if (isMobile) {
+    return (
+      <>
+        <div
+          className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
+            themeIsDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+          } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+        >
+          <div
+            className={`theme-surface-transition relative z-0 flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden pl-[6px] md:pl-[10px] ${mobileHovrText}`}
+          >
+            <HomeHovrCaseStudy
+              isDark={themeIsDark}
+              isMobile={isMobile}
+              sectionRefs={mobileHovrSectionRefs}
+              onMediaClick={setSelectedMedia}
+              entranceActive
+              reduceMotion={Boolean(reduceMotion)}
+            />
+          </div>
+        </div>
+        {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
+      </>
+    )
+  }
+
   return (
     <>
-      {/* ── Scrollable content ───────────────────────────────────────────────── */}
+      {/* ── Scrollable content (md+ only) ─────────────────────────────────────── */}
       <div
         ref={scrollRef}
         className="absolute overflow-y-auto"
-        style={isMobile
-          ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden' }
-          : isMedium
-          ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden' }
-          : isNarrow
-          ? { left: '50%', transform: 'translateX(-50%)', width: 'min(800px, calc(100% - 80px))', right: 'auto', top: 0, bottom: 0 }
-          : { left: colLeft, right: colRight, top: 0, bottom: 0 }
+        style={
+          isMedium
+            ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden' }
+            : isNarrow
+              ? {
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 'min(800px, calc(100% - 80px))',
+                  right: 'auto',
+                  top: 0,
+                  bottom: 0,
+                }
+              : { left: colLeft, right: colRight, top: 0, bottom: 0 }
         }
       >
-        <div style={{ paddingTop: 32, paddingLeft: isMobile ? 0 : 10, paddingRight: isMobile ? 0 : undefined, paddingBottom: isMobile ? 'calc(50vh + 6rem + env(safe-area-inset-bottom, 0px))' : '50vh', fontFamily: 'Arial, sans-serif' }}>
+        <div
+          style={{
+            paddingTop: 32,
+            paddingLeft: 10,
+            paddingBottom: '50vh',
+            fontFamily: 'Arial, sans-serif',
+          }}
+        >
 
           {/* Title image */}
           <OptimizedImage
-            key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
-            src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
+            key={themeIsDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
+            src={themeIsDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
             alt="HOVR Admin"
             style={{ width: '100%', maxWidth: 1000, height: 'auto', display: 'block', marginBottom: 30, borderRadius: 0 }}
             sizes={IMAGE_SIZES.caseStudyFull}
@@ -365,9 +604,9 @@ export function HovrProjectPage() {
           {/* Title */}
           <h1
             style={{
-              fontSize:     isMobile ? 'clamp(1.75rem, 6vw, 2.25rem)' : 40,
+              fontSize:     40,
               fontWeight:   700,
-              lineHeight:   isMobile ? 1.1 : '32px',
+              lineHeight:   '32px',
               color:        '#000',
               marginBottom: 26,
               marginTop:    0,
@@ -380,10 +619,10 @@ export function HovrProjectPage() {
           <div
             style={{
               display:   'grid',
-              gridTemplateColumns: isMobile ? 'minmax(0,1fr)' : 'auto 1fr',
-              columnGap: isMobile ? 12 : 28,
-              rowGap: isMobile ? 4 : undefined,
-              fontSize:  isMobile ? 13 : 14,
+              gridTemplateColumns: 'auto 1fr',
+              columnGap: 28,
+              rowGap: undefined,
+              fontSize:  14,
               lineHeight: '20px',
               color:     '#000',
               alignItems: 'start',
@@ -392,7 +631,7 @@ export function HovrProjectPage() {
           >
             {/* Team / Role */}
             <React.Fragment key={HOVR_META_ROWS[0].label}>
-              <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: 8 }}>{HOVR_META_ROWS[0].label}</span>
+              <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: 8 }}>{HOVR_META_ROWS[0].label}</span>
               <span style={{ fontWeight: 400, paddingBottom: 8, wordBreak: 'break-word' }}>{HOVR_META_ROWS[0].value}</span>
             </React.Fragment>
 
@@ -403,7 +642,7 @@ export function HovrProjectPage() {
             {/* Problem / Solution / Impact */}
             {HOVR_META_ROWS.slice(1).map(({ label, value }, i) => (
               <React.Fragment key={label}>
-                <span style={{ fontWeight: 700, whiteSpace: isMobile ? 'normal' : 'nowrap', paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0 }}>{label}</span>
                 <span style={{ fontWeight: 400, paddingBottom: i < HOVR_META_ROWS.length - 2 ? 8 : 0, wordBreak: 'break-word' }}>{value}</span>
               </React.Fragment>
             ))}
@@ -441,21 +680,21 @@ export function HovrProjectPage() {
                 <div
                   style={{
                     display:       'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
+                    flexDirection: 'row',
                     alignItems:    'flex-start',
-                    gap:           isMobile ? 20 : 161,
+                    gap:           161,
                     fontSize:      14,
                     lineHeight:    '16px',
                     color:         '#000',
                   }}
                 >
                   {/* Left label */}
-                  <p style={{ fontWeight: 700, width: isMobile ? '100%' : 130, flexShrink: 0, whiteSpace: isMobile ? 'normal' : 'nowrap' }}>
+                  <p style={{ fontWeight: 700, width: 130, flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {section.label}
                   </p>
 
                   {/* Right content */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: isMobile ? '100%' : 578, width: isMobile ? '100%' : undefined, minWidth: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 578, minWidth: 0 }}>
                     {'subSections' in section && section.subSections ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
                         {(section.subSections as { heading: React.ReactNode; body: string; media: string }[]).map((sub, si) => (
@@ -505,9 +744,8 @@ export function HovrProjectPage() {
       {/* ── Right scroll spy ─────────────────────────────────────────────────── */}
       <div
         ref={scrollSpyRef}
-        className="fixed top-1/2 -translate-y-1/2 flex flex-col items-end gap-3 text-black not-italic"
+        className="fixed top-1/2 -translate-y-1/2 hidden gap-3 text-black not-italic md:flex md:flex-col md:items-end"
         style={{
-          display:    isMobile ? 'none' : undefined,
           right:      spyRight,
           fontSize:   14,
           lineHeight: '16px',

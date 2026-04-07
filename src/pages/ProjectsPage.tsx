@@ -27,13 +27,6 @@ const PROJECTS: Array<{
     to: '/projects/piik',
   },
   {
-    id: 'jojo',
-    label: 'JoJo',
-    desc: 'Beyond Passive AI: Fostering Digital Balance & Critical Thinking',
-    media: { type: 'video', src: '/jojo/Vid.mp4' },
-    to: '/projects/jojo',
-  },
-  {
     id: 'ar-fitting-room',
     label: 'AR-Fitting Room',
     desc: 'Award-Winning Accessible Design: AR Solution for Inclusive Fashion',
@@ -110,7 +103,7 @@ export function ProjectsPage() {
   return (
     <>
       <div
-        className="theme-surface-transition flex flex-col w-full h-screen overflow-y-auto snap-y snap-mandatory gap-8 pb-[20vh] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none"
+        className="theme-surface-transition flex flex-col w-full max-w-full min-w-0 h-screen max-md:overflow-x-hidden overflow-y-auto snap-y snap-mandatory gap-8 px-4 pb-[calc(20vh+5.5rem)] max-md:pb-[calc(20vh+5.5rem+env(safe-area-inset-bottom,0px))] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none md:px-0"
         style={{ backgroundColor: '#111111' }}
       >
         {PROJECTS.map((project, index) => (

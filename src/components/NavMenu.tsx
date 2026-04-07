@@ -278,17 +278,6 @@ export function NavMenu() {
                 </AnimatePresence>
               </motion.li>
 
-              {/* JOJO */}
-              <motion.li key="jojo" variants={itemVariants}>
-                <ProjectItem
-                  label="JOJO"
-                  icon={<FolderUnfilled />}
-                  isActive={false}
-                  onClick={() => {}}
-                  delay={160}
-                />
-              </motion.li>
-
               {/* AR FITTING ROOM */}
               <motion.li key="ar" variants={itemVariants}>
                 <ProjectItem

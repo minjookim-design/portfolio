@@ -31,6 +31,14 @@ html.dark {
     color-scheme: dark;
   }
 
+  @media (max-width: 768px) {
+    #root {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+  }
+
   html,
   body {
     margin: 0;

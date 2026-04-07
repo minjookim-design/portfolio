@@ -1,5 +1,5 @@
 import React, { Fragment, useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { motion, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import {
   HomeIntroScrambleText,
   HomeIntroTypewriterText,
@@ -8,27 +8,21 @@ import {
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { usePageTheme } from '../context/PageThemeContext'
 import { useHomeFooterAttribution } from '../context/HomeFooterAttributionContext'
-import {
-  HOVR_SECTIONS,
-  HOVR_META_ROWS,
-  HOVR_HERO_THUMB_DARK,
-  HOVR_HERO_THUMB_LIGHT,
-  MediaBlock,
-  CarouselBlock,
-  Lightbox,
-} from './HovrProjectPage'
+import { useHomeMobileProject } from '../context/HomeMobileProjectContext'
+import { HOVR_SECTIONS, HomeHovrCaseStudy, Lightbox } from './HovrProjectPage'
 import { PIIK_SECTIONS, PIIK_HERO_THUMB_LIGHT, HomePiikCaseStudy } from './PiikProjectPage'
 import { HomeArFittingCaseStudy } from './ArFittingProjectPage'
-import { AR_FITTING_SECTIONS, AR_FITTING_THUMB_LIGHT, AR_FITTING_THUMB_DARK } from './arFittingHomeData'
+import {
+  AR_FITTING_THUMB_LIGHT,
+  AR_FITTING_THUMB_DARK,
+  getArFittingHomeSpyItems,
+  AR_FITTING_HOME_SPY_FIRST_ID,
+} from './arFittingHomeData'
 import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
-import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
-import {
-  HOME_ENTRANCE_SPRING,
-  buildCaseStudyHeroEntranceVariants,
-} from './homeCaseStudyHeroMotion'
+import { HOME_ENTRANCE_SPRING } from './homeCaseStudyHeroMotion'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -52,12 +46,6 @@ const CAREER_ROLE_SERIF = `${INSTRUMENT_SERIF} text-[18px] leading-tight`
 const HOME_MONO_SM = 'text-[12px] font-medium font-mono'
 /** Project column: section links (12px mono, 500 idle / 800 active). */
 const PROJECT_SPY_LINK = 'font-mono text-[12px]'
-/** HOVR home case study: meta grid (top). */
-const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[16px] leading-tight font-bold`
-const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
-/** HOVR home case study: Overview → Takeaway scroll blocks (+2px vs meta grid). */
-const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[18px] leading-tight font-bold`
-const HOVR_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
 
 const HOME_INTRO_BIO =
   'I design multi-platform experiences by turning complex spatial and product challenges into simple, intuitive interactions. I focus on creating clear, human-centered flows across web, mobile, and VR, making emerging technologies feel approachable and usable. By collaborating closely with engineers, including Unity developers, I help bridge design intent with technical feasibility and real-world implementation.'
@@ -236,38 +224,19 @@ const HOME_PROJECTS: HomeProject[] = [
       { id: 'takeaway', label: 'Takeaway', body: 'Treating complaints as design challenges—and prioritizing with engineering—turned pain points into measurable product robustness.', media: PIIK_HERO_THUMB_LIGHT },
     ],
   },
-  /* {
-    id: 'jojo',
-    route: '/projects/jojo',
-    label: 'JoJo',
-    desc: 'Beyond Passive AI: Fostering Digital Balance & Critical Thinking',
-    heroImage: JOJO_HERO_THUMB_LIGHT,
-    spy: JOJO_SECTIONS.map((s) => ({
-      id: s.id,
-      label: 'spyLabel' in s && s.spyLabel != null ? String(s.spyLabel) : s.label,
-      body:
-        typeof s.body === 'string'
-          ? s.body.slice(0, 160) + (s.body.length > 160 ? '…' : '')
-          : '',
-      media: undefined,
-    })),
-  },
   {
     id: 'ar-fitting-room',
     route: '/projects/ar-fitting-room',
     label: 'AR Fitting Room',
     desc: 'Award-Winning Accessible Design: AR Solution for Inclusive Fashion',
     heroImage: AR_FITTING_THUMB_LIGHT,
-    spy: AR_FITTING_SECTIONS.map((s) => ({
+    spy: getArFittingHomeSpyItems().map((s) => ({
       id: s.id,
-      label: 'spyLabel' in s && s.spyLabel != null ? String(s.spyLabel) : s.label,
-      body:
-        typeof s.body === 'string'
-          ? s.body.slice(0, 160) + (s.body.length > 160 ? '…' : '')
-          : '',
+      label: s.label,
+      body: s.body,
       media: AR_FITTING_THUMB_LIGHT,
     })),
-  }, */
+  },
 ]
 
 function ProjectFolderClosedIcon({ className }: { className?: string }) {
@@ -312,185 +281,6 @@ function ProjectFolderOpenIcon({ className }: { className?: string }) {
   )
 }
 
-function HomeHovrCaseStudy({
-  isDark,
-  isMobile,
-  sectionRefs,
-  onMediaClick,
-  entranceActive,
-  reduceMotion,
-  onHeroEntranceComplete,
-}: {
-  isDark: boolean
-  isMobile: boolean
-  sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
-  onMediaClick: (src: string) => void
-  entranceActive: boolean
-  reduceMotion: boolean
-  onHeroEntranceComplete?: () => void
-}) {
-  const fg = isDark ? '#FFFFFF' : '#000000'
-  const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
-  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
-  const heroState = entranceActive ? 'visible' : 'hidden'
-  const heroInitial = reduceMotion ? false : 'hidden'
-
-  return (
-    <div
-      ref={rootRef}
-      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
-      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
-    >
-      <motion.div
-        className="mb-0 w-full"
-        variants={heroV.heroContainer}
-        initial={heroInitial}
-        animate={heroState}
-      >
-        <motion.div variants={heroV.heroItem} className="overflow-hidden">
-          <OptimizedImage
-            key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
-            src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
-            alt="HOVR Admin"
-            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
-            sizes={IMAGE_SIZES.caseStudyFull}
-            priority
-            placeholder="blur"
-            quality={85}
-          />
-        </motion.div>
-
-        <motion.h1
-          variants={heroV.heroItem}
-          className="mb-[26px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
-        >
-          HOVR Admin
-        </motion.h1>
-
-        <motion.div
-          variants={heroV.heroItem}
-          className="flex w-full flex-col gap-y-2"
-          onAnimationComplete={() => {
-            if (entranceActive) onHeroEntranceComplete?.()
-          }}
-        >
-          <div className="flex w-full items-center gap-x-[20px]">
-            <span className={`shrink-0 whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{HOVR_META_ROWS[0].label}</span>
-            <span className={`min-w-0 flex-1 ${HOVR_CASE_BODY_CLASS}`}>{HOVR_META_ROWS[0].value}</span>
-          </div>
-          <div className="h-[10px] shrink-0" aria-hidden />
-          <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
-            {HOVR_META_ROWS.slice(1).map(({ label, value }) => (
-              <Fragment key={label}>
-                <span className={`whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{label}</span>
-                <span className={`min-w-0 ${HOVR_CASE_BODY_CLASS}`}>{value}</span>
-              </Fragment>
-            ))}
-          </div>
-          <OptimizedImage
-            src="/hovr/timeline.jpg"
-            alt=""
-            className="mt-6 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
-            sizes={IMAGE_SIZES.caseStudyFull}
-            placeholder="blur"
-            quality={85}
-            onClick={() => onMediaClick('/hovr/timeline.jpg')}
-          />
-        </motion.div>
-      </motion.div>
-
-      {HOVR_SECTIONS.map((section, i) => (
-        <motion.div
-          key={section.id}
-          ref={(el) => {
-            sectionRefs.current[i] = el
-          }}
-          className="mb-[200px] last:mb-0"
-          style={{ transformOrigin: 'top center' }}
-          initial={{ y: 24, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.6, ease: [0.44, 0, 0.3, 0.99] }}
-        >
-          <div
-            className="flex items-start gap-5"
-            style={{
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? 20 : railGapPx,
-            }}
-          >
-            <CaseStudyRailTitle
-              className={`shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
-            >
-              {section.label}
-            </CaseStudyRailTitle>
-
-            <div
-              className={`flex min-w-0 w-full flex-col gap-4 ${HOVR_SECTION_BODY_CLASS}`}
-              style={{ width: isMobile ? '100%' : undefined }}
-            >
-              {'subSections' in section && section.subSections ? (
-                <div className="flex flex-col gap-10">
-                  {(section.subSections as { heading: React.ReactNode; body: string; media: string }[]).map((sub, si) => (
-                    <div key={si} className={`flex flex-col gap-4 ${si === 2 ? 'mt-10' : ''}`}>
-                      {sub.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{sub.heading}</p>}
-                      {sub.body &&
-                        sub.body.split('\n\n').map((para, pi) => (
-                          <p key={pi} className={sub.heading && pi === 0 ? '-mt-[10px]' : undefined}>
-                            {para}
-                          </p>
-                        ))}
-                      <MediaBlock src={sub.media} onMediaClick={onMediaClick} />
-                      {'postContent' in sub &&
-                        (sub.postContent as { heading?: React.ReactNode; body?: string; media?: string }[]).map((pc, pi) => (
-                          <Fragment key={pi}>
-                            {pc.heading && <p className={`mt-20 ${HOVR_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
-                            {pc.body &&
-                              pc.body.split('\n\n').map((para, ri) => (
-                                <p
-                                  key={ri}
-                                  className={
-                                    [
-                                      !pc.heading && ri === 0 ? 'mt-10' : '',
-                                      pc.heading && ri === 0 ? '-mt-[10px]' : '',
-                                    ]
-                                      .filter(Boolean)
-                                      .join(' ') || undefined
-                                  }
-                                >
-                                  {para}
-                                </p>
-                              ))}
-                            {pc.media && <MediaBlock src={pc.media} onMediaClick={onMediaClick} />}
-                          </Fragment>
-                        ))}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {section.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{section.heading}</p>}
-                  {section.body.split('\n\n').map((para, idx) => (
-                    <p key={idx} className={section.heading && idx === 0 ? '-mt-[10px]' : undefined}>
-                      {para}
-                    </p>
-                  ))}
-                  {Array.isArray(section.media)
-                    ? section.media.map((m) => <MediaBlock key={m} src={m} onMediaClick={onMediaClick} />)
-                    : section.media && <MediaBlock src={section.media} onMediaClick={onMediaClick} />}
-                  {'carousel' in section && section.carousel && (
-                    <CarouselBlock srcs={section.carousel as string[]} onMediaClick={onMediaClick} />
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
 /** Index of a case-study section whose vertical center is closest to the middle 20% band of `container`. */
 function getHovrActiveSectionIndex(
   container: HTMLElement,
@@ -527,6 +317,10 @@ function getHovrActiveSectionIndex(
 export function HomePage() {
   const { isDark } = usePageTheme()
   const isMobile = useIsNarrow(768)
+  const { detailOpen: mobileProjectDetailOpen, setDetailOpen: setMobileProjectDetailOpen } =
+    useHomeMobileProject()
+  const mobileProjectDetailOpenRef = useRef(mobileProjectDetailOpen)
+  mobileProjectDetailOpenRef.current = mobileProjectDetailOpen
   const isSplitDesktop = !useIsNarrow(767)
   const [openProjectId, setOpenProjectId] = useState<string | null>(HOME_PROJECTS[0].id)
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null)
@@ -535,7 +329,9 @@ export function HomePage() {
   const arFittingSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const jojoSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const detailsColumnRef = useRef<HTMLDivElement>(null)
+  const introScrollRef = useRef<HTMLDivElement>(null)
   const splitContainerRef = useRef<HTMLDivElement>(null)
+  const prevMobileRef = useRef<boolean | null>(null)
   const [colWidths, setColWidths] = useState(() => {
     const stored = readSplitWidthsFromSession()
     return stored ?? { c1: INITIAL_COL1_PX, c2: INITIAL_COL2_PX }
@@ -544,7 +340,7 @@ export function HomePage() {
   colWidthsRef.current = colWidths
   const [hovrSpyFromScroll, setHovrSpyFromScroll] = useState<string>(HOVR_SECTIONS[0].id)
   const [piikSpyFromScroll, setPiikSpyFromScroll] = useState<string>(PIIK_SECTIONS[0].id)
-  const [arFittingSpyFromScroll, setArFittingSpyFromScroll] = useState<string>(AR_FITTING_SECTIONS[0].id)
+  const [arFittingSpyFromScroll, setArFittingSpyFromScroll] = useState<string>(AR_FITTING_HOME_SPY_FIRST_ID)
   const [jojoSpyFromScroll, setJojoSpyFromScroll] = useState<string>(JOJO_SECTIONS[0].id)
   const [meImg, setMeImg] = useState<1 | 2>(1)
   const reduceMotion = usePrefersReducedMotion()
@@ -620,7 +416,7 @@ export function HomePage() {
   }, [])
 
   const scrollArFittingSection = useCallback((spyId: string) => {
-    const idx = AR_FITTING_SECTIONS.findIndex((s) => s.id === spyId)
+    const idx = getArFittingHomeSpyItems().findIndex((s) => s.id === spyId)
     if (idx < 0) return
     requestAnimationFrame(() => {
       arFittingSectionRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -639,6 +435,48 @@ export function HomePage() {
     setOpenProjectId((prev) => (prev === id ? null : id))
     setSpyByProject((prev) => ({ ...prev, [id]: HOME_PROJECTS.find((p) => p.id === id)?.spy[0]?.id ?? 'overview' }))
   }, [])
+
+  const openMobileProjectSheet = useCallback(
+    (projectId: string) => {
+      const p = HOME_PROJECTS.find((x) => x.id === projectId)
+      const firstSpy = p?.spy[0]?.id ?? 'overview'
+      setOpenProjectId(projectId)
+      setSpyByProject((prev) => ({ ...prev, [projectId]: firstSpy }))
+      if (projectId === 'hovr') setHovrSpyFromScroll(HOVR_SECTIONS[0]?.id ?? firstSpy)
+      if (projectId === 'piikai') setPiikSpyFromScroll(PIIK_SECTIONS[0]?.id ?? firstSpy)
+      if (projectId === 'ar-fitting-room') {
+        setArFittingSpyFromScroll(AR_FITTING_HOME_SPY_FIRST_ID)
+      }
+      if (projectId === 'jojo') setJojoSpyFromScroll(JOJO_SECTIONS[0]?.id ?? firstSpy)
+      setMobileProjectDetailOpen(true)
+    },
+    [setMobileProjectDetailOpen],
+  )
+
+  useEffect(() => {
+    if (prevMobileRef.current === null) {
+      prevMobileRef.current = isMobile
+      if (isMobile) setOpenProjectId(null)
+      return
+    }
+    if (prevMobileRef.current === isMobile) return
+    prevMobileRef.current = isMobile
+    if (isMobile) {
+      setOpenProjectId(null)
+      setMobileProjectDetailOpen(false)
+    } else {
+      setOpenProjectId((id) => id ?? HOME_PROJECTS[0].id)
+      setMobileProjectDetailOpen(false)
+    }
+  }, [isMobile, setMobileProjectDetailOpen])
+
+  useEffect(() => {
+    if (!isMobile || mobileProjectDetailOpen) return
+    introScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    })
+  }, [isMobile, mobileProjectDetailOpen, reduceMotion])
 
   useEffect(() => {
     const el = detailsColumnRef.current
@@ -667,7 +505,7 @@ export function HomePage() {
     const container = detailsColumnRef.current
     if (!container || displayProject?.id !== 'ar-fitting-room') return
     const idx = getHovrActiveSectionIndex(container, arFittingSectionRefs.current)
-    const id = AR_FITTING_SECTIONS[idx]?.id
+    const id = getArFittingHomeSpyItems()[idx]?.id
     if (id) setArFittingSpyFromScroll(id)
   }, [displayProject?.id])
 
@@ -918,7 +756,8 @@ export function HomePage() {
   useEffect(() => {
     if (!setHomeHovrAttributionReady) return
     const hovrShowing =
-      detailsColumnEntrance && displayProject?.id === 'hovr'
+      displayProject?.id === 'hovr' &&
+      ((!isMobile && detailsColumnEntrance) || (isMobile && mobileProjectDetailOpen))
     if (!hovrShowing) return
     const id = window.setTimeout(() => {
       setHomeHovrAttributionReady(true)
@@ -927,18 +766,121 @@ export function HomePage() {
   }, [
     detailsColumnEntrance,
     displayProject?.id,
+    isMobile,
+    mobileProjectDetailOpen,
     setHomeHovrAttributionReady,
   ])
 
+  const renderDetailsColumnChildren = () => {
+    if (displayProject == null) return null
+    if (displayProject.id === 'hovr') {
+      return (
+        <HomeHovrCaseStudy
+          isDark={isDark}
+          isMobile={isMobile}
+          sectionRefs={hovrSectionRefs}
+          onMediaClick={setSelectedMedia}
+          entranceActive={detailsColumnEntrance}
+          reduceMotion={reduceMotion}
+          onHeroEntranceComplete={handleHeroEntranceComplete}
+        />
+      )
+    }
+    if (displayProject.id === 'piikai') {
+      return (
+        <HomePiikCaseStudy
+          isDark={isDark}
+          isMobile={isMobile}
+          sectionRefs={piikSectionRefs}
+          onMediaClick={setSelectedMedia}
+          entranceActive={detailsColumnEntrance}
+          reduceMotion={reduceMotion}
+          onHeroEntranceComplete={handleHeroEntranceComplete}
+        />
+      )
+    }
+    if (displayProject.id === 'ar-fitting-room') {
+      return (
+        <HomeArFittingCaseStudy
+          isDark={isDark}
+          isMobile={isMobile}
+          sectionRefs={arFittingSectionRefs}
+          onMediaClick={setSelectedMedia}
+          entranceActive={detailsColumnEntrance}
+          reduceMotion={reduceMotion}
+          onHeroEntranceComplete={handleHeroEntranceComplete}
+        />
+      )
+    }
+    if (displayProject.id === 'jojo') {
+      return (
+        <HomeJojoCaseStudy
+          isDark={isDark}
+          isMobile={isMobile}
+          sectionRefs={jojoSectionRefs}
+          onMediaClick={setSelectedMedia}
+        />
+      )
+    }
+    return (
+      <motion.div
+        className="flex flex-col gap-6"
+        variants={entranceV.genericRailContainer}
+        initial={postIntroInitial}
+        animate={detailsColumnEntrance ? 'visible' : 'hidden'}
+      >
+        <motion.div variants={entranceV.genericRailItem} className="relative aspect-[577/277] w-full overflow-hidden rounded-none">
+          {activeSpy?.media?.endsWith('.mp4') ? (
+            <video
+              key={activeSpy.media}
+              className="h-full w-full object-cover"
+              src={activeSpy.media}
+              muted
+              loop
+              playsInline
+              autoPlay
+            />
+          ) : (
+            <OptimizedImage
+              key={genericHeroImgSrc}
+              src={genericHeroImgSrc}
+              alt=""
+              className="h-full w-full object-cover"
+              sizes={IMAGE_SIZES.caseStudyFull}
+              placeholder="blur"
+              quality={85}
+            />
+          )}
+        </motion.div>
+
+        <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-4">
+          <p className="text-[clamp(1.75rem,8vw,2.5rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[40px]">
+            {displayProject.label}
+          </p>
+          <p className={`font-normal ${muted}`}>{displayProject.desc}</p>
+        </motion.div>
+        {activeSpy && (
+          <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-2">
+            <CaseStudyRailTitle className="font-bold">{activeSpy.label}</CaseStudyRailTitle>
+            <p className={`font-normal ${muted}`}>{activeSpy.body}</p>
+          </motion.div>
+        )}
+      </motion.div>
+    )
+  }
+
   return (
     <div
-      className={`theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-visible md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
+      className={`theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-x-hidden max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
     >
-      {/* Mobile scroll lives here without overflow-x-hidden so the title bar can use position:sticky */}
-      <div className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden">
+      {/* Mobile: vertical scroll + no horizontal overflow; sticky header in grid row 1 */}
+      <div
+        ref={introScrollRef}
+        className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col max-md:overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden"
+      >
         <div
           ref={splitContainerRef}
-          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-8 max-md:min-h-[100dvh] max-md:grid-rows-[auto_auto_auto_auto] md:flex md:h-full md:min-h-0 md:max-h-full md:flex-row md:items-stretch md:gap-0 md:overflow-hidden"
+          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-8 max-md:min-h-[100dvh] md:flex md:h-full md:min-h-0 md:max-h-full md:flex-row md:items-stretch md:gap-0 md:overflow-hidden"
         >
         <div
           className={`max-md:contents md:flex md:h-full md:min-h-0 md:max-h-full md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:gap-[150px] md:self-stretch md:overflow-y-auto ${bodyFont} md:w-full`}
@@ -946,11 +888,9 @@ export function HomePage() {
         >
           {/* Mobile: order 1 — name + Product Designer (+ links); sticky title bar. Desktop: top of intro column */}
           <div
-            className={`max-md:col-start-1 max-md:row-start-1 md:shrink-0 max-md:sticky max-md:top-0 max-md:z-40 max-md:-mx-4 max-md:px-4 max-md:pb-3 ${
-              isDark
-                ? 'max-md:bg-[#111111] max-md:shadow-[0_1px_0_0_rgba(255,255,255,0.08)]'
-                : 'max-md:bg-[#e8e8e8] max-md:shadow-[0_1px_0_0_rgba(0,0,0,0.06)]'
-            }`}
+            className={`max-md:col-start-1 max-md:row-start-1 md:shrink-0 max-md:sticky max-md:top-0 max-md:z-40 max-md:-mx-4 max-md:px-4 max-md:pb-3 max-md:border-none max-md:shadow-none ${
+              isDark ? 'max-md:bg-[#111111]' : 'max-md:bg-[#e8e8e8]'
+            } md:border-0`}
           >
             <div className="flex min-w-0 w-full shrink-0 flex-col gap-[10px]">
               {introStage > 0 ? (
@@ -1051,10 +991,10 @@ export function HomePage() {
                 transition={restRevealTransition}
                 style={{ pointerEvents: introDone ? 'auto' : 'none' }}
                 aria-hidden={!introDone}
-                className="hidden w-full md:block"
+                className="w-full"
               >
                 <div
-                  className="relative mt-2 w-[min(55%,220px)] min-w-[120px] shrink-0 md:w-[40%]"
+                  className="relative mt-2 w-[min(55%,220px)] min-w-[120px] shrink-0 max-md:w-[min(100%,220px)] md:w-[40%]"
                   role="img"
                   aria-label="Minjoo"
                 >
@@ -1066,16 +1006,17 @@ export function HomePage() {
                     aria-hidden
                     sizes={IMAGE_SIZES.homeIntroPhoto}
                   />
+                  {/* No placeholder="blur" here: blur placeholder sets inline opacity and breaks crossfade vs Tailwind opacity. */}
                   <OptimizedImage
                     src="/me/me1.png"
                     alt=""
                     draggable={false}
                     aria-hidden
+                    priority
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 1 ? 'opacity-100' : 'opacity-0'
                     }`}
                     sizes={IMAGE_SIZES.homeIntroPhoto}
-                    placeholder="blur"
                     quality={85}
                   />
                   <OptimizedImage
@@ -1083,11 +1024,11 @@ export function HomePage() {
                     alt=""
                     draggable={false}
                     aria-hidden
+                    priority
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 2 ? 'opacity-100' : 'opacity-0'
                     }`}
                     sizes={IMAGE_SIZES.homeIntroPhoto}
-                    placeholder="blur"
                     quality={85}
                   />
                 </div>
@@ -1095,8 +1036,8 @@ export function HomePage() {
             </div>
           </div>
 
-          {/* Desktop only: career / education / interests (photo in sticky intro above this) */}
-          <div className="hidden w-full min-w-0 max-w-full flex-col gap-16 md:flex md:gap-[150px]">
+          {/* Career / education / interests — same block as desktop col 1; hidden on mobile until introDone via motion child */}
+          <div className="flex w-full min-w-0 max-w-full flex-col gap-16 md:gap-[150px]">
             <motion.div
               initial={false}
               animate={{ opacity: introDone ? 1 : 0 }}
@@ -1224,7 +1165,7 @@ export function HomePage() {
             ...(isSplitDesktop ? { width: colWidths.c2, minWidth: MIN_COL2_PX } : {}),
           }}
           aria-hidden={!introDone}
-          className={`max-md:col-start-1 max-md:row-start-2 min-h-0 min-w-0 max-w-full overflow-y-auto max-md:overflow-visible md:h-full md:max-h-full md:shrink-0 md:self-stretch ${bodyFont} w-full`}
+          className={`max-md:hidden min-h-0 min-w-0 max-w-full overflow-y-auto md:h-full md:max-h-full md:shrink-0 md:self-stretch ${bodyFont} w-full`}
         >
           <motion.div
             variants={entranceV.menuSnapRoot}
@@ -1242,7 +1183,9 @@ export function HomePage() {
                   <div className="w-full">
                     <button
                       type="button"
-                      onClick={() => toggleProject(project.id)}
+                      onClick={() =>
+                        isMobile ? openMobileProjectSheet(project.id) : toggleProject(project.id)
+                      }
                       className={`box-border flex w-full items-center gap-2 p-1 text-left font-mono text-[14px] font-semibold leading-tight transition-colors bg-transparent ${
                         isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'
                       }`}
@@ -1284,6 +1227,7 @@ export function HomePage() {
                                     }
                                     onClick={() => {
                                       setOpenProjectId(project.id)
+                                      if (isMobile) setMobileProjectDetailOpen(true)
                                       if (project.id === 'hovr') {
                                         setHovrSpyFromScroll(s.id)
                                         setSpyForProject(project.id, s.id)
@@ -1319,6 +1263,7 @@ export function HomePage() {
                                   type="button"
                                   onClick={() => {
                                     setOpenProjectId(project.id)
+                                    if (isMobile) setMobileProjectDetailOpen(true)
                                     if (project.id === 'ar-fitting-room') {
                                       setArFittingSpyFromScroll(s.id)
                                       setSpyForProject(project.id, s.id)
@@ -1365,99 +1310,53 @@ export function HomePage() {
           onPointerDown={handleDividerPointerDown(2)}
         />
 
-        <motion.div
-          ref={detailsColumnRef}
-          variants={entranceV.detailsColumnShell}
-          initial={postIntroInitial}
-          animate={detailsColumnEntrance ? 'visible' : 'hidden'}
-          style={{ pointerEvents: detailsColumnEntrance ? 'auto' : 'none' }}
-          aria-hidden={!detailsColumnEntrance}
-          className={`relative z-0 max-md:col-start-1 max-md:row-start-3 flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] max-md:h-auto max-md:flex-none max-md:overflow-visible max-md:pl-0 md:h-full md:min-h-full md:max-h-full md:self-stretch md:pl-[10px]`}
-        >
-          {displayProject == null ? null : displayProject.id === 'hovr' ? (
-            <HomeHovrCaseStudy
-              isDark={isDark}
-              isMobile={isMobile}
-              sectionRefs={hovrSectionRefs}
-              onMediaClick={setSelectedMedia}
-              entranceActive={detailsColumnEntrance}
-              reduceMotion={reduceMotion}
-              onHeroEntranceComplete={handleHeroEntranceComplete}
-            />
-          ) : displayProject.id === 'piikai' ? (
-            <HomePiikCaseStudy
-              isDark={isDark}
-              isMobile={isMobile}
-              sectionRefs={piikSectionRefs}
-              onMediaClick={setSelectedMedia}
-              entranceActive={detailsColumnEntrance}
-              reduceMotion={reduceMotion}
-              onHeroEntranceComplete={handleHeroEntranceComplete}
-            />
-          ) : displayProject.id === 'ar-fitting-room' ? (
-            <HomeArFittingCaseStudy
-              isDark={isDark}
-              isMobile={isMobile}
-              sectionRefs={arFittingSectionRefs}
-              onMediaClick={setSelectedMedia}
-            />
-          ) : displayProject.id === 'jojo' ? (
-            <HomeJojoCaseStudy
-              isDark={isDark}
-              isMobile={isMobile}
-              sectionRefs={jojoSectionRefs}
-              onMediaClick={setSelectedMedia}
-            />
-          ) : (
-            <motion.div
-              className="flex flex-col gap-6"
-              variants={entranceV.genericRailContainer}
-              initial={postIntroInitial}
-              animate={detailsColumnEntrance ? 'visible' : 'hidden'}
-            >
-              <motion.div variants={entranceV.genericRailItem} className="relative aspect-[577/277] w-full overflow-hidden rounded-none">
-                {activeSpy?.media?.endsWith('.mp4') ? (
-                  <video
-                    key={activeSpy.media}
-                    className="h-full w-full object-cover"
-                    src={activeSpy.media}
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                  />
-                ) : (
-                  <OptimizedImage
-                    key={genericHeroImgSrc}
-                    src={genericHeroImgSrc}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    sizes={IMAGE_SIZES.caseStudyFull}
-                    placeholder="blur"
-                    quality={85}
-                  />
-                )}
-              </motion.div>
-
-              <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-4">
-                <p className="text-[clamp(1.75rem,8vw,2.5rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[40px]">
-                  {displayProject.label}
-                </p>
-                <p className={`font-normal ${muted}`}>{displayProject.desc}</p>
-              </motion.div>
-              {activeSpy && (
-                <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-2">
-                  <CaseStudyRailTitle className="font-bold">
-                    {activeSpy.label}
-                  </CaseStudyRailTitle>
-                  <p className={`font-normal ${muted}`}>{activeSpy.body}</p>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </motion.div>
+        {!isMobile && (
+          <motion.div
+            ref={detailsColumnRef}
+            variants={entranceV.detailsColumnShell}
+            initial={postIntroInitial}
+            animate={detailsColumnEntrance ? 'visible' : 'hidden'}
+            style={{ pointerEvents: detailsColumnEntrance ? 'auto' : 'none' }}
+            aria-hidden={!detailsColumnEntrance}
+            className="relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-6 overflow-y-auto pl-[6px] md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch md:pl-[10px]"
+          >
+            {renderDetailsColumnChildren()}
+          </motion.div>
+        )}
         </div>
       </div>
+
+      {isMobile && (
+        <AnimatePresence
+          onExitComplete={() => {
+            if (!mobileProjectDetailOpenRef.current) setOpenProjectId(null)
+          }}
+        >
+          {mobileProjectDetailOpen && displayProject != null && (
+            <motion.div
+              key="home-mobile-project"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { type: 'tween', duration: 0.34, ease: [0.4, 0, 0.2, 1] }
+              }
+              className={`fixed inset-0 z-[850] flex min-h-0 flex-col md:hidden ${
+                isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+              } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+            >
+              <div
+                ref={detailsColumnRef}
+                className={`theme-surface-transition min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${text}`}
+              >
+                {renderDetailsColumnChildren()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
     </div>
