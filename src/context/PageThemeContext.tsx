@@ -17,13 +17,10 @@ function isMobileViewport(): boolean {
   return window.matchMedia(MOBILE_THEME_QUERY).matches
 }
 
-/** Theme from storage + system — use when viewport is not mobile. */
-function readDesktopIsDarkFromStorage(): boolean {
+/** User explicitly chose dark in storage; otherwise light (no system preference). */
+export function readStoredThemePrefersDark(): boolean {
   try {
-    const raw = localStorage.getItem(THEME_STORAGE_KEY)
-    if (raw === 'dark') return true
-    if (raw === 'light') return false
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    return localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
   } catch {
     return false
   }
@@ -31,9 +28,9 @@ function readDesktopIsDarkFromStorage(): boolean {
 
 function readInitialIsDark(): boolean {
   if (typeof window === 'undefined') return false
-  // Mobile: always light on load (ignore saved dark / system).
+  // Mobile: always light on load (ignore saved dark).
   if (isMobileViewport()) return false
-  return readDesktopIsDarkFromStorage()
+  return readStoredThemePrefersDark()
 }
 
 export function applyDocumentTheme(isDark: boolean) {
@@ -70,14 +67,14 @@ export function PageThemeProvider({ children }: { children: React.ReactNode }) {
     applyDocumentTheme(isDark)
   }, [isDark])
 
-  // Keep mobile ≤768px in light mode; restore desktop preference when widening (from storage + system).
+  // Keep mobile ≤768px in light mode; restore desktop preference when widening (storage only).
   useLayoutEffect(() => {
     const mq = window.matchMedia(MOBILE_THEME_QUERY)
     const syncViewportTheme = () => {
       if (mq.matches) {
         setIsDarkState(false)
       } else {
-        setIsDarkState(readDesktopIsDarkFromStorage())
+        setIsDarkState(readStoredThemePrefersDark())
       }
     }
     syncViewportTheme()

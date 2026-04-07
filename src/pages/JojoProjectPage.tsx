@@ -1,8 +1,8 @@
-import React, { Fragment, useState, useEffect, useRef } from 'react'
+import React, { Fragment, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
-import { usePageTheme } from '../context/PageThemeContext'
+import { readStoredThemePrefersDark, usePageTheme } from '../context/PageThemeContext'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { PiikCaseStudyMediaBlock, PiikCaseStudyCarouselBlock, PiikCaseStudyPhoneCarousel } from './PiikProjectPage'
@@ -212,11 +212,12 @@ export function JojoProjectPage() {
   const scrollSpyRef = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
 
+  useLayoutEffect(() => {
+    setIsDark(false)
+  }, [setIsDark])
+
   useEffect(() => {
-    setIsDark(isDark)
-  }, [isDark, setIsDark])
-  useEffect(() => {
-    return () => setIsDark(true)
+    return () => setIsDark(readStoredThemePrefersDark())
   }, [setIsDark])
 
   useEffect(() => {

@@ -14,6 +14,10 @@ const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
 const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[18px] leading-tight font-bold`
 const HOVR_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
 
+/** Bump `?v=` when replacing these files in `public/hovr/` so cached clients load the new PNGs. */
+const HOVR_RESEARCH_IMAGE = '/hovr/Research.png?v=2'
+const HOVR_SOLUTION_SKETCH_IMAGE = '/hovr/solution-sketch.png?v=2'
+
 // ── Section data ───────────────────────────────────────────────────────────────
 
 export const HOVR_SECTIONS = [
@@ -36,14 +40,14 @@ export const HOVR_SECTIONS = [
     label: 'Research',
     heading: 'The Approval system should be simplified.',
     body: 'User research and interview revealed that manual document verification was the primary friction point, forcing admin staff to spend nearly 48 seconds on every single approval',
-    media: '/hovr/Research.png',
+    media: HOVR_RESEARCH_IMAGE,
   },
   {
     id: 'solution-sketch',
     label: 'Solution Sketch',
     heading: 'Split-View Inspection System',
     body: 'Implemented a dual-panel workflow where clicking a card triggers an instant document preview on the right. This side-by-side layout ensures that the support team can validate complex information within a single screen, significantly reducing the number of clicks required for a full driver approval.',
-    media: ['/hovr/solution-sketch.png', '/hovr/card-design 1.jpg'],
+    media: [HOVR_SOLUTION_SKETCH_IMAGE, '/hovr/card-design 1.jpg'],
     carousel: ['/hovr/card-design2.jpg', '/hovr/card-design3.jpg'],
   },
   {

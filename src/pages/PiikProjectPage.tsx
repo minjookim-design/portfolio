@@ -3,7 +3,7 @@ import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
-import { usePageTheme } from '../context/PageThemeContext'
+import { readStoredThemePrefersDark, usePageTheme } from '../context/PageThemeContext'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
@@ -929,23 +929,21 @@ export function PiikProjectPage() {
   const bgColor = useTransform(goalProgress, [0, 1], ['#3D4E6D', '#E8E8E8'])
 
   // sectionRefs[0] = hero, sectionRefs[1..N] = PIIK_SECTIONS
-  const { isDark: themeIsDark, setIsDark } = usePageTheme()
+  const { setIsDark } = usePageTheme()
   const reduceMotion = useReducedMotion()
   const sectionRefs   = useRef<(HTMLDivElement | null)[]>([])
   const mobilePiikSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const scrollSpyRef  = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
 
-  // Piik opens in light mode (mobile rail + desktop hero); scroll can still darken in-page on desktop.
+  // Case study chrome starts light; scroll-driven `isDark` stays local (does not flip global theme).
   useLayoutEffect(() => {
     setIsDark(false)
   }, [setIsDark])
 
-  // Sync scroll-driven dark sections to global context (desktop only — mobile uses home-style rail + theme toggle).
   useEffect(() => {
-    if (isMobile) return
-    setIsDark(isDark)
-  }, [isMobile, isDark, setIsDark])
+    return () => setIsDark(readStoredThemePrefersDark())
+  }, [setIsDark])
 
   // Force body/html transparent so fixed backgrounds show through (desktop Piik page only).
   useEffect(() => {
@@ -1052,21 +1050,21 @@ export function PiikProjectPage() {
     container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
   }
 
-  const mobilePiikText = themeIsDark ? 'text-[#FFFFFF]' : 'text-black'
+  const mobilePiikText = isDark ? 'text-[#FFFFFF]' : 'text-black'
 
   if (isMobile) {
     return (
       <>
         <div
           className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
-            themeIsDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+            isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
           } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
         >
           <div
             className={`theme-surface-transition relative z-0 flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden pl-[6px] md:pl-[10px] ${mobilePiikText}`}
           >
             <HomePiikCaseStudy
-              isDark={themeIsDark}
+              isDark={isDark}
               isMobile={isMobile}
               sectionRefs={mobilePiikSectionRefs}
               onMediaClick={setSelectedMedia}
