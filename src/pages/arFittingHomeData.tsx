@@ -98,13 +98,13 @@ export const AR_FITTING_SECTIONS = [
       {
         heading: 'Pre-setting stage',
         body: 'Users can customize a screen position before they start experiencing AR Fitting Room.\n\nThe device offers options for preferred hand and height and users can choose them based on their various conditions.',
-        media: '/arfittingroom/final3.png',
+        media: '/arfittingroom/final1.png',
         mediaBeside: { src: '/arfittingroom/setting.gif', gapPx: 10 },
       },
       {
         heading: "Let's do shopping",
         body: "It's basically a shopping device that feels like browsing a website or mobile app.\n\nJust like on a computer or phone, users can select clothes they want to try on, save items to a wishlist or bag, and even try them using the AR feature by tapping the AR menu on the navigation bar.\n\nAdditionally, users have the flexibility to reposition the navigation bar at any time while shopping by simply long-pressing it. While the menu bar can be preset to a lower position during the initial setup, users who prefer standing while shopping might set it higher. If they suddenly decide to sit down, they can easily readjust the menu bar to a lower position without going back to the settings page.",
-        media: '/arfittingroom/final4.png',
+        media: '/arfittingroom/final1.png',
         mediaBeside: { src: '/arfittingroom/long%20press%20copy.gif', gapPx: 10 },
       },
       {

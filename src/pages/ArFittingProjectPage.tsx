@@ -120,13 +120,13 @@ function ArCaseStudyMediaWithBeside({
         />
       </div>
       <div
-        className="flex w-fit max-w-full shrink-0 items-center justify-center overflow-hidden rounded-none"
+        className="flex w-fit max-w-[min(100%,50%)] shrink-0 items-center justify-center overflow-hidden rounded-none"
         style={leftHeightPx != null && leftHeightPx > 0 ? { height: leftHeightPx } : undefined}
       >
         <OptimizedImage
           src={besideSrc}
           alt=""
-          className="h-full w-auto max-h-full max-w-full cursor-zoom-in object-contain"
+          className="block h-full w-auto max-h-full max-w-full cursor-zoom-in object-contain"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
           quality={85}
