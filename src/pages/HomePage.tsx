@@ -873,7 +873,7 @@ export function HomePage() {
     <div
       className={`theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-x-hidden max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`}
     >
-      {/* Mobile: vertical scroll + no horizontal overflow; sticky header in grid row 1 */}
+      {/* Mobile: full-page vertical scroll; intro is not sticky so name + bio scroll together */}
       <div
         ref={introScrollRef}
         className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col max-md:overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden"
@@ -886,12 +886,8 @@ export function HomePage() {
           className={`max-md:contents md:flex md:h-full md:min-h-0 md:max-h-full md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:gap-[150px] md:self-stretch md:overflow-y-auto ${bodyFont} md:w-full`}
           style={isSplitDesktop ? { width: colWidths.c1, minWidth: MIN_COL1_PX } : undefined}
         >
-          {/* Mobile: order 1 — name + Product Designer (+ links); sticky title bar. Desktop: top of intro column */}
-          <div
-            className={`max-md:col-start-1 max-md:row-start-1 md:shrink-0 max-md:sticky max-md:top-0 max-md:z-40 max-md:-mx-4 max-md:px-4 max-md:pb-3 max-md:border-none max-md:shadow-none ${
-              isDark ? 'max-md:bg-[#111111]' : 'max-md:bg-[#e8e8e8]'
-            } md:border-0`}
-          >
+          {/* Mobile: intro column scrolls with parent (no sticky). Desktop: top of intro column */}
+          <div className="max-md:col-start-1 max-md:row-start-1 md:shrink-0 md:border-0">
             <div className="flex min-w-0 w-full shrink-0 flex-col gap-[10px]">
               {introStage > 0 ? (
                 <p className={`shrink-0 font-bold max-md:whitespace-normal md:whitespace-nowrap ${HOME_INTRO_SERIF}`}>Minjoo Kim</p>
