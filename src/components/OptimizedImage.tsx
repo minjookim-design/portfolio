@@ -3,56 +3,66 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ImgHTMLAttributes,
+  type SyntheticEvent,
 } from 'react'
+import imageFormatVariants from '../generated/imageFormatVariants.json'
 
 /**
- * High-performance `<img>` wrapper for this Vite + React app (not Next.js — there is no `next/image`).
+ * High-performance image wrapper for this Vite + React app (not Next.js — there is no `next/image`).
  *
- * - **priority**: `loading="eager"`, `fetchPriority="high"` for above-the-fold / LCP candidates.
- * - **Default**: `loading="lazy"`, `decoding="async"` for bandwidth-friendly loading.
- * - **placeholder="blur"**: short CSS blur until `onLoad` (smooth reveal). Pair with **quality** when exporting assets (~85).
- * - **sizes**: use with **srcSet** later for responsive downloads; with a single **src**, browsers still accept it for future-proofing.
- *
- * **WebP/AVIF**: static files in `/public` are served as-is. Add compressed variants and pass **srcSet** when ready.
+ * - **priority**: `loading="eager"`, `fetchPriority="high"` for above-the-fold / LCP.
+ * - **Default**: `loading="lazy"`, `decoding="async"`, `placeholder="blur"` with a neutral tint.
+ * - **quality** (default 88): documentary — export raster assets at ~88 for a near-lossless look with smaller files.
+ * - **Modern formats**: add `sameName.webp` / `sameName.avif` next to sources in `public/`, then run `npm run catalog:images` (or `npm run build`).
+ * - **sizes**: pass for responsive layouts so the browser can choose the right resource when you add width-based `srcSet` later.
  */
 export const IMAGE_SIZES = {
-  /** Case study / project column hero and full-width content */
   caseStudyFull: '(max-width: 768px) 100vw, (max-width: 1400px) 82vw, min(1000px, 75vw)',
-  /** Projects index cards */
   projectCard: '(max-width: 768px) 90vw, min(1200px, 92vw)',
-  /** Home intro portrait strip */
   homeIntroPhoto: '(max-width: 768px) 50vw, min(220px, 40vw)',
-  /** ~80%-width carousel slides */
   carouselSlide80: '(max-width: 768px) 85vw, min(900px, 70vw)',
-  /** Lightbox / zoom overlay */
   lightbox: '85vw',
-  /** Full-width block in intro column */
   homeIntroFull: '(max-width: 768px) 100vw, min(700px, 90vw)',
 } as const
+
+const DEFAULT_QUALITY = 88
+const ONBOARD_EASE = 'cubic-bezier(0.42, 0, 0.58, 1)'
+const BLUR_TRANSITION = `filter 0.45s ${ONBOARD_EASE}, opacity 0.45s ${ONBOARD_EASE}`
+
+type FormatEntry = { webp?: string; avif?: string }
+const FORMAT_LOOKUP = imageFormatVariants as Record<string, FormatEntry>
+
+function formatVariantsForSrc(src: string): FormatEntry | null {
+  if (!src.startsWith('/')) return null
+  const key = src.split('?')[0]
+  const v = FORMAT_LOOKUP[key]
+  return v && (v.webp || v.avif) ? v : null
+}
 
 export type OptimizedImageProps = Omit<
   ImgHTMLAttributes<HTMLImageElement>,
   'loading' | 'decoding' | 'fetchPriority'
 > & {
-  /** Preload / high fetch priority (hero, first project card, first visible thumb). */
   priority?: boolean
-  /** Responsive hint; most useful when you add `srcSet` with width descriptors. */
   sizes?: string
-  /**
-   * Documentary: target ~85 when exporting JPEG/PNG from design tools.
-   * No runtime effect for plain `/public` URLs.
-   */
+  /** Target export quality from design tools (default 88). No runtime re-encode in Vite — documentary. */
   quality?: number
-  /** Blur until loaded (smooth transition). */
   placeholder?: 'empty' | 'blur'
+  /** Subtle surface while blurred (`placeholder="blur"` only). */
+  placeholderTint?: string
+  /** Inline `object-fit` alternative to Tailwind `object-cover` / `object-contain`. */
+  objectFit?: CSSProperties['objectFit']
 }
 
 export function OptimizedImage({
   priority = false,
   sizes,
-  quality: _quality = 85,
-  placeholder = 'empty',
+  quality: _quality = DEFAULT_QUALITY,
+  placeholder = 'blur',
+  placeholderTint = 'rgba(12, 12, 14, 0.08)',
+  objectFit,
   className,
   style,
   onLoad,
@@ -60,6 +70,7 @@ export function OptimizedImage({
   src,
   ...rest
 }: OptimizedImageProps) {
+  void _quality
   const imgRef = useRef<HTMLImageElement>(null)
   const [showBlur, setShowBlur] = useState(placeholder === 'blur' && !priority)
 
@@ -70,35 +81,54 @@ export function OptimizedImage({
   }, [src, priority, placeholder])
 
   const handleLoad = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement>) => {
+    (e: SyntheticEvent<HTMLImageElement>) => {
       setShowBlur(false)
       onLoad?.(e)
     },
     [onLoad],
   )
 
-  const blurStyle: React.CSSProperties | undefined =
-    placeholder === 'blur'
+  const mergedStyle: CSSProperties = {
+    ...style,
+    ...(objectFit != null ? { objectFit } : {}),
+    ...(placeholder === 'blur'
       ? {
-          transition: 'filter 0.4s ease, opacity 0.4s ease',
-          filter: showBlur ? 'blur(12px)' : 'none',
-          opacity: showBlur ? 0.92 : 1,
+          transition: BLUR_TRANSITION,
+          filter: showBlur ? 'blur(10px)' : 'none',
+          opacity: showBlur ? 0.88 : 1,
+          backgroundColor: showBlur ? placeholderTint : undefined,
         }
-      : undefined
+      : {}),
+  }
+
+  const shared: Omit<ImgHTMLAttributes<HTMLImageElement>, 'ref'> = {
+    src,
+    alt: alt ?? '',
+    sizes,
+    loading: priority ? 'eager' : 'lazy',
+    decoding: 'async',
+    fetchPriority: priority ? 'high' : undefined,
+    className,
+    style: mergedStyle,
+    onLoad: placeholder === 'blur' ? handleLoad : onLoad,
+    ...rest,
+  }
+
+  const formats = typeof src === 'string' ? formatVariantsForSrc(src) : null
+
+  if (!formats) {
+    return <img ref={imgRef} {...shared} />
+  }
 
   return (
-    <img
-      ref={imgRef}
-      src={src}
-      alt={alt}
-      sizes={sizes}
-      loading={priority ? 'eager' : 'lazy'}
-      decoding="async"
-      fetchPriority={priority ? 'high' : undefined}
-      className={className}
-      style={{ ...blurStyle, ...style }}
-      onLoad={placeholder === 'blur' ? handleLoad : onLoad}
-      {...rest}
-    />
+    <picture style={{ display: 'contents' }}>
+      {formats.avif ? (
+        <source type="image/avif" srcSet={formats.avif} sizes={sizes} />
+      ) : null}
+      {formats.webp ? (
+        <source type="image/webp" srcSet={formats.webp} sizes={sizes} />
+      ) : null}
+      <img ref={imgRef} {...shared} />
+    </picture>
   )
 }

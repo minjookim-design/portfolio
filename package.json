@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "catalog:images": "node scripts/catalog-image-variants.mjs",
+    "prebuild": "node scripts/catalog-image-variants.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -14,14 +14,11 @@ const TOOLTIP_TEXT = 'Drag to resize sections'
 /** Unified easing: smooth in-out “heartbeat” across bar, glow, and tooltip. */
 const ONBOARD_EASE: [number, number, number, number] = [0.42, 0, 0.58, 1]
 
-/** One symmetric breathing cycle; timeouts must use `PULSE_DURATION_MS` for pulse phases. */
+/** Single breath (0 → peak → 0); tooltip is scheduled as soon as this elapses after `pulse1` starts. */
 const PULSE_DURATION_S = 0.4
 const PULSE_DURATION_MS = Math.round(PULSE_DURATION_S * 1000)
 
-/**
- * Idle→done timeout chain (ms). Sum is 4170 vs previous 4570 (−400ms total).
- * Pulse1 and pulse2 each hold exactly `PULSE_DURATION_MS` so the tooltip follows the 2nd pulse with no drift.
- */
+/** Idle→done timeouts (ms). `pulse1` is held for exactly `PULSE_DURATION_MS`, then tooltip (no second pulse). */
 const ONBOARD_PRE_FADE_MS = 400
 const ONBOARD_FADE_BARS_MS = 380
 const ONBOARD_TOOLTIP_MS = 2200
@@ -29,7 +26,7 @@ const ONBOARD_EXIT_MS = 390
 
 const FADE_BAR_OPACITY_S = Math.min(0.34, ONBOARD_FADE_BARS_MS / 1000 - 0.02)
 
-type GuidePhase = 'off' | 'fadeBars' | 'pulse1' | 'pulse2' | 'tooltip' | 'exit' | 'done'
+type GuidePhase = 'off' | 'fadeBars' | 'pulse1' | 'tooltip' | 'exit' | 'done'
 
 type UseHomeSplitColumnGuideOptions = {
   entranceComplete: boolean
@@ -147,9 +144,6 @@ export function useHomeSplitColumnGuide({
         schedule(ONBOARD_FADE_BARS_MS, 'pulse1')
         break
       case 'pulse1':
-        schedule(PULSE_DURATION_MS, 'pulse2')
-        break
-      case 'pulse2':
         schedule(PULSE_DURATION_MS, 'tooltip')
         break
       case 'tooltip':
@@ -171,14 +165,10 @@ export function useHomeSplitColumnGuide({
   }, [phase, markSeenAndEnd])
 
   const showBars =
-    phase === 'fadeBars' ||
-    phase === 'pulse1' ||
-    phase === 'pulse2' ||
-    phase === 'tooltip' ||
-    phase === 'exit'
+    phase === 'fadeBars' || phase === 'pulse1' || phase === 'tooltip' || phase === 'exit'
 
   const barOpacity = phase === 'exit' || phase === 'done' ? 0 : showBars ? 1 : 0
-  const pulseKey = phase === 'pulse1' ? 1 : phase === 'pulse2' ? 2 : 0
+  const pulseKey = phase === 'pulse1' ? 1 : 0
   const showTooltip = phase === 'tooltip'
 
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null)
@@ -266,18 +256,12 @@ function SplitResizeGuideBarGlow({
 }) {
   const line = isDark ? 'rgba(255,255,255,0.27)' : '#FFFFFF'
   const glowPeak = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.88)'
-  const glowRise = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.35)'
 
   const idleShadow = '0 0 0 0 rgba(255,255,255,0)'
+  /** One smooth breath: idle → peak glow → idle (no remount `key`; avoids bar opacity flash into tooltip). */
   const pulseShadow =
     pulseKey > 0
-      ? [
-          idleShadow,
-          `0 0 6px 2px ${glowRise}`,
-          `0 0 16px 7px ${glowPeak}`,
-          `0 0 6px 2px ${glowRise}`,
-          idleShadow,
-        ]
+      ? [idleShadow, `0 0 16px 7px ${glowPeak}`, idleShadow]
       : idleShadow
 
   return (
@@ -297,11 +281,10 @@ function SplitResizeGuideBarGlow({
             ? {
                 duration: PULSE_DURATION_S,
                 ease: ONBOARD_EASE,
-                times: [0, 0.25, 0.5, 0.75, 1],
+                times: [0, 0.5, 1],
               }
             : { duration: 0.18, ease: ONBOARD_EASE },
       }}
-      key={pulseKey}
     />
   )
 }

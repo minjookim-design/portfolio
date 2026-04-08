@@ -69,7 +69,6 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
           className="w-full h-auto cursor-zoom-in"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
-          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -129,7 +128,6 @@ function ArCaseStudyMediaWithBeside({
           className="block h-full w-auto max-h-full max-w-full cursor-zoom-in object-contain"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
-          quality={85}
           onClick={() => onMediaClick?.(besideSrc)}
           onLoad={() => {
             const el = leftWrapRef.current
@@ -175,7 +173,6 @@ export function PiikCaseStudyCarouselBlock({ srcs, onMediaClick }: { srcs: strin
               style={{ width: '80%', height: 'auto', borderRadius: 0 }}
               sizes={IMAGE_SIZES.carouselSlide80}
               placeholder="blur"
-              quality={85}
               priority={ci === 0}
               onClick={() => onMediaClick?.(src)}
             />
@@ -408,7 +405,6 @@ export function HomeArFittingCaseStudy({
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
-            quality={85}
           />
         </motion.div>
 

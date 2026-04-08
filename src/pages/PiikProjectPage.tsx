@@ -189,7 +189,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
               sizes={IMAGE_SIZES.lightbox}
               priority
-              quality={85}
+              placeholder="empty"
             />
           )}
         </motion.div>
@@ -226,7 +226,6 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
           className="w-full h-auto cursor-zoom-in"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
-          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -279,7 +278,6 @@ function PiikCarouselSlideMedia({
       style={style}
       sizes={IMAGE_SIZES.carouselSlide80}
       placeholder="blur"
-      quality={85}
       priority={slideIndex === 0}
       onClick={() => onMediaClick?.(src)}
     />
@@ -711,7 +709,6 @@ export function HomePiikCaseStudy({
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
-            quality={85}
           />
         </motion.div>
 

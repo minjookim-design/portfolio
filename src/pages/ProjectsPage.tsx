@@ -57,7 +57,6 @@ function ProjectMedia({ media, priority }: { media: Media; priority?: boolean })
       sizes={IMAGE_SIZES.projectCard}
       priority={priority}
       placeholder="blur"
-      quality={85}
     />
   )
 }

@@ -144,7 +144,6 @@ export function ProjectHovrPage() {
             style={{ width: '100%', objectFit: 'cover' }}
             sizes="(max-width: 768px) 100vw, 674px"
             placeholder="blur"
-            quality={85}
           />
         </div>
       </ScrollSection>
@@ -216,7 +215,6 @@ export function ProjectHovrPage() {
             style={{ width: '100%', objectFit: 'cover' }}
             sizes="(max-width: 768px) 100vw, 674px"
             placeholder="blur"
-            quality={85}
           />
         </div>
       </ScrollSection>
@@ -232,7 +230,6 @@ export function ProjectHovrPage() {
             sizes="(max-width: 768px) 100vw, 674px"
             priority
             placeholder="blur"
-            quality={85}
           />
 
           {/* Bulk Approval */}

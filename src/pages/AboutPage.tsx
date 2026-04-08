@@ -201,7 +201,6 @@ export function AboutPage() {
                     style={{ width: 600, height: 'auto', display: 'block', maxWidth: '100%' }}
                     sizes={IMAGE_SIZES.homeIntroFull}
                     placeholder="blur"
-                    quality={85}
                   />
                 </div>
               ) : 'funWorks' in section ? (
@@ -230,7 +229,6 @@ export function AboutPage() {
                       style={{ display: 'block', width: '40%', height: 'auto', borderRadius: 10, maxWidth: '100%' }}
                       sizes="(max-width: 768px) 60vw, 320px"
                       placeholder="blur"
-                      quality={85}
                     />
                   )}
                 </div>

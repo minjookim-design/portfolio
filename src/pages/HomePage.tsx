@@ -890,7 +890,6 @@ export function HomePage() {
               className="h-full w-full object-cover"
               sizes={IMAGE_SIZES.caseStudyFull}
               placeholder="blur"
-              quality={85}
             />
           )}
         </motion.div>
@@ -1043,19 +1042,20 @@ export function HomePage() {
                     draggable={false}
                     aria-hidden
                     sizes={IMAGE_SIZES.homeIntroPhoto}
+                    placeholder="empty"
                   />
-                  {/* No placeholder="blur" here: blur placeholder sets inline opacity and breaks crossfade vs Tailwind opacity. */}
+                  {/* Blur + inline opacity fights Tailwind crossfade; keep empty placeholder. */}
                   <OptimizedImage
                     src="/me/me1.png"
                     alt=""
                     draggable={false}
                     aria-hidden
                     priority
+                    placeholder="empty"
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 1 ? 'opacity-100' : 'opacity-0'
                     }`}
                     sizes={IMAGE_SIZES.homeIntroPhoto}
-                    quality={85}
                   />
                   <OptimizedImage
                     src="/me/me2.png"
@@ -1063,11 +1063,11 @@ export function HomePage() {
                     draggable={false}
                     aria-hidden
                     priority
+                    placeholder="empty"
                     className={`absolute left-0 top-0 h-auto w-full rounded-[10px] transition-opacity duration-700 ease-in-out ${
                       meImg === 2 ? 'opacity-100' : 'opacity-0'
                     }`}
                     sizes={IMAGE_SIZES.homeIntroPhoto}
-                    quality={85}
                   />
                 </div>
               </motion.div>
@@ -1141,7 +1141,6 @@ export function HomePage() {
                 className="block h-auto w-full"
                 sizes={IMAGE_SIZES.homeIntroFull}
                 placeholder="blur"
-                quality={85}
               />
             </div>
           </div>
@@ -1158,7 +1157,6 @@ export function HomePage() {
                 className="block h-auto w-full"
                 sizes={IMAGE_SIZES.homeIntroFull}
                 placeholder="blur"
-                quality={85}
               />
               <OptimizedImage
                 src="/me/2.jpg"
@@ -1166,7 +1164,6 @@ export function HomePage() {
                 className="block h-auto w-full"
                 sizes={IMAGE_SIZES.homeIntroFull}
                 placeholder="blur"
-                quality={85}
               />
               <OptimizedImage
                 src="/me/3.jpg"
@@ -1174,7 +1171,6 @@ export function HomePage() {
                 className="block h-auto w-full"
                 sizes={IMAGE_SIZES.homeIntroFull}
                 placeholder="blur"
-                quality={85}
               />
             </div>
           </div>

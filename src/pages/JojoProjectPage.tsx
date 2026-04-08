@@ -118,7 +118,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
               sizes={IMAGE_SIZES.lightbox}
               priority
-              quality={85}
+              placeholder="empty"
             />
           )}
         </motion.div>
@@ -157,7 +157,6 @@ function MediaBlock({ src, onMediaClick, playbackRate }: { src: string; onMediaC
           className="h-auto w-full cursor-zoom-in"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
-          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -907,7 +906,6 @@ export function HomeJojoCaseStudy({
           sizes={IMAGE_SIZES.caseStudyFull}
           priority
           placeholder="blur"
-          quality={85}
         />
         <h1 className="mb-2 mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">JoJo</h1>
         <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[20px] font-bold italic leading-tight`}>Think Beyond AI</p>
@@ -940,7 +938,6 @@ export function HomeJojoCaseStudy({
             className="mt-6 block h-auto w-full max-w-full cursor-zoom-in rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             placeholder="blur"
-            quality={85}
             onClick={() => onMediaClick('/jojo/timeline.jpg')}
           />
         </div>

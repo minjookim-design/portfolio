@@ -172,7 +172,7 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
               style={{ maxWidth: '100%', maxHeight: '85vh' }}
               sizes={IMAGE_SIZES.lightbox}
               priority
-              quality={85}
+              placeholder="empty"
             />
           )}
         </motion.div>
@@ -208,7 +208,6 @@ export function MediaBlock({ src, onMediaClick }: { src: string; onMediaClick?: 
           className="w-full h-auto cursor-zoom-in"
           sizes={IMAGE_SIZES.caseStudyFull}
           placeholder="blur"
-          quality={85}
           onClick={() => onMediaClick?.(src)}
         />
       </div>
@@ -255,7 +254,6 @@ export function CarouselBlock({ srcs, onMediaClick }: { srcs: string[]; onMediaC
             style={{ width: '80%', height: 'auto', borderRadius: 0 }}
             sizes={IMAGE_SIZES.carouselSlide80}
             placeholder="blur"
-            quality={85}
             priority={ci === 0}
             onClick={() => onMediaClick?.(src)}
           />
@@ -317,7 +315,6 @@ export function HomeHovrCaseStudy({
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
-            quality={85}
           />
         </motion.div>
 
@@ -358,7 +355,6 @@ export function HomeHovrCaseStudy({
             className="mt-6 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             placeholder="blur"
-            quality={85}
             onClick={() => onMediaClick('/hovr/timeline.jpg')}
           />
         </motion.div>
@@ -602,7 +598,6 @@ export function HovrProjectPage() {
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
-            quality={85}
           />
 
           {/* Title */}
@@ -659,7 +654,6 @@ export function HovrProjectPage() {
             style={{ width: '100%', maxWidth: 1000, height: 'auto', marginTop: 50, marginBottom: 200, borderRadius: 0, cursor: 'zoom-in' }}
             sizes={IMAGE_SIZES.caseStudyFull}
             placeholder="blur"
-            quality={85}
             onClick={() => setSelectedMedia('/hovr/process.png')}
           />
 
