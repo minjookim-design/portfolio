@@ -34,8 +34,9 @@ const PHASE2_TRANSITION = {
 
 const EMAIL = 'minjoo.kim.kor@gmail.com'
 
+/** Canonical copy — keep in sync with `DESIGN_SYSTEM.md` §5. */
 const FOOTER_ATTRIBUTION =
-  'This website is designed by me, Coded by Claude & Cursor'
+  'Designed by me, Coded by Claude & Cursor (connected to figma mcp)'
 
 const FOOTER_ATTRIBUTION_CHAR_MS = 38
 
