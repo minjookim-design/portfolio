@@ -6,7 +6,7 @@ import { useHomeMobileProjectOptional } from '../context/HomeMobileProjectContex
 
 const MENU_PROJECTS = [
   { id: 'hovr', label: 'HOVR', href: '/projects/hovr' },
-  { id: 'piikai', label: 'Piik', href: '/projects/piik' },
+  { id: 'piikai', label: 'Piik AI', href: '/projects/piik' },
   { id: 'ar-fitting-room', label: 'AR Fitting Room', href: '/projects/ar-fitting-room' },
 ] as const
 
@@ -59,7 +59,9 @@ export function MobileQuickNav() {
   const glass = isDark
     ? 'border-white/20 bg-black/55 text-white'
     : 'border-black/10 bg-white/70 text-black'
-  const menuGlass = isDark ? 'border-white/15 bg-black/60' : 'border-black/10 bg-white/80'
+  const menuGlass = isDark
+    ? 'border-white/15 bg-black/60 text-white'
+    : 'border-black/10 bg-white/80 text-black'
   const rowHover = isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.06]'
 
   return (
@@ -108,7 +110,7 @@ export function MobileQuickNav() {
                   role="menuitem"
                   to={p.href}
                   onClick={close}
-                  className={`flex items-center gap-3 px-4 py-2.5 font-mono text-[13px] font-semibold ${rowHover}`}
+                  className={`flex items-center gap-3 px-4 py-2.5 font-mono text-[13px] font-semibold text-inherit visited:text-inherit ${rowHover}`}
                 >
                   <FolderGlyph className="h-[18px] w-[18px] shrink-0 opacity-90" />
                   {p.label}
