@@ -45,6 +45,9 @@ const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
 const HOME_INTRO_SERIF = `${INSTRUMENT_SERIF} text-[22px] leading-tight md:text-[25.2px]`
 const CAREER_ROLE_SERIF = `${INSTRUMENT_SERIF} text-[18px] leading-tight`
 const HOME_MONO_SM = 'text-[12px] font-medium font-mono'
+/** Expanded folder: vertical list wrapping section spy links. */
+const HOME_PROJECT_SPY_STACK =
+  'flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px] capitalize'
 /** Project column: section links (12px mono, 500 idle / 800 active). */
 const PROJECT_SPY_LINK = 'font-mono text-[12px]'
 
@@ -929,7 +932,7 @@ export function HomePage() {
         >
           {/* Mobile: intro column scrolls with parent (no sticky). Desktop: top of intro column */}
           <div className="max-md:col-start-1 max-md:row-start-1 md:shrink-0 md:border-0">
-            <div className="flex min-w-0 w-full shrink-0 flex-col gap-[10px]">
+            <div className="flex min-w-0 w-full shrink-0 flex-col gap-[4px]">
               {introStage > 0 ? (
                 <p className={`shrink-0 font-bold max-md:whitespace-normal md:whitespace-nowrap ${HOME_INTRO_SERIF}`}>Minjoo Kim</p>
               ) : (
@@ -942,7 +945,7 @@ export function HomePage() {
                 />
               )}
               {introStage >= 1 && (
-                <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-1">
+                <div className="flex w-full flex-wrap items-center gap-[2px]">
                   {introStage >= 2 ? (
                     <p className={`shrink-0 font-bold ${HOME_INTRO_SERIF}`}>Product Designer</p>
                   ) : (
@@ -1247,7 +1250,7 @@ export function HomePage() {
                             animate={hovrUnfoldKey}
                             className="w-full will-change-transform"
                           >
-                            <div className="flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px]">
+                            <div className={HOME_PROJECT_SPY_STACK}>
                               {project.spy.map((s, idx) => {
                                 const active =
                                   displayProject != null &&
@@ -1288,7 +1291,7 @@ export function HomePage() {
                             </div>
                           </motion.div>
                         ) : (
-                          <div className="flex flex-col gap-[10px] pt-1 pr-1 pb-2 pl-[22px]">
+                          <div className={HOME_PROJECT_SPY_STACK}>
                             {project.spy.map((s) => {
                               const active =
                                 displayProject != null &&

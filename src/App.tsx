@@ -36,7 +36,7 @@ const EMAIL = 'minjoo.kim.kor@gmail.com'
 
 /** Canonical copy — keep in sync with `DESIGN_SYSTEM.md` §5. */
 const FOOTER_ATTRIBUTION =
-  'Designed by me, Coded by Claude & Cursor (connected to figma mcp)'
+  'Designed by me, Coded by Claude & Cursor'
 
 const FOOTER_ATTRIBUTION_CHAR_MS = 38
 
