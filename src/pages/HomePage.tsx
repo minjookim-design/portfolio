@@ -58,11 +58,12 @@ const PROJECT_SPY_LINK = 'font-mono text-[12px]'
 const HOME_CLASSIC_FOLD_TITLE =
   'shrink-0 max-md:whitespace-normal md:whitespace-nowrap font-mono text-[14px] font-semibold leading-tight uppercase'
 
-const HOME_INTRO_BIO =
-  'I design multi-platform experiences by turning complex spatial and product challenges into simple, intuitive interactions. I focus on creating clear, human-centered flows across web, mobile, and VR, making emerging technologies feel approachable and usable. By collaborating closely with engineers, including Unity developers, I help bridge design intent with technical feasibility and real-world implementation.'
+const HOME_INTRO_BIO = `I design multi-platform experiences by transforming complex spatial and product challenges into simple, intuitive interactions. My focus is on creating clear, human-centered flows across web, mobile, and VR, ensuring that emerging technologies feel approachable and highly usable.
+
+By collaborating closely with engineers, I bridge the gap between design intent and technical feasibility to ensure high-quality, real-world implementation. I thrive in 0 to 1 environments, owning the entire design lifecycle and building scalable systems that balance user needs with technical constraints.`
 
 /** Bio typewriter total duration; 0.7× speed → multiply prior ~3250ms baseline by 1/0.7 (each sentence’s share scales with this). */
-const HOME_INTRO_TYPEWRITER_MS = Math.round(3250 / 0.7)
+const HOME_INTRO_TYPEWRITER_MS = Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320))
 
 const SPLIT_DIVIDER_PX = 8
 const MIN_COL1_PX = 240
@@ -913,11 +914,13 @@ function ClassicHomeFirstColumn({
             </div>
             {introStage >= 2 &&
               (introStage >= 3 ? (
-                <p className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}>{HOME_INTRO_BIO}</p>
+                <p className={`w-full whitespace-pre-line ${HOME_MONO_SM} leading-[1.2] ${muted}`}>
+                  {HOME_INTRO_BIO}
+                </p>
               ) : (
                 <HomeIntroTypewriterText
                   as="p"
-                  className={`w-full ${HOME_MONO_SM} leading-[1.2] ${muted}`}
+                  className={`w-full whitespace-pre-line ${HOME_MONO_SM} leading-[1.2] ${muted}`}
                   text={HOME_INTRO_BIO}
                   durationMs={HOME_INTRO_TYPEWRITER_MS}
                   completeDelayMs={400}
