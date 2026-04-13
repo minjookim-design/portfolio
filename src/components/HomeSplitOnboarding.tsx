@@ -36,6 +36,11 @@ type UseHomeSplitColumnGuideOptions = {
   firstDividerRef: React.RefObject<HTMLElement | null>
   /** Dev-only: echoed when the guide arms (after `entranceComplete`) so you can correlate with menu sequence. */
   menuSeqPhaseForDev?: string
+  /**
+   * Persist “seen” separately from production (`HOME_SPLIT_ONBOARDING_SESSION_KEY`).
+   * Pass a distinct key on `/test` so the guide does not leak state to the live home page.
+   */
+  sessionStorageKey?: string
 }
 
 export function useHomeSplitColumnGuide({
@@ -45,6 +50,7 @@ export function useHomeSplitColumnGuide({
   isDark,
   firstDividerRef,
   menuSeqPhaseForDev,
+  sessionStorageKey = HOME_SPLIT_ONBOARDING_SESSION_KEY,
 }: UseHomeSplitColumnGuideOptions) {
   const [phase, setPhase] = useState<GuidePhase>('off')
   const dismissed = useRef(false)
@@ -76,14 +82,14 @@ export function useHomeSplitColumnGuide({
     dismissed.current = true
     if (!ONBOARDING_DEV_IGNORE_SESSION) {
       try {
-        sessionStorage.setItem(HOME_SPLIT_ONBOARDING_SESSION_KEY, '1')
+        sessionStorage.setItem(sessionStorageKey, '1')
       } catch {
         /* ignore */
       }
     }
     clearTimers()
     setPhase('done')
-  }, [clearTimers])
+  }, [clearTimers, sessionStorageKey])
 
   const dismissFromUser = useCallback(() => {
     const p = phaseRef.current
@@ -102,7 +108,7 @@ export function useHomeSplitColumnGuide({
 
     if (!ONBOARDING_DEV_IGNORE_SESSION) {
       try {
-        if (sessionStorage.getItem(HOME_SPLIT_ONBOARDING_SESSION_KEY) === '1') {
+        if (sessionStorage.getItem(sessionStorageKey) === '1') {
           dismissed.current = true
           setPhase('done')
           if (DEV_LOG) console.log('[SplitOnboarding] skip: sessionStorage already seen')
@@ -124,7 +130,7 @@ export function useHomeSplitColumnGuide({
       setPhase('fadeBars')
     }, ONBOARD_PRE_FADE_MS)
     return () => clearTimeout(id)
-  }, [entranceComplete, isMobile, reduceMotion, phase])
+  }, [entranceComplete, isMobile, reduceMotion, phase, sessionStorageKey, menuSeqPhaseForDev])
 
   useEffect(() => {
     if (phase === 'off' || phase === 'done') return

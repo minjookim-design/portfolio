@@ -68,7 +68,7 @@ export function PillNav() {
   const { isDark } = usePageTheme()
 
   const iconColor = isDark ? '#FFFFFF' : '#000000'
-  const glassClass = isDark ? 'bg-white/20 border-white/20' : 'bg-white/30 border-white/40'
+  const glassClass = isDark ? 'bg-white/20 border-2 border-white/[0.22]' : 'bg-white/30 border-2 border-black'
 
   useEffect(() => {
     if (!isProjectsOpen) return
@@ -107,7 +107,7 @@ export function PillNav() {
       style={{ left: isNarrow ? 16 : 'calc(8.33% + 15px)' }}
     >
       <motion.div
-        className={`flex flex-col gap-[11px] p-[10px] rounded-[100px] backdrop-blur-xl border pointer-events-auto transition-none ${glassClass}`}
+        className={`flex flex-col gap-[11px] rounded-[100px] p-[10px] backdrop-blur-xl pointer-events-auto transition-none ${glassClass}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={PHASE2_TRANSITION}
@@ -132,7 +132,7 @@ export function PillNav() {
           >
             <motion.button
               aria-label={item.label}
-              className="flex items-center justify-center w-[50px] h-[50px] rounded-full"
+              className="box-border flex h-[50px] w-[50px] items-center justify-center rounded-full border-2 border-black dark:border-white/[0.22]"
               animate={{ backgroundColor: isActive ? 'rgba(128,128,128,0.15)' : 'rgba(0,0,0,0)' }}
               whileHover={{ scale: 1.1, backgroundColor: 'rgba(128,128,128,0.12)' }}
               whileTap={{ scale: 0.92 }}
@@ -161,7 +161,7 @@ export function PillNav() {
 
             {isProjects && isProjectsOpen && (
               <motion.div
-                className={`absolute top-0 left-[calc(100%+1rem)] z-[10001] flex max-h-[min(380px,70vh)] min-w-[380px] flex-col gap-3 overflow-y-auto overscroll-contain rounded-[20px] border p-[10px] backdrop-blur-xl transition-none ${glassClass}`}
+                className={`absolute top-0 left-[calc(100%+1rem)] z-[10001] flex max-h-[min(380px,70vh)] min-w-[380px] flex-col gap-3 overflow-y-auto overscroll-contain rounded-[20px] border-2 border-black p-[10px] backdrop-blur-xl transition-none dark:border-white/[0.22] ${isDark ? 'bg-white/20' : 'bg-white/30'}`}
                 style={{ fontFamily: 'Arial, sans-serif' }}
                 initial={{ x: -16, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}

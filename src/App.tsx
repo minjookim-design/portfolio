@@ -10,6 +10,7 @@ import { MobileQuickNav } from './components/MobileQuickNav'
 import { HomeMobileProjectProvider } from './context/HomeMobileProjectContext'
 import { useRedirectHomeWhenDesktop } from './hooks/useRedirectHomeWhenDesktop'
 import { HomePage } from './pages/HomePage'
+import { TestPage } from './pages/TestPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { HovrProjectPage } from './pages/HovrProjectPage'
 import { JojoProjectPage } from './pages/JojoProjectPage'
@@ -106,7 +107,7 @@ function FooterEmail() {
   const [footerFadeDone, setFooterFadeDone] = useState(reduceMotion)
   const footerFadeCompleteRef = useRef(false)
 
-  const isHomeRoute = pathname === '/' || pathname === ''
+  const isHomeRoute = pathname === '/' || pathname === '' || pathname === '/test'
   const homeHovrAttributionReady =
     homeFooterAttribution?.homeHovrAttributionReady ?? false
   const attributionStart =
@@ -136,7 +137,8 @@ function FooterEmail() {
 
   return (
     <motion.div
-      className="fixed z-[100] pointer-events-auto left-4 w-fit max-w-[min(100%,calc(100vw-2rem))] pt-4 max-md:bottom-[max(1rem,env(safe-area-inset-bottom,0px))] md:bottom-4"
+      className="fixed z-[100] box-border inline-flex max-h-none min-h-0 w-max max-w-[min(100%,calc(100vw-2rem))] flex-col items-start pt-4 pointer-events-auto max-md:bottom-[max(1rem,env(safe-area-inset-bottom,0px))] md:bottom-4"
+      style={{ height: 'auto' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={PHASE2_TRANSITION}
@@ -147,10 +149,10 @@ function FooterEmail() {
       }}
     >
       <p
-        className="m-0 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-baseline md:gap-x-3 md:gap-y-1"
+        className="m-0 flex max-h-none min-h-0 min-w-0 flex-col items-start gap-2 md:flex-row md:flex-wrap md:items-baseline md:gap-x-3 md:gap-y-1"
         style={footerLineStyle}
       >
-        <span className="inline-flex min-w-0 flex-wrap items-baseline gap-x-1">
+        <span className="inline-flex min-w-0 flex-wrap items-baseline gap-x-1 pl-4">
           © 2026{' '}
           <span className="relative inline-block">
             <motion.span
@@ -204,7 +206,7 @@ function AppShell() {
   return (
     <HomeMobileProjectProvider>
       <div
-        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'}`}
+        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#A6E1FF]'}`}
       >
         <MobileProjectBackButton />
         <MobileQuickNav />
@@ -212,6 +214,7 @@ function AppShell() {
         <FooterEmail />
         <Routes>
           <Route index element={<HomePage />} />
+          <Route path="test" element={<TestPage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route
             path="projects/bmad"

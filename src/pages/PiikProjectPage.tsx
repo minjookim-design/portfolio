@@ -1054,7 +1054,7 @@ export function PiikProjectPage() {
       <>
         <div
           className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
-            isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'
+            isDark ? 'bg-[#111111]' : 'bg-[#A6E1FF]'
           } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
         >
           <div
