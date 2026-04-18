@@ -206,7 +206,7 @@ function AppShell() {
   return (
     <HomeMobileProjectProvider>
       <div
-        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#A6E1FF]'}`}
+        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'max-md:bg-[#faf7f0] md:bg-[#A6E1FF]'}`}
       >
         <MobileProjectBackButton />
         <MobileQuickNav />

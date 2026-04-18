@@ -1,12 +1,15 @@
 import { ScrollSection } from '../components/ScrollSection'
+import { CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
 
 const NEON = '#39ff14'
 
 export function ProjectBmadPage() {
   return (
-    <div style={{ paddingTop: 16, paddingLeft: 10, paddingBottom: 80 }}>
+    <div
+      className={`${CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS} min-h-[100dvh] overflow-x-hidden bg-[#111111] pr-4 pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] pb-24 text-[#cccccc]`}
+    >
       <ScrollSection id="bmad-overview">
-        <div style={{ maxWidth: 674 }}>
+        <div className="max-w-[674px]">
           <p className="font-bold" style={{ fontSize: 40, lineHeight: '44px', marginBottom: 24 }}>
             Currently working on it...
           </p>

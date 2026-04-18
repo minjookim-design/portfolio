@@ -29,6 +29,11 @@ import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
 import { TEST_HOME_PROJECT_TITLE_SERIF } from './testHomeTypography'
 import { useHomeSplitColumnGuide } from '../components/HomeSplitOnboarding'
 import { HOME_ENTRANCE_SPRING } from './homeCaseStudyHeroMotion'
+import {
+  CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS,
+  HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED,
+  HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED,
+} from './caseStudyMobileShell'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -685,7 +690,7 @@ function ClassicFoldSection({
   const humanFoldTriggerClass = [
     HUMAN_FOLD_TRIGGER_GRID,
     HUMAN_PROJECT_LIST_TYPO,
-    'w-full cursor-pointer border-0 border-b border-black/[0.12] py-2.5 text-left outline-none transition-colors dark:border-white/[0.14]',
+    'w-full cursor-pointer border-0 border-b border-transparent py-2.5 text-left outline-none transition-colors',
     'focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e8e8e8] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#111111]',
     isDark ? 'text-[#f2f2f2]' : 'text-black',
     open ? (isDark ? 'bg-white text-black' : 'bg-black text-white') : '',
@@ -2025,11 +2030,13 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                 animate={detailsColumnEntrance ? 'visible' : 'hidden'}
                 style={{ pointerEvents: detailsColumnEntrance ? 'auto' : 'none' }}
                 aria-hidden={!detailsColumnEntrance}
-                className={`relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch ${
+                className={
                   config.desktopDetailsColumnFrame
-                    ? 'box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
-                    : `pl-[6px] ${config.mergeProjectDetailsDesktop ? 'md:pl-0' : 'md:pl-[10px]'}`
-                }`}
+                    ? 'relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
+                    : config.mergeProjectDetailsDesktop
+                      ? HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED
+                      : HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED
+                }
               >
                 {renderDetailsColumnChildren()}
               </motion.div>
@@ -2047,8 +2054,8 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
       }}
       className={
         classicHome
-          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-4 pb-16 pt-5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#e8e8e8]'} ${text}`
-          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-x-hidden max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'bg-[#A6E1FF]'} ${text}`
+          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-4 pb-16 pt-5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'max-md:bg-[#faf7f0] md:bg-[#e8e8e8]'} ${text}`
+          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-x-hidden max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'max-md:bg-[#faf7f0] md:bg-[#A6E1FF]'} ${text}`
       }
       {...(config.designTestRootDataAttr ? { 'data-design-test': '1' } : {})}
     >
@@ -2129,12 +2136,12 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                   : { type: 'tween', duration: 0.34, ease: [0.4, 0, 0.2, 1] }
               }
               className={`fixed inset-0 z-[850] flex min-h-0 flex-col md:hidden ${
-                isDark ? 'bg-[#111111]' : classicHome ? 'bg-[#e8e8e8]' : 'bg-[#A6E1FF]'
+                isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'
               } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
             >
               <div
                 ref={detailsColumnRef}
-                className={`theme-surface-transition min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${text}`}
+                className={`${CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS} ${text}`}
               >
                 {renderDetailsColumnChildren()}
           </div>

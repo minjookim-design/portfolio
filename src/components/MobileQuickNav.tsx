@@ -56,12 +56,8 @@ export function MobileQuickNav() {
 
   if (onHome && homeMobile?.detailOpen) return null
 
-  const glass = isDark
-    ? 'border-2 border-white/[0.22] bg-black/55 text-white'
-    : 'border-2 border-black bg-white/70 text-black'
-  const menuGlass = isDark
-    ? 'border-2 border-white/[0.22] bg-black/60 text-white'
-    : 'border-2 border-black bg-white/80 text-black'
+  const glass = isDark ? 'bg-black/55 text-white' : 'bg-white/70 text-black'
+  const menuGlass = isDark ? 'bg-black/60 text-white' : 'bg-white/80 text-black'
   const rowHover = isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.06]'
 
   return (
@@ -88,7 +84,7 @@ export function MobileQuickNav() {
           aria-label={open ? 'Close projects menu' : 'Open projects menu'}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className={`pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full border shadow-lg backdrop-blur-xl transition-transform active:scale-95 ${glass}`}
+          className={`pointer-events-auto flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-xl transition-transform active:scale-95 ${glass}`}
         >
           <FolderGlyph className="opacity-90" />
         </button>
@@ -102,7 +98,7 @@ export function MobileQuickNav() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.96 }}
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-              className={`pointer-events-auto flex min-w-[200px] max-w-[min(calc(100vw-2rem),280px)] flex-col gap-2 overflow-hidden rounded-[18px] p-2 shadow-xl backdrop-blur-xl ${menuGlass}`}
+              className={`pointer-events-auto flex min-w-[200px] max-w-[min(calc(100vw-2rem),280px)] flex-col gap-2 overflow-hidden rounded-none p-2 shadow-xl backdrop-blur-xl ${menuGlass}`}
             >
               {MENU_PROJECTS.map((p) => (
                 <Link
@@ -110,7 +106,7 @@ export function MobileQuickNav() {
                   role="menuitem"
                   to={p.href}
                   onClick={close}
-                  className={`box-border flex items-center gap-3 rounded-[10px] border-2 border-black px-4 py-2.5 font-mono text-[13px] font-semibold text-inherit visited:text-inherit dark:border-white/[0.22] ${rowHover}`}
+                  className={`box-border flex items-center gap-3 rounded-none px-4 py-2.5 font-mono text-[13px] font-semibold text-inherit visited:text-inherit ${rowHover}`}
                 >
                   <FolderGlyph className="h-[18px] w-[18px] shrink-0 opacity-90" />
                   {p.label}

@@ -102,8 +102,7 @@ export function ProjectsPage() {
   return (
     <>
       <div
-        className="theme-surface-transition flex flex-col w-full max-w-full min-w-0 h-screen max-md:overflow-x-hidden overflow-y-auto snap-y snap-mandatory gap-8 px-4 pb-[calc(20vh+5.5rem)] max-md:pb-[calc(20vh+5.5rem+env(safe-area-inset-bottom,0px))] pt-[10vh] items-center [&::-webkit-scrollbar]:hidden scrollbar-width-none md:px-0"
-        style={{ backgroundColor: '#111111' }}
+        className="theme-surface-transition flex h-screen min-h-0 w-full max-w-full flex-col overflow-y-auto snap-y snap-mandatory items-center gap-8 px-4 pb-[calc(20vh+5.5rem)] pt-[10vh] max-md:overflow-x-hidden max-md:bg-[#faf7f0] max-md:pb-[calc(20vh+5.5rem+env(safe-area-inset-bottom,0px))] md:bg-[#111111] [&::-webkit-scrollbar]:hidden scrollbar-width-none md:px-0"
       >
         {PROJECTS.map((project, index) => (
           <ProjectItem key={project.id} project={project} mediaPriority={index === 0} />

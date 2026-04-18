@@ -10,6 +10,7 @@ import {
   TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
   testHomeDetailsSectionHighlightClass,
 } from './testHomeTypography'
+import { CASE_STUDY_MOBILE_DETAILS_COLUMN_CLASS, CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { PiikCaseStudyMediaBlock, PiikCaseStudyCarouselBlock, PiikCaseStudyPhoneCarousel } from './PiikProjectPage'
 import { JOJO_SECTIONS, JOJO_META_ROWS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
@@ -212,7 +213,7 @@ export function JojoProjectPage() {
   })
   const bgColor = useTransform(goalProgress, [0, 1], ['#3D4E6D', '#E8E8E8'])
 
-  const { setIsDark } = usePageTheme()
+  const { setIsDark, isDark: pageIsDark } = usePageTheme()
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const scrollSpyRef = useRef<HTMLDivElement>(null)
   const [spyRight, setSpyRight] = useState<string | number>(window.innerWidth < 1700 ? 16 : colRight)
@@ -335,6 +336,32 @@ export function JojoProjectPage() {
     container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
   }
 
+  const mobileJojoSectionRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  if (isMobile) {
+    const mobileJojoText = pageIsDark ? 'text-[#FFFFFF]' : 'text-black'
+    return (
+      <>
+        <div
+          className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
+            pageIsDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'
+          } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+        >
+          <div className={`${CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS} ${mobileJojoText}`}>
+            <HomeJojoCaseStudy
+              isDark={pageIsDark}
+              isMobile={isMobile}
+              sectionRefs={mobileJojoSectionRefs}
+              onMediaClick={setSelectedMedia}
+              testHomeProjectTitles
+            />
+          </div>
+        </div>
+        {selectedMedia && <Lightbox src={selectedMedia} onClose={() => setSelectedMedia(null)} />}
+      </>
+    )
+  }
+
   return (
     <>
       <motion.div
@@ -364,7 +391,7 @@ export function JojoProjectPage() {
 
       <div
         ref={scrollRef}
-        className="absolute overflow-y-auto"
+        className={`absolute overflow-y-auto${isMobile ? ' flex min-h-0 flex-col' : ''}`}
         style={
           isMobile
           ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
@@ -394,6 +421,7 @@ export function JojoProjectPage() {
         }
       >
         <div
+          className={isMobile ? `theme-surface-transition w-full ${CASE_STUDY_MOBILE_DETAILS_COLUMN_CLASS}` : undefined}
           style={{
             paddingTop: 0,
             paddingLeft: isMobile ? 0 : 10,

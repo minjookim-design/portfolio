@@ -6,6 +6,7 @@ import {
   TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
   testHomeDetailsSectionHighlightClass,
 } from './testHomeTypography'
+import { CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
@@ -1089,11 +1090,11 @@ export function PiikProjectPage() {
       <>
         <div
           className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
-            isDark ? 'bg-[#111111]' : 'bg-[#A6E1FF]'
+            isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'
           } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
         >
           <div
-            className={`theme-surface-transition relative z-0 flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden pl-[6px] md:pl-[10px] ${mobilePiikText}`}
+            className={`${CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS} ${mobilePiikText}`}
           >
             <HomePiikCaseStudy
               isDark={isDark}
@@ -1102,6 +1103,7 @@ export function PiikProjectPage() {
               onMediaClick={setSelectedMedia}
               entranceActive
               reduceMotion={Boolean(reduceMotion)}
+              testHomeProjectTitles
             />
           </div>
         </div>
