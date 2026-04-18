@@ -1,3 +1,4 @@
+/* Instrument Serif (Google Fonts). Design docs sometimes say “Instrumental Serif”; CSS stacks may list both. */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
 
 @tailwind base;

@@ -1,5 +1,11 @@
 import React, { Fragment, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import {
+  TEST_HOME_PROJECT_TITLE_SERIF,
+  TEST_HOME_HERO_META_LABEL_SERIF,
+  TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  testHomeDetailsSectionHighlightClass,
+} from './testHomeTypography'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
@@ -17,20 +23,21 @@ import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 /** Match `HomePage` third-column case study typography (same as Piik). */
 const AR_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
 const AR_HOME_META_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[16px] leading-tight font-bold`
-const AR_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
+const AR_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
 const AR_HOME_SECTION_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
-const AR_HOME_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
+const AR_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 function arSectionBodyParagraphLeadClass(
   section: { heading?: string; bodyLeadParagraphIndices?: number[] },
   paragraphIndex: number,
+  labelClass: string = AR_HOME_SECTION_LABEL_CLASS,
 ): string {
   const hasHeading = Boolean(section.heading && String(section.heading).trim() !== '')
   const indices = section.bodyLeadParagraphIndices
   if (Array.isArray(indices) && indices.length > 0) {
-    return !hasHeading && indices.includes(paragraphIndex) ? AR_HOME_SECTION_LABEL_CLASS : ''
+    return !hasHeading && indices.includes(paragraphIndex) ? labelClass : ''
   }
-  return !hasHeading && paragraphIndex === 0 ? AR_HOME_SECTION_LABEL_CLASS : ''
+  return !hasHeading && paragraphIndex === 0 ? labelClass : ''
 }
 
 function arSectionBodyParagraphFollowClass(
@@ -255,11 +262,14 @@ function ArFittingHomeSubContent({
   onMediaClick,
   sectionId,
   subIndex,
+  sectionHeadingClass = AR_HOME_SECTION_LABEL_CLASS,
 }: {
   sub: ArFittingCaseStudySub
   onMediaClick: (src: string) => void
   sectionId: string
   subIndex: number
+  /** `/test` home: matches rail metrics without caps. */
+  sectionHeadingClass?: string
 }) {
   const mtClass = subIndex === 2 && sectionId !== 'user-testings' ? 'mt-10' : ''
   return (
@@ -279,9 +289,9 @@ function ArFittingHomeSubContent({
           />
         </div>
       ) : null}
-      {sub.heading && <p className={AR_HOME_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+      {sub.heading && <p className={sectionHeadingClass}>{sub.heading}</p>}
       {sub.subheading != null && sub.subheading !== '' && (
-        <p className={`${AR_HOME_SECTION_LABEL_CLASS}${sub.heading ? ' -mt-[10px]' : ''}`}>
+        <p className={`${sectionHeadingClass}${sub.heading ? ' -mt-[10px]' : ''}`}>
           {sub.subheading}
         </p>
       )}
@@ -290,7 +300,7 @@ function ArFittingHomeSubContent({
           if (!para) return null
           const subHasTitle =
             Boolean(sub.heading) || Boolean(sub.subheading != null && sub.subheading !== '')
-          const leadClass = !subHasTitle && pi === 0 ? AR_HOME_SECTION_LABEL_CLASS : ''
+          const leadClass = !subHasTitle && pi === 0 ? sectionHeadingClass : ''
           const followClass = subHasTitle && pi === 0 ? '-mt-[10px]' : ''
           return (
             <p
@@ -327,7 +337,7 @@ function ArFittingHomeSubContent({
       ) : null}
       {sub.postContent?.map((pc, pi) => (
         <Fragment key={pi}>
-          {pc.heading && <p className={`mt-20 ${AR_HOME_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+          {pc.heading && <p className={`mt-20 ${sectionHeadingClass}`}>{pc.heading}</p>}
           {pc.body &&
             pc.body.split('\n\n').map((para, ri) => {
               if (!para) return null
@@ -337,7 +347,7 @@ function ArFittingHomeSubContent({
                   key={ri}
                   className={
                     [
-                      !hasPcHeading && ri === 0 ? `mt-10 ${AR_HOME_SECTION_LABEL_CLASS}` : '',
+                      !hasPcHeading && ri === 0 ? `mt-10 ${sectionHeadingClass}` : '',
                       hasPcHeading && ri === 0 ? '-mt-[10px]' : '',
                     ]
                       .filter(Boolean)
@@ -369,6 +379,8 @@ export function HomeArFittingCaseStudy({
   entranceActive,
   reduceMotion,
   onHeroEntranceComplete,
+  testHomeProjectTitles,
+  testHomeHighlightSectionId,
 }: {
   isDark: boolean
   isMobile: boolean
@@ -377,12 +389,20 @@ export function HomeArFittingCaseStudy({
   entranceActive: boolean
   reduceMotion: boolean
   onHeroEntranceComplete?: () => void
+  testHomeProjectTitles?: boolean
+  testHomeHighlightSectionId?: string | null
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
   const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
+  const heroMetaLabelClass = testHomeProjectTitles
+    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    : AR_HOME_META_LABEL_CLASS
+  const homeSectionContentHeadingClass = testHomeProjectTitles
+    ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
+    : AR_HOME_SECTION_LABEL_CLASS
 
   return (
     <div
@@ -401,7 +421,7 @@ export function HomeArFittingCaseStudy({
             key={isDark ? 'ar-thumb-dark' : 'ar-thumb-light'}
             src={isDark ? AR_FITTING_THUMB_DARK : AR_FITTING_THUMB_LIGHT}
             alt="AR Fitting Room"
-            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
@@ -410,7 +430,11 @@ export function HomeArFittingCaseStudy({
 
         <motion.h1
           variants={heroV.heroItem}
-          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          className={
+            testHomeProjectTitles
+              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          }
         >
           AR Fitting Room
         </motion.h1>
@@ -427,14 +451,14 @@ export function HomeArFittingCaseStudy({
           }}
         >
           <div className="flex w-full items-center gap-x-[20px]">
-            <span className={`shrink-0 whitespace-nowrap ${AR_HOME_META_LABEL_CLASS}`}>{AR_FITTING_META_ROWS[0].label}</span>
+            <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{AR_FITTING_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${AR_HOME_META_BODY_CLASS}`}>{AR_FITTING_META_ROWS[0].value}</span>
           </div>
           <div className="h-[10px] shrink-0" aria-hidden />
           <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
             {AR_FITTING_META_ROWS.slice(1).map(({ label, value }) => (
               <Fragment key={label}>
-                <span className={`whitespace-nowrap ${AR_HOME_META_LABEL_CLASS}`}>{label}</span>
+                <span className={`whitespace-nowrap ${heroMetaLabelClass}`}>{label}</span>
                 <span className={`min-w-0 ${AR_HOME_META_BODY_CLASS}`}>{value}</span>
               </Fragment>
             ))}
@@ -442,13 +466,23 @@ export function HomeArFittingCaseStudy({
         </motion.div>
       </motion.div>
 
-      {AR_FITTING_SECTIONS.map((section, i) => (
+      {AR_FITTING_SECTIONS.map((section, i) => {
+        const sectionSpyActive =
+          Boolean(testHomeProjectTitles) &&
+          testHomeHighlightSectionId != null &&
+          section.id === testHomeHighlightSectionId
+        return (
         <motion.div
           key={section.id}
           ref={(el) => {
             sectionRefs.current[i] = el
           }}
-          className="mb-[200px] last:mb-0"
+          className={[
+            'mb-[200px] last:mb-0',
+            testHomeDetailsSectionHighlightClass(isDark, sectionSpyActive),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ transformOrigin: 'top center' }}
           initial={{ y: 24, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -463,7 +497,11 @@ export function HomeArFittingCaseStudy({
             }}
           >
             <CaseStudyRailTitle
-              className={`shrink-0 whitespace-nowrap italic ${AR_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
+              className={
+                testHomeProjectTitles
+                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap italic ${AR_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+              }
             >
               {arSectionNavLabel(section)}
             </CaseStudyRailTitle>
@@ -481,17 +519,18 @@ export function HomeArFittingCaseStudy({
                       onMediaClick={onMediaClick}
                       sectionId={section.id}
                       subIndex={si}
+                      sectionHeadingClass={homeSectionContentHeadingClass}
                     />
                   ))}
                 </div>
               ) : (
                 <>
                   {section.heading && String(section.heading).trim() !== '' && (
-                    <p className={AR_HOME_SECTION_LABEL_CLASS}>{section.heading}</p>
+                    <p className={homeSectionContentHeadingClass}>{section.heading}</p>
                   )}
                   {section.body.split('\n\n').map((para, idx) => {
                     if (!para) return null
-                    const leadClass = arSectionBodyParagraphLeadClass(section, idx)
+                    const leadClass = arSectionBodyParagraphLeadClass(section, idx, homeSectionContentHeadingClass)
                     const followClass = arSectionBodyParagraphFollowClass(section, idx)
                     const midSrc =
                       'midMedia' in section && section.midMedia ? String(section.midMedia) : ''
@@ -503,8 +542,8 @@ export function HomeArFittingCaseStudy({
                     return (
                       <Fragment key={idx}>
                         <p className={[leadClass, followClass].filter(Boolean).join(' ') || undefined}>
-                          {para}
-                        </p>
+                      {para}
+                    </p>
                         {midSrc && midAfter === idx ? (
                           <PiikCaseStudyMediaBlock src={midSrc} onMediaClick={onMediaClick} />
                         ) : null}
@@ -519,7 +558,8 @@ export function HomeArFittingCaseStudy({
             </div>
           </div>
         </motion.div>
-      ))}
+        )
+      })}
     </div>
   )
 }

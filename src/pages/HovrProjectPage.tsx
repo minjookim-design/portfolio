@@ -5,14 +5,20 @@ import { usePageTheme } from '../context/PageThemeContext'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import {
+  TEST_HOME_PROJECT_TITLE_SERIF,
+  TEST_HOME_HERO_META_LABEL_SERIF,
+  TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  testHomeDetailsSectionHighlightClass,
+} from './testHomeTypography'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 /** Home third column + `HomeHovrCaseStudy` / mobile `/projects/hovr` typography. */
 const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
 const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[16px] leading-tight font-bold`
-const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
+const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
 const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[18px] leading-tight font-bold`
-const HOVR_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
+const HOVR_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Bump `?v=` when replacing these files in `public/hovr/` so cached clients load the new PNGs. */
 const HOVR_RESEARCH_IMAGE = '/hovr/Research.png?v=2'
@@ -279,6 +285,8 @@ export function HomeHovrCaseStudy({
   entranceActive,
   reduceMotion,
   onHeroEntranceComplete,
+  testHomeProjectTitles,
+  testHomeHighlightSectionId,
 }: {
   isDark: boolean
   isMobile: boolean
@@ -287,12 +295,22 @@ export function HomeHovrCaseStudy({
   entranceActive: boolean
   reduceMotion: boolean
   onHeroEntranceComplete?: () => void
+  /** When set (e.g. `/test` home), hero + rail headings use upright Instrument Serif 400. */
+  testHomeProjectTitles?: boolean
+  /** `/test` home: scroll-synced section id — that section gets the same inverted panel as the active spy row. */
+  testHomeHighlightSectionId?: string | null
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
   const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
+  const heroMetaLabelClass = testHomeProjectTitles
+    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    : HOVR_CASE_LABEL_CLASS
+  const homeSectionContentHeadingClass = testHomeProjectTitles
+    ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
+    : HOVR_SECTION_LABEL_CLASS
 
   return (
     <div
@@ -320,7 +338,11 @@ export function HomeHovrCaseStudy({
 
         <motion.h1
           variants={heroV.heroItem}
-          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          className={
+            testHomeProjectTitles
+              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          }
         >
           HOVR Admin
         </motion.h1>
@@ -337,14 +359,14 @@ export function HomeHovrCaseStudy({
           }}
         >
           <div className="flex w-full items-center gap-x-[20px]">
-            <span className={`shrink-0 whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{HOVR_META_ROWS[0].label}</span>
+            <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{HOVR_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${HOVR_CASE_BODY_CLASS}`}>{HOVR_META_ROWS[0].value}</span>
           </div>
           <div className="h-[10px] shrink-0" aria-hidden />
           <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
             {HOVR_META_ROWS.slice(1).map(({ label, value }) => (
               <Fragment key={label}>
-                <span className={`whitespace-nowrap ${HOVR_CASE_LABEL_CLASS}`}>{label}</span>
+                <span className={`whitespace-nowrap ${heroMetaLabelClass}`}>{label}</span>
                 <span className={`min-w-0 ${HOVR_CASE_BODY_CLASS}`}>{value}</span>
               </Fragment>
             ))}
@@ -360,13 +382,23 @@ export function HomeHovrCaseStudy({
         </motion.div>
       </motion.div>
 
-      {HOVR_SECTIONS.map((section, i) => (
+      {HOVR_SECTIONS.map((section, i) => {
+        const sectionSpyActive =
+          Boolean(testHomeProjectTitles) &&
+          testHomeHighlightSectionId != null &&
+          section.id === testHomeHighlightSectionId
+        return (
         <motion.div
           key={section.id}
           ref={(el) => {
             sectionRefs.current[i] = el
           }}
-          className="mb-[200px] last:mb-0"
+          className={[
+            'mb-[200px] last:mb-0',
+            testHomeDetailsSectionHighlightClass(isDark, sectionSpyActive),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ transformOrigin: 'top center' }}
           initial={{ y: 24, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -381,7 +413,11 @@ export function HomeHovrCaseStudy({
             }}
           >
             <CaseStudyRailTitle
-              className={`shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
+              className={
+                testHomeProjectTitles
+                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+              }
             >
               {section.label}
             </CaseStudyRailTitle>
@@ -394,7 +430,7 @@ export function HomeHovrCaseStudy({
                 <div className="flex flex-col gap-10">
                   {(section.subSections as { heading: React.ReactNode; body: string; media: string }[]).map((sub, si) => (
                     <div key={si} className={`flex flex-col gap-4 ${si === 2 ? 'mt-10' : ''}`}>
-                      {sub.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+                      {sub.heading && <p className={homeSectionContentHeadingClass}>{sub.heading}</p>}
                       {sub.body &&
                         sub.body.split('\n\n').map((para, pi) => (
                           <p key={pi} className={sub.heading && pi === 0 ? '-mt-[10px]' : undefined}>
@@ -405,7 +441,7 @@ export function HomeHovrCaseStudy({
                       {'postContent' in sub &&
                         (sub.postContent as { heading?: React.ReactNode; body?: string; media?: string }[]).map((pc, pi) => (
                           <Fragment key={pi}>
-                            {pc.heading && <p className={`mt-20 ${HOVR_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+                            {pc.heading && <p className={`mt-20 ${homeSectionContentHeadingClass}`}>{pc.heading}</p>}
                             {pc.body &&
                               pc.body.split('\n\n').map((para, ri) => (
                                 <p
@@ -430,7 +466,7 @@ export function HomeHovrCaseStudy({
                 </div>
               ) : (
                 <>
-                  {section.heading && <p className={HOVR_SECTION_LABEL_CLASS}>{section.heading}</p>}
+                  {section.heading && <p className={homeSectionContentHeadingClass}>{section.heading}</p>}
                   {section.body.split('\n\n').map((para, idx) => (
                     <p key={idx} className={section.heading && idx === 0 ? '-mt-[10px]' : undefined}>
                       {para}
@@ -447,7 +483,8 @@ export function HomeHovrCaseStudy({
             </div>
           </div>
         </motion.div>
-      ))}
+        )
+      })}
     </div>
   )
 }

@@ -4,6 +4,12 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { readStoredThemePrefersDark, usePageTheme } from '../context/PageThemeContext'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import {
+  TEST_HOME_PROJECT_TITLE_SERIF,
+  TEST_HOME_HERO_META_LABEL_SERIF,
+  TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  testHomeDetailsSectionHighlightClass,
+} from './testHomeTypography'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { PiikCaseStudyMediaBlock, PiikCaseStudyCarouselBlock, PiikCaseStudyPhoneCarousel } from './PiikProjectPage'
 import { JOJO_SECTIONS, JOJO_META_ROWS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
@@ -15,9 +21,9 @@ function jojoSectionRefIndex(id: string): number {
 
 const JOJO_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
 const JOJO_HOME_META_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[16px] leading-tight font-bold`
-const JOJO_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
+const JOJO_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
 const JOJO_HOME_SECTION_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
-const JOJO_HOME_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
+const JOJO_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Instrument Serif for JoJo Research `postContent` paragraphs (merged “And AI / The key” uses ri === 1 for “The key…”; “Then which / Well both” uses ri === 0 for the first line only). */
 function jojoResearchPostContentInstrumentSerif(pi: number, ri: number): boolean {
@@ -361,10 +367,10 @@ export function JojoProjectPage() {
         className="absolute overflow-y-auto"
         style={
           isMobile
-            ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
-            : isMedium
-              ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
-              : isNarrow
+          ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
+          : isMedium
+          ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
+          : isNarrow
                 ? {
                     left: '50%',
                     transform: 'translateX(-50%)',
@@ -497,7 +503,7 @@ export function JojoProjectPage() {
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, amount: 0.05, root: scrollRef }}
                   transition={{ duration: 0.8, ease: [0.44, 0, 0.3, 0.99] }}
-                  style={{
+                    style={{
                     display: 'flex',
                     flexDirection:
                       !isNarrow && !['the-goal', 'research', 'design', 'user-interview', 'final-solution'].includes(section.id) ? 'row' : 'column',
@@ -517,8 +523,8 @@ export function JojoProjectPage() {
                     gap: !isNarrow && !['the-goal', 'research', 'design', 'user-interview', 'final-solution'].includes(section.id) ? 60 : '1.5rem',
                   }}
                 >
-                  <p
-                    style={{
+                    <p
+                      style={{
                       fontFamily: 'Arial, sans-serif',
                       fontWeight: 800,
                       fontSize: section.id === 'final-solution' ? (isMobile ? 32 : 56) : isMobile ? 28 : 40,
@@ -527,12 +533,12 @@ export function JojoProjectPage() {
                       marginBottom: section.id === 'final-solution' ? (isMobile ? 40 : 100) : 0,
                       flexShrink: 0,
                       width: !isNarrow && !['the-goal', 'research', 'design', 'user-interview', 'final-solution'].includes(section.id) ? 200 : undefined,
-                    }}
-                  >
-                    {section.label}
-                  </p>
+                      }}
+                    >
+                      {section.label}
+                    </p>
 
-                  {'subSections' in section && section.subSections ? (
+                      {'subSections' in section && section.subSections ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 40, flex: 1 }}>
                       {(
                         section.subSections as {
@@ -659,7 +665,7 @@ export function JojoProjectPage() {
                               media?: string | string[]
                               carousel?: string[]
                             }[]).map((pc, pi) => (
-                              <React.Fragment key={pi}>
+                                <React.Fragment key={pi}>
                                 {pc.heading && (
                                   <p
                                     style={{
@@ -696,8 +702,8 @@ export function JojoProjectPage() {
                                     fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
                                   />
                                 )}
-                              </React.Fragment>
-                            ))}
+                                </React.Fragment>
+                              ))}
                           {'carousel' in sub &&
                             Array.isArray((sub as { carousel?: string[] }).carousel) &&
                             (sub as { carousel: string[] }).carousel.length > 0 && (
@@ -717,10 +723,10 @@ export function JojoProjectPage() {
                                 />
                               </div>
                             )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
+                      ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
                       {section.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{section.heading}</p>}
                       {section.body
@@ -886,14 +892,24 @@ export function HomeJojoCaseStudy({
   isMobile,
   sectionRefs,
   onMediaClick,
+  testHomeProjectTitles,
+  testHomeHighlightSectionId,
 }: {
   isDark: boolean
   isMobile: boolean
   sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
   onMediaClick: (src: string) => void
+  testHomeProjectTitles?: boolean
+  testHomeHighlightSectionId?: string | null
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroMetaLabelClass = testHomeProjectTitles
+    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    : JOJO_HOME_META_LABEL_CLASS
+  const homeSectionContentHeadingClass = testHomeProjectTitles
+    ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
+    : JOJO_HOME_SECTION_LABEL_CLASS
 
   return (
     <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
@@ -907,18 +923,26 @@ export function HomeJojoCaseStudy({
           priority
           placeholder="blur"
         />
-        <h1 className="mb-2 mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]">JoJo</h1>
+        <h1
+          className={
+            testHomeProjectTitles
+              ? `mb-2 mt-0 text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-2 mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]"
+          }
+        >
+          JoJo
+        </h1>
         <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[20px] font-bold italic leading-tight`}>Think Beyond AI</p>
         <div className="flex w-full flex-col gap-y-2">
           <div className="flex w-full items-center gap-x-[20px]">
-            <span className={`shrink-0 whitespace-nowrap ${JOJO_HOME_META_LABEL_CLASS}`}>{JOJO_META_ROWS[0].label}</span>
+            <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{JOJO_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${JOJO_HOME_META_BODY_CLASS}`}>{JOJO_META_ROWS[0].value}</span>
           </div>
           <div className="h-[10px] shrink-0" aria-hidden />
           <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
             {JOJO_META_ROWS.slice(1).map(({ label, value }) => (
               <Fragment key={label}>
-                <span className={`whitespace-nowrap ${JOJO_HOME_META_LABEL_CLASS}`}>{label}</span>
+                <span className={`whitespace-nowrap ${heroMetaLabelClass}`}>{label}</span>
                 <span className={`min-w-0 ${JOJO_HOME_META_BODY_CLASS}`}>{value}</span>
               </Fragment>
             ))}
@@ -943,13 +967,23 @@ export function HomeJojoCaseStudy({
         </div>
       </div>
 
-      {JOJO_SECTIONS.map((section, i) => (
+      {JOJO_SECTIONS.map((section, i) => {
+        const sectionSpyActive =
+          Boolean(testHomeProjectTitles) &&
+          testHomeHighlightSectionId != null &&
+          section.id === testHomeHighlightSectionId
+        return (
         <motion.div
           key={section.id}
           ref={(el) => {
             sectionRefs.current[i] = el
           }}
-          className="mb-[200px] last:mb-0"
+          className={[
+            'mb-[200px] last:mb-0',
+            testHomeDetailsSectionHighlightClass(isDark, sectionSpyActive),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ transformOrigin: 'top center' }}
           initial={{ y: 24, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -964,7 +998,11 @@ export function HomeJojoCaseStudy({
             }}
           >
             <CaseStudyRailTitle
-              className={`shrink-0 whitespace-nowrap italic ${JOJO_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
+              className={
+                testHomeProjectTitles
+                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap italic ${JOJO_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+              }
             >
               {jojoSectionNavLabel(section)}
             </CaseStudyRailTitle>
@@ -1008,7 +1046,7 @@ export function HomeJojoCaseStudy({
                       } ${section.id === 'problems' && si === 2 ? 'mb-[30px]' : ''}`.trim()}
                     >
                       <div className="flex flex-col gap-2">
-                        {sub.heading && <p className={JOJO_HOME_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+                        {sub.heading && <p className={homeSectionContentHeadingClass}>{sub.heading}</p>}
                         {'headingMedia' in sub &&
                           (sub as { headingMedia?: string }).headingMedia &&
                           String((sub as { headingMedia: string }).headingMedia).length > 0 && (
@@ -1030,13 +1068,21 @@ export function HomeJojoCaseStudy({
                             </div>
                           )}
                         {sub.subheading != null && sub.subheading !== '' && (
-                          <p className={`${JOJO_HOME_SECTION_LABEL_CLASS}${sub.heading ? ' -mt-[10px]' : ''}`}>{sub.subheading}</p>
+                          <p className={`${homeSectionContentHeadingClass}${sub.heading ? ' -mt-[10px]' : ''}`}>{sub.subheading}</p>
                         )}
                         {sub.bodyGroups && sub.bodyGroups.length > 0 ? (
                           <div className="flex flex-col gap-8">
                             {sub.bodyGroups.map((g, gi) => (
                               <div key={gi} className="flex flex-col gap-1.5">
-                                <p style={{ ...(sub.bodyStyle ?? {}), fontWeight: 700 }}>{g.title}</p>
+                                <p
+                                  className={testHomeProjectTitles ? homeSectionContentHeadingClass : undefined}
+                                  style={{
+                                    ...(sub.bodyStyle ?? {}),
+                                    ...(!testHomeProjectTitles ? { fontWeight: 700 } : {}),
+                                  }}
+                                >
+                                  {g.title}
+                                </p>
                                 <p style={{ ...(sub.bodyStyle ?? {}), fontWeight: 400 }}>{g.body}</p>
                               </div>
                             ))}
@@ -1084,8 +1130,8 @@ export function HomeJojoCaseStudy({
                             <p
                               className={
                                 section.id === 'final-solution'
-                                  ? [pi === 0 ? '' : 'mt-[30px]', JOJO_HOME_SECTION_LABEL_CLASS].filter(Boolean).join(' ')
-                                  : `mt-20 ${JOJO_HOME_SECTION_LABEL_CLASS}`
+                                  ? [pi === 0 ? '' : 'mt-[30px]', homeSectionContentHeadingClass].filter(Boolean).join(' ')
+                                  : `mt-20 ${homeSectionContentHeadingClass}`
                               }
                             >
                               {pc.heading}
@@ -1145,7 +1191,7 @@ export function HomeJojoCaseStudy({
                 </div>
               ) : (
                 <>
-                  {section.heading && <p className={JOJO_HOME_SECTION_LABEL_CLASS}>{section.heading}</p>}
+                  {section.heading && <p className={homeSectionContentHeadingClass}>{section.heading}</p>}
                   {section.body
                     ? section.body.split('\n\n').map((para, idx) => (
                         <p
@@ -1155,7 +1201,7 @@ export function HomeJojoCaseStudy({
                               section.heading && idx === 0 ? '-mt-[10px]' : '',
                               (section.id === 'research' || section.id === 'the-goal' || section.id === 'design') &&
                               idx === 0
-                                ? JOJO_HOME_SECTION_LABEL_CLASS
+                                ? homeSectionContentHeadingClass
                                 : '',
                             ]
                               .filter(Boolean)
@@ -1194,7 +1240,7 @@ export function HomeJojoCaseStudy({
                           <p
                             className={`${
                               section.id === 'user-interview' && pi === 0 ? '' : 'mt-20'
-                            } ${JOJO_HOME_SECTION_LABEL_CLASS}`.trim()}
+                            } ${homeSectionContentHeadingClass}`.trim()}
                           >
                             {pc.heading}
                           </p>
@@ -1208,7 +1254,7 @@ export function HomeJojoCaseStudy({
                                   !pc.heading && ri === 0 ? 'mt-10' : '',
                                   pc.heading && ri === 0 ? '-mt-[10px]' : '',
                                   section.id === 'research' && jojoResearchPostContentInstrumentSerif(pi, ri)
-                                    ? JOJO_HOME_SECTION_LABEL_CLASS
+                                    ? homeSectionContentHeadingClass
                                     : '',
                                 ]
                                   .filter(Boolean)
@@ -1246,7 +1292,8 @@ export function HomeJojoCaseStudy({
             </div>
           </div>
         </motion.div>
-      ))}
+        )
+      })}
     </div>
   )
 }

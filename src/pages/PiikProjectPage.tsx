@@ -1,5 +1,11 @@
 import React, { Fragment, useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
+import {
+  TEST_HOME_PROJECT_TITLE_SERIF,
+  TEST_HOME_HERO_META_LABEL_SERIF,
+  TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  testHomeDetailsSectionHighlightClass,
+} from './testHomeTypography'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
@@ -133,9 +139,9 @@ export const PIIK_META_ROWS = [
 /** Match `HomePage` HOVR third-column case study typography. */
 const PIIK_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
 const PIIK_HOME_META_LABEL_CLASS = `${PIIK_HOME_INSTRUMENT} text-[16px] leading-tight font-bold`
-const PIIK_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-medium leading-[1.2]'
+const PIIK_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
 const PIIK_HOME_SECTION_LABEL_CLASS = `${PIIK_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
-const PIIK_HOME_SECTION_BODY_CLASS = "font-['Arial',sans-serif] text-[14px] font-normal leading-[1.2]"
+const PIIK_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Piik hero / thumbnails — files in `public/piikai/`. */
 export const PIIK_HERO_THUMB_DARK = '/piikai/Thumbnail-dark.jpg'
@@ -673,6 +679,8 @@ export function HomePiikCaseStudy({
   entranceActive,
   reduceMotion,
   onHeroEntranceComplete,
+  testHomeProjectTitles,
+  testHomeHighlightSectionId,
 }: {
   isDark: boolean
   isMobile: boolean
@@ -681,12 +689,20 @@ export function HomePiikCaseStudy({
   entranceActive: boolean
   reduceMotion: boolean
   onHeroEntranceComplete?: () => void
+  testHomeProjectTitles?: boolean
+  testHomeHighlightSectionId?: string | null
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
   const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
+  const heroMetaLabelClass = testHomeProjectTitles
+    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    : PIIK_HOME_META_LABEL_CLASS
+  const homeSectionContentHeadingClass = testHomeProjectTitles
+    ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
+    : PIIK_HOME_SECTION_LABEL_CLASS
 
   return (
     <div
@@ -714,7 +730,11 @@ export function HomePiikCaseStudy({
 
         <motion.h1
           variants={heroV.heroItem}
-          className="mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          className={
+            testHomeProjectTitles
+              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+          }
         >
           Piik AI
         </motion.h1>
@@ -731,14 +751,14 @@ export function HomePiikCaseStudy({
           }}
         >
           <div className="flex w-full items-center gap-x-[20px]">
-            <span className={`shrink-0 whitespace-nowrap ${PIIK_HOME_META_LABEL_CLASS}`}>{PIIK_META_ROWS[0].label}</span>
+            <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{PIIK_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${PIIK_HOME_META_BODY_CLASS}`}>{PIIK_META_ROWS[0].value}</span>
           </div>
           <div className="h-[10px] shrink-0" aria-hidden />
           <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
             {PIIK_META_ROWS.slice(1).map(({ label, value }) => (
               <Fragment key={label}>
-                <span className={`whitespace-nowrap ${PIIK_HOME_META_LABEL_CLASS}`}>{label}</span>
+                <span className={`whitespace-nowrap ${heroMetaLabelClass}`}>{label}</span>
                 <span className={`min-w-0 ${PIIK_HOME_META_BODY_CLASS}`}>{value}</span>
               </Fragment>
             ))}
@@ -746,13 +766,23 @@ export function HomePiikCaseStudy({
         </motion.div>
       </motion.div>
 
-      {PIIK_SECTIONS.map((section, i) => (
+      {PIIK_SECTIONS.map((section, i) => {
+        const sectionSpyActive =
+          Boolean(testHomeProjectTitles) &&
+          testHomeHighlightSectionId != null &&
+          section.id === testHomeHighlightSectionId
+        return (
         <motion.div
           key={section.id}
           ref={(el) => {
             sectionRefs.current[i] = el
           }}
-          className="mb-[200px] last:mb-0"
+          className={[
+            'mb-[200px] last:mb-0',
+            testHomeDetailsSectionHighlightClass(isDark, sectionSpyActive),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{ transformOrigin: 'top center' }}
           initial={{ y: 24, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -767,7 +797,11 @@ export function HomePiikCaseStudy({
             }}
           >
             <CaseStudyRailTitle
-              className={`shrink-0 whitespace-nowrap italic ${PIIK_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`}
+              className={
+                testHomeProjectTitles
+                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap italic ${PIIK_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+              }
             >
               {piikSectionNavLabel(section)}
             </CaseStudyRailTitle>
@@ -791,10 +825,10 @@ export function HomePiikCaseStudy({
                     }[]
                   ).map((sub, si) => (
                     <div key={si} className={`flex flex-col gap-4 ${si === 2 && section.id !== 'problems' ? 'mt-10' : ''}`}>
-                      {sub.heading && <p className={PIIK_HOME_SECTION_LABEL_CLASS}>{sub.heading}</p>}
+                      {sub.heading && <p className={homeSectionContentHeadingClass}>{sub.heading}</p>}
                       {sub.subheading != null && sub.subheading !== '' && (
                         <p
-                          className={`${PIIK_HOME_SECTION_LABEL_CLASS}${sub.heading ? ' -mt-[10px]' : ''}`}
+                          className={`${homeSectionContentHeadingClass}${sub.heading ? ' -mt-[10px]' : ''}`}
                         >
                           {sub.subheading}
                         </p>
@@ -829,7 +863,7 @@ export function HomePiikCaseStudy({
                       ) : null}
                       {sub.postContent?.map((pc, pi) => (
                         <Fragment key={pi}>
-                          {pc.heading && <p className={`mt-20 ${PIIK_HOME_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+                          {pc.heading && <p className={`mt-20 ${homeSectionContentHeadingClass}`}>{pc.heading}</p>}
                           {pc.body &&
                             pc.body.split('\n\n').map((para, ri) => (
                               <p
@@ -854,7 +888,7 @@ export function HomePiikCaseStudy({
                 </div>
               ) : (
                 <>
-                  {section.heading && <p className={PIIK_HOME_SECTION_LABEL_CLASS}>{section.heading}</p>}
+                  {section.heading && <p className={homeSectionContentHeadingClass}>{section.heading}</p>}
                   {section.body.split('\n\n').map((para, idx) => (
                     <p key={idx} className={section.heading && idx === 0 ? '-mt-[10px]' : undefined}>
                       {para}
@@ -870,7 +904,7 @@ export function HomePiikCaseStudy({
                     section.postContent &&
                     (section.postContent as { heading?: React.ReactNode; body?: string; media?: string }[]).map((pc, pi) => (
                       <Fragment key={pi}>
-                        {pc.heading && <p className={`mt-20 ${PIIK_HOME_SECTION_LABEL_CLASS}`}>{pc.heading}</p>}
+                        {pc.heading && <p className={`mt-20 ${homeSectionContentHeadingClass}`}>{pc.heading}</p>}
                         {pc.body &&
                           pc.body.split('\n\n').map((para, ri) => (
                             <p
@@ -895,7 +929,8 @@ export function HomePiikCaseStudy({
             </div>
           </div>
         </motion.div>
-      ))}
+        )
+      })}
     </div>
   )
 }
