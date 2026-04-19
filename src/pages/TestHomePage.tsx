@@ -13,7 +13,13 @@ import { useIsNarrow } from '../hooks/useIsNarrow'
 import { usePageTheme } from '../context/PageThemeContext'
 import { useHomeFooterAttribution } from '../context/HomeFooterAttributionContext'
 import { useHomeMobileProject } from '../context/HomeMobileProjectContext'
-import { HOVR_SECTIONS, HomeHovrCaseStudy, Lightbox } from './HovrProjectPage'
+import {
+  HOVR_HERO_THUMB_DARK,
+  HOVR_HERO_THUMB_LIGHT,
+  HOVR_SECTIONS,
+  HomeHovrCaseStudy,
+  Lightbox,
+} from './HovrProjectPage'
 import { PIIK_SECTIONS, PIIK_HERO_THUMB_LIGHT, HomePiikCaseStudy } from './PiikProjectPage'
 import { HomeArFittingCaseStudy } from './ArFittingProjectPage'
 import {
@@ -332,7 +338,7 @@ const HOME_PROJECTS: HomeProject[] = [
     label: 'HOVR',
     desc: '84.9% Faster Driver Approvals via OCR Automation',
     roles: 'UX/UI, Internal Tools, AI Automation',
-    heroImage: '/hovr/final-solution.jpg',
+    heroImage: HOVR_HERO_THUMB_LIGHT,
     spy: HOVR_SECTIONS.map((s) => ({
       id: s.id,
       label: s.label,
@@ -1938,7 +1944,15 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                         onMouseEnter={() => setMenuFolderHoverId(project.id)}
                         onMouseLeave={() => setMenuFolderHoverId((id) => (id === project.id ? null : id))}
                         onPointerEnter={(e) => {
-                          projectListHover?.startHover(project.heroImage, e.clientX, e.clientY)
+                          projectListHover?.startHover(
+                            project.id === 'hovr'
+                              ? isDark
+                                ? HOVR_HERO_THUMB_DARK
+                                : HOVR_HERO_THUMB_LIGHT
+                              : project.heroImage,
+                            e.clientX,
+                            e.clientY,
+                          )
                         }}
                         className={`${HUMAN_PROJECT_LIST_ROW_GRID} w-full border-0 ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left transition-colors rounded-none outline-none ${
                           isRowActive || menuFolderHoverId === project.id
