@@ -25,6 +25,8 @@ export const IMAGE_SIZES = {
   carouselSlide80: '(max-width: 768px) 85vw, min(900px, 70vw)',
   lightbox: '85vw',
   homeIntroFull: '(max-width: 768px) 100vw, min(700px, 90vw)',
+  /** Desktop cursor-follow project list hover card (~276px). */
+  projectListHoverPreview: '276px',
 } as const
 
 const DEFAULT_QUALITY = 88

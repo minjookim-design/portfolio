@@ -34,6 +34,12 @@ import {
   HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED,
   HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED,
 } from './caseStudyMobileShell'
+import {
+  ProjectListHoverPreviewProvider,
+  useHomeFinePointer,
+  useProjectListHoverPreviewOptional,
+} from '../components/ProjectListHoverPreview'
+import { FooterEmail } from '../components/FooterEmail'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -62,6 +68,17 @@ By collaborating closely with engineers, I bridge the gap between design intent 
 const HOME_INTRO_TYPEWRITER_MS = Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320))
 
 const SPLIT_DIVIDER_PX = 8
+
+/** Desktop home: hairline grid (column + row rules). */
+const HOME_GRID_V_LINE =
+  'pointer-events-none absolute inset-y-0 left-1/2 z-0 w-px -translate-x-1/2 bg-black/[0.18] dark:bg-white/[0.14]'
+const HOME_GRID_ROW_LINE =
+  'border-b-[0.5px] border-black/[0.18] dark:border-b-white/[0.14]'
+const HOME_GRID_FRAME_H =
+  'md:border-y md:border-black/[0.16] dark:md:border-white/[0.12]'
+const HOME_GRID_CELL_PAD_X = 'px-2'
+const HOME_GRID_CELL_PAD_Y = 'py-1.5'
+
 const MIN_COL1_PX = 240
 const MIN_COL2_PX = 260
 const MIN_COL3_PX = 300
@@ -87,7 +104,7 @@ export type TestHomePageExperienceConfig = {
   /** Open project row button: `#FBC900` background + black text (`/test` only). */
   projectFolderOpenBgBrand?: boolean
   /**
-   * `true`: gray page shell (`#e8e8e8` light) and original first-column layout (no framed collapsible panes).
+   * `true`: cream page shell (`#faf7f0` light) and original first-column layout (no framed collapsible panes).
    * Edit `TEST_HOME_PAGE_CONFIG` below to try `false` and other flags without touching `/`.
    */
   classicShellAndIntroColumn?: boolean
@@ -280,6 +297,10 @@ const HUMAN_FOLD_TRIGGER_GRID =
 const HUMAN_FOLD_BODY_ROW_GRID =
   'grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(10rem,1.15fr)] items-center gap-x-6 gap-y-0.5 text-left'
 
+/** Education fold: degree | school | period (no empty column). */
+const HUMAN_FOLD_EDUCATION_BODY_ROW_GRID =
+  'grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(10rem,1.15fr)] items-center gap-x-6 gap-y-0.5 text-left'
+
 /** 3-column project list / detail strip: code | name | services (no location/date, `/test` only). */
 const HUMAN_PROJECT_LIST_ROW_GRID =
   'grid w-full grid-cols-[minmax(2.5rem,2.75rem)_minmax(0,1.15fr)_minmax(0,1.85fr)] items-start gap-x-4 md:gap-x-8 lg:gap-x-12 gap-y-0.5 text-left'
@@ -288,10 +309,12 @@ const HUMAN_PROJECT_LIST_TYPO =
   'font-mono text-[11px] font-normal uppercase leading-snug tracking-[0.06em] md:text-[12px]'
 
 /** Static data rows inside classic folds (matches project list typography). */
-const HUMAN_FOLD_BODY_ROW = `${HUMAN_FOLD_BODY_ROW_GRID} ${HUMAN_PROJECT_LIST_TYPO} border-b border-black/[0.12] py-2.5 text-left dark:border-white/[0.14]`
+const HUMAN_FOLD_BODY_ROW = `${HUMAN_FOLD_BODY_ROW_GRID} ${HUMAN_PROJECT_LIST_TYPO} ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left rounded-none`
+
+const HUMAN_FOLD_BODY_ROW_EDUCATION = `${HUMAN_FOLD_EDUCATION_BODY_ROW_GRID} ${HUMAN_PROJECT_LIST_TYPO} ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left rounded-none`
 
 /** Framer CTA row: 5 columns (icon + copy), same grid as fold triggers. */
-const HUMAN_FOLD_BODY_LINK_ROW = `${HUMAN_FOLD_BODY_LINK_GRID} ${HUMAN_PROJECT_LIST_TYPO} border-b border-black/[0.12] py-2.5 text-left dark:border-white/[0.14] cursor-pointer no-underline text-inherit outline-none transition-colors hover:bg-black/[0.05] focus-visible:bg-black/[0.05] dark:hover:bg-white/[0.07] dark:focus-visible:bg-white/[0.07]`
+const HUMAN_FOLD_BODY_LINK_ROW = `${HUMAN_FOLD_BODY_LINK_GRID} ${HUMAN_PROJECT_LIST_TYPO} ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left rounded-none cursor-pointer no-underline text-inherit outline-none transition-colors hover:bg-black/[0.05] focus-visible:bg-black/[0.05] dark:hover:bg-white/[0.07] dark:focus-visible:bg-white/[0.07]`
 
 function humanCompanyColumns(company: string): { org: string; locale: string } {
   const parts = company.split('•').map((s) => s.trim()).filter(Boolean)
@@ -650,7 +673,7 @@ function ClassicFoldSection({
 
   const outerClass = folderBrandUnifiedFrame
     ? open
-      ? 'relative z-[5] box-border flex w-full flex-col gap-[10px] border-2 border-solid border-black bg-[#FBC900] text-black dark:border-white/[0.22]'
+      ? 'relative z-[5] box-border flex w-full flex-col gap-[10px] rounded-none border-2 border-solid border-black bg-[#FBC900] text-black dark:border-white/[0.22]'
       : 'flex w-full flex-col gap-[10px]'
     : 'flex flex-col gap-[10px]'
 
@@ -690,8 +713,8 @@ function ClassicFoldSection({
   const humanFoldTriggerClass = [
     HUMAN_FOLD_TRIGGER_GRID,
     HUMAN_PROJECT_LIST_TYPO,
-    'w-full cursor-pointer border-0 border-b border-transparent py-2.5 text-left outline-none transition-colors',
-    'focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e8e8e8] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#111111]',
+    `w-full cursor-pointer border-0 ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left outline-none transition-colors rounded-none`,
+    'focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#111111]',
     isDark ? 'text-[#f2f2f2]' : 'text-black',
     open ? (isDark ? 'bg-white text-black' : 'bg-black text-white') : '',
     open
@@ -703,8 +726,8 @@ function ClassicFoldSection({
     .filter(Boolean)
     .join(' ')
 
-  const brandFoldTriggerOpenClass = `box-border ${HUMAN_FOLD_TRIGGER_GRID} w-full cursor-pointer border-0 bg-transparent py-2.5 text-left font-mono text-[12px] font-normal uppercase leading-snug tracking-[0.06em] text-black outline-none transition-colors hover:bg-[#e6b800] active:bg-[#d9ae00] focus-visible:ring-2 focus-visible:ring-black/30 dark:border-white/[0.22]`
-  const brandFoldTriggerClosedClass = `box-border ${HUMAN_FOLD_TRIGGER_GRID} w-full cursor-pointer border-2 border-black bg-transparent py-2.5 text-left font-mono text-[12px] font-normal uppercase leading-snug tracking-[0.06em] text-black outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/30 dark:border-white/[0.22] dark:text-white ${
+  const brandFoldTriggerOpenClass = `box-border ${HUMAN_FOLD_TRIGGER_GRID} w-full cursor-pointer border-0 bg-transparent ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left font-mono text-[12px] font-normal uppercase leading-snug tracking-[0.06em] text-black outline-none transition-colors rounded-none hover:bg-[#e6b800] active:bg-[#d9ae00] focus-visible:ring-2 focus-visible:ring-black/30 dark:border-white/[0.22]`
+  const brandFoldTriggerClosedClass = `box-border ${HUMAN_FOLD_TRIGGER_GRID} w-full cursor-pointer border-2 border-black bg-transparent ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left font-mono text-[12px] font-normal uppercase leading-snug tracking-[0.06em] text-black outline-none transition-colors rounded-none focus-visible:ring-2 focus-visible:ring-black/30 dark:border-white/[0.22] dark:text-white ${
     isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'
   }`
 
@@ -836,8 +859,8 @@ function ClassicHomeFirstColumn({
   const humanFoldLinkRowClass = [
     HUMAN_FOLD_TRIGGER_GRID,
     HUMAN_PROJECT_LIST_TYPO,
-    'w-full cursor-pointer border-0 border-b border-transparent py-2.5 text-left outline-none transition-colors no-underline',
-    'focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e8e8e8] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#111111]',
+    `w-full cursor-pointer border-0 ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left outline-none transition-colors no-underline rounded-none`,
+    'focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#111111]',
     isDark
       ? 'text-[#f2f2f2] hover:bg-white hover:text-black active:bg-white active:text-black'
       : 'text-black hover:bg-black hover:text-white active:bg-black active:text-white',
@@ -1105,10 +1128,9 @@ function ClassicHomeFirstColumn({
             <div className={foldBodyMuted}>
               {DEGREES.map((edu) => {
                 return (
-                  <div key={edu.degree} className={HUMAN_FOLD_BODY_ROW}>
+                  <div key={edu.degree} className={HUMAN_FOLD_BODY_ROW_EDUCATION}>
                     <span className="min-w-0 font-normal tracking-[0.04em]">{edu.degree.toUpperCase()}</span>
                     <span className="min-w-0 text-balance opacity-90">{edu.school.toUpperCase()}</span>
-                    <span className="min-w-0 opacity-90">—</span>
                     <span className="tabular-nums opacity-90 whitespace-nowrap">{edu.period.toUpperCase()}</span>
                   </div>
                 )
@@ -1171,6 +1193,20 @@ function ClassicHomeFirstColumn({
 }
 
 export function TestHomePageView({ config }: { config: TestHomePageExperienceConfig }) {
+  const isMobileForPreview = useIsNarrow(768)
+  const finePointer = useHomeFinePointer()
+  const reduceMotionForPreview = usePrefersReducedMotion()
+  return (
+    <ProjectListHoverPreviewProvider
+      enabled={!isMobileForPreview && finePointer}
+      reduceMotion={reduceMotionForPreview}
+    >
+      <TestHomePageViewInner config={config} />
+    </ProjectListHoverPreviewProvider>
+  )
+}
+
+function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfig }) {
   const { isDark } = usePageTheme()
   const isMobile = useIsNarrow(768)
   const { detailOpen: mobileProjectDetailOpen, setDetailOpen: setMobileProjectDetailOpen } =
@@ -1204,6 +1240,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
   const [jojoSpyFromScroll, setJojoSpyFromScroll] = useState<string>(JOJO_SECTIONS[0].id)
   const [meImg, setMeImg] = useState<1 | 2>(1)
   const reduceMotion = usePrefersReducedMotion()
+  const projectListHover = useProjectListHoverPreviewOptional()
   const [introStage, setIntroStage] = useState<0 | 1 | 2 | 3>(() => {
     if (typeof window === 'undefined') return 0
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 3 : 0
@@ -1825,9 +1862,10 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize intro column"
-          className="relative z-[5] hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:block md:w-2 md:self-stretch"
+          className="relative z-[5] hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:flex md:w-2 md:flex-col md:items-stretch md:self-stretch"
           onPointerDown={splitColumnGuide.wrapDividerPointerDown(handleDividerPointerDown(1))}
         >
+          <span className={HOME_GRID_V_LINE} aria-hidden />
           {splitColumnGuide.renderBarGlow()}
         </motion.div>
 
@@ -1857,7 +1895,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                 className="flex w-full flex-col"
               >
                 <div
-                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} border-b border-black/25 pb-2.5 text-[10px] font-normal opacity-55 dark:border-white/25 dark:opacity-50`}
+                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-[10px] font-normal opacity-55 dark:opacity-50`}
                   aria-hidden
                 >
                   <span>Idx</span>
@@ -1869,18 +1907,29 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                   const isHovr = project.id === 'hovr'
                   const useHovrStyleUnfold = isHovr || project.id === 'piikai'
                   const isRowActive = displayProject?.id === project.id
-                  const humanSpyRow = (active: boolean) =>
-                    `${HUMAN_PROJECT_LIST_ROW_GRID} border-0 py-1.5 text-left transition-colors ${
+                  const humanSpyRow = (active: boolean, isLastSpy: boolean) =>
+                    `${HUMAN_PROJECT_LIST_ROW_GRID} border-0 ${isLastSpy ? '' : `${HOME_GRID_ROW_LINE} `}rounded-none ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left outline-none transition-colors ${
                       active
                         ? isDark
                           ? 'bg-white text-black'
                           : 'bg-black text-white'
                         : isDark
-                          ? 'text-inherit hover:bg-white/[0.07]'
-                          : 'text-inherit hover:bg-black/[0.05]'
+                          ? 'text-inherit hover:bg-white hover:text-black focus-visible:bg-white focus-visible:text-black'
+                          : 'text-inherit hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white'
                     }`
                   return (
-                    <motion.div key={project.id} variants={entranceV.menuSnapRow} className="w-full">
+                    <motion.div
+                      key={project.id}
+                      variants={entranceV.menuSnapRow}
+                      className="w-full"
+                      onPointerLeave={(e) => {
+                        const pv = projectListHover
+                        if (!pv) return
+                        const rt = e.relatedTarget as Node | null
+                        if (rt && (e.currentTarget as HTMLElement).contains(rt)) return
+                        pv.endHover()
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() =>
@@ -1888,8 +1937,11 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                         }
                         onMouseEnter={() => setMenuFolderHoverId(project.id)}
                         onMouseLeave={() => setMenuFolderHoverId((id) => (id === project.id ? null : id))}
-                        className={`${HUMAN_PROJECT_LIST_ROW_GRID} w-full border-0 border-b border-black/[0.12] py-2.5 text-left transition-colors dark:border-white/[0.14] ${
-                          isRowActive
+                        onPointerEnter={(e) => {
+                          projectListHover?.startHover(project.heroImage, e.clientX, e.clientY)
+                        }}
+                        className={`${HUMAN_PROJECT_LIST_ROW_GRID} w-full border-0 ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left transition-colors rounded-none outline-none ${
+                          isRowActive || menuFolderHoverId === project.id
                             ? isDark
                               ? 'bg-white text-black'
                               : 'bg-black text-white'
@@ -1897,11 +1949,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                               ? isDark
                                 ? 'bg-white/[0.04]'
                                 : 'bg-black/[0.03]'
-                              : menuFolderHoverId === project.id
-                                ? isDark
-                                  ? 'bg-white/[0.06]'
-                                  : 'bg-black/[0.04]'
-                                : ''
+                              : ''
                         }`}
                       >
                         <span className="tabular-nums opacity-90">{project.rowCode.toUpperCase()}</span>
@@ -1921,7 +1969,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                               animate={hovrUnfoldKey}
                               className="w-full will-change-transform"
                             >
-                              <div className="flex flex-col gap-0 border-t border-black/[0.08] pt-1 dark:border-white/[0.1]">
+                              <div className="flex flex-col gap-0 border-t-[0.5px] border-black/[0.14] dark:border-white/[0.12]">
                                 {project.spy.map((s, idx) => {
                                   const active =
                                     displayProject != null &&
@@ -1933,6 +1981,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                                       key={s.id}
                                       type="button"
                                       variants={entranceV.hovrUnfoldSpyItem}
+                                      onPointerEnter={() => projectListHover?.hideImmediately()}
                                       onAnimationComplete={
                                         isHovr && isLastSpy ? handleHovrLastSpyEntered : undefined
                                       }
@@ -1949,7 +1998,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                                           scrollPiikSection(s.id)
                                         }
                                       }}
-                                      className={humanSpyRow(active)}
+                                      className={humanSpyRow(active, isLastSpy)}
                                     >
                                       <span className="select-none opacity-25" aria-hidden>
                                         —
@@ -1961,16 +2010,18 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                               </div>
                             </motion.div>
                           ) : (
-                            <div className="flex flex-col gap-0 border-t border-black/[0.08] pt-1 dark:border-white/[0.1]">
-                              {project.spy.map((s) => {
+                            <div className="flex flex-col gap-0 border-t-[0.5px] border-black/[0.14] dark:border-white/[0.12]">
+                              {project.spy.map((s, spyIdx) => {
                                 const active =
                                   displayProject != null &&
                                   project.id === displayProject.id &&
                                   s.id === activeSpyId
+                                const isLastSpy = spyIdx === project.spy.length - 1
                                 return (
                                   <button
                                     key={s.id}
                                     type="button"
+                                    onPointerEnter={() => projectListHover?.hideImmediately()}
                                     onClick={() => {
                                       setOpenProjectId(project.id)
                                       if (isMobile) setMobileProjectDetailOpen(true)
@@ -1986,7 +2037,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                                         setSpyForProject(project.id, s.id)
                                       }
                                     }}
-                                    className={humanSpyRow(active)}
+                                    className={humanSpyRow(active, isLastSpy)}
                                   >
                                     <span className="select-none opacity-25" aria-hidden>
                                       —
@@ -2016,9 +2067,11 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                 role="separator"
                 aria-orientation="vertical"
                 aria-label="Resize project list column"
-                className="hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:block md:w-2 md:self-stretch"
+                className="relative hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:flex md:w-2 md:flex-col md:items-stretch md:self-stretch"
                 onPointerDown={handleDividerPointerDown(2)}
-              />
+              >
+                <span className={HOME_GRID_V_LINE} aria-hidden />
+              </motion.div>
             ) : null
           }
           details={
@@ -2034,7 +2087,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
                   config.desktopDetailsColumnFrame
                     ? 'relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
                     : config.mergeProjectDetailsDesktop
-                      ? HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED
+                      ? `${HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED} md:border-l md:border-l-[0.5px] md:border-black/[0.18] dark:md:border-l-white/[0.14]`
                       : HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED
                 }
               >
@@ -2054,15 +2107,15 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
       }}
       className={
         classicHome
-          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-4 pb-16 pt-5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'max-md:bg-[#faf7f0] md:bg-[#e8e8e8]'} ${text}`
-          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top,0px)+0.25rem)] pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] max-md:overflow-x-hidden max-md:pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-16 md:pt-5 ${isDark ? 'bg-[#111111]' : 'max-md:bg-[#faf7f0] md:bg-[#A6E1FF]'} ${text}`
+          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-2 pb-[4px] pt-2.5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'} ${text}`
+          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-2 pt-[max(0.625rem,env(safe-area-inset-top,0px)+0.125rem)] pb-[max(2.75rem,env(safe-area-inset-bottom,0px)+2rem)] max-md:overflow-x-hidden max-md:pb-[calc(2.75rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-[4px] md:pt-2.5 ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'} ${text}`
       }
       {...(config.designTestRootDataAttr ? { 'data-design-test': '1' } : {})}
     >
       {classicHome ? (
       <div
         ref={splitContainerRef}
-          className="flex w-full min-w-0 max-w-full flex-1 min-h-0 flex-col gap-y-8 max-md:min-h-[100dvh] md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden"
+          className={`flex w-full min-w-0 max-w-full flex-1 min-h-0 flex-col gap-y-8 max-md:min-h-[100dvh] md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden md:box-border ${HOME_GRID_FRAME_H}`}
         >
           <ClassicHomeFirstColumn
             bodyFont={bodyFont}
@@ -2092,7 +2145,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
       >
         <div
           ref={splitContainerRef}
-          className="grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-[10px] max-md:min-h-[100dvh] md:flex md:h-full md:min-h-0 md:max-h-full md:flex-row md:items-stretch md:gap-0 md:overflow-x-hidden md:overflow-hidden"
+          className={`grid w-full min-w-0 max-w-full flex-1 grid-cols-1 gap-y-[10px] max-md:min-h-[100dvh] md:flex md:h-full md:min-h-0 md:max-h-full md:flex-row md:items-stretch md:gap-0 md:overflow-x-hidden md:overflow-hidden md:box-border ${HOME_GRID_FRAME_H}`}
         >
         <div className="max-md:contents md:flex md:h-full md:min-h-0 md:max-h-full md:min-w-0 md:max-w-full md:shrink-0 md:flex-col md:overflow-hidden md:self-stretch">
           <ClassicHomeFirstColumn
@@ -2115,8 +2168,10 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
         {homeSplitTail}
         </div>
       </div>
-      </>
+        </>
       )}
+
+      <FooterEmail variant="inline" />
 
       {isMobile && (
         <AnimatePresence
@@ -2137,7 +2192,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
               }
               className={`fixed inset-0 z-[850] flex min-h-0 flex-col md:hidden ${
                 isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'
-              } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+              } pt-[max(1.75rem,env(safe-area-inset-top,0px)+0.125rem)] px-2 pb-[max(2.75rem,env(safe-area-inset-bottom,0px))]`}
             >
               <div
                 ref={detailsColumnRef}

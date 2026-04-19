@@ -408,7 +408,7 @@ export function HomeArFittingCaseStudy({
   return (
     <div
       ref={rootRef}
-      className="flex w-full min-w-0 flex-col pb-8 md:min-h-full"
+      className="flex w-full min-w-0 flex-col pb-4 md:min-h-0"
       style={{ fontFamily: 'Arial, sans-serif', color: fg }}
     >
       <motion.div

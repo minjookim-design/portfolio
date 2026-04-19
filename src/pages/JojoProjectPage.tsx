@@ -940,7 +940,7 @@ export function HomeJojoCaseStudy({
     : JOJO_HOME_SECTION_LABEL_CLASS
 
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-8" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
+    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-4" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
       <div className="mb-[150px] w-full">
         <OptimizedImage
           key={isDark ? 'jojo-thumb-dark' : 'jojo-thumb-light'}
