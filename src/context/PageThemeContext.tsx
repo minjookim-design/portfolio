@@ -50,12 +50,15 @@ interface PageThemeContextValue {
   setIsDark: (v: boolean) => void
   /** User toggle — flips theme and persists. */
   toggleTheme: () => void
+  /** Explicit light / dark — updates theme and persists (e.g. segmented control). */
+  setThemePersisted: (next: boolean) => void
 }
 
 const PageThemeContext = createContext<PageThemeContextValue>({
   isDark: false,
   setIsDark: () => {},
   toggleTheme: () => {},
+  setThemePersisted: () => {},
 })
 
 export const usePageTheme = () => useContext(PageThemeContext)
@@ -98,8 +101,17 @@ export function PageThemeProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const setThemePersisted = useCallback((next: boolean) => {
+    setIsDarkState(next)
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next ? 'dark' : 'light')
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [])
+
   return (
-    <PageThemeContext.Provider value={{ isDark, setIsDark, toggleTheme }}>
+    <PageThemeContext.Provider value={{ isDark, setIsDark, toggleTheme, setThemePersisted }}>
       {children}
     </PageThemeContext.Provider>
   )

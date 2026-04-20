@@ -7,6 +7,7 @@ import {
   type ImgHTMLAttributes,
   type SyntheticEvent,
 } from 'react'
+import { ZOOMABLE_IMAGE_CLASS } from '../constants/zoomableImage'
 import imageFormatVariants from '../generated/imageFormatVariants.json'
 
 /**
@@ -68,6 +69,7 @@ export function OptimizedImage({
   className,
   style,
   onLoad,
+  onClick,
   alt,
   src,
   ...rest
@@ -103,6 +105,9 @@ export function OptimizedImage({
       : {}),
   }
 
+  const mergedClassName =
+    [className, onClick != null ? ZOOMABLE_IMAGE_CLASS : ''].filter(Boolean).join(' ') || undefined
+
   const shared: Omit<ImgHTMLAttributes<HTMLImageElement>, 'ref'> = {
     src,
     alt: alt ?? '',
@@ -110,9 +115,10 @@ export function OptimizedImage({
     loading: priority ? 'eager' : 'lazy',
     decoding: 'async',
     fetchPriority: priority ? 'high' : undefined,
-    className,
+    className: mergedClassName,
     style: mergedStyle,
     onLoad: placeholder === 'blur' ? handleLoad : onLoad,
+    onClick,
     ...rest,
   }
 

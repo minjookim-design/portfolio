@@ -23,9 +23,9 @@ import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 /** Match `HomePage` third-column case study typography (same as Piik). */
 const AR_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
-const AR_HOME_META_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[16px] leading-tight font-bold`
+const AR_HOME_META_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[20px] leading-tight font-bold`
 const AR_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const AR_HOME_SECTION_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
+const AR_HOME_SECTION_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[22px] leading-tight font-bold`
 const AR_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 function arSectionBodyParagraphLeadClass(
@@ -399,7 +399,7 @@ export function HomeArFittingCaseStudy({
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
   const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
     : AR_HOME_META_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
@@ -433,8 +433,8 @@ export function HomeArFittingCaseStudy({
           variants={heroV.heroItem}
           className={
             testHomeProjectTitles
-              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[42px]"
           }
         >
           AR Fitting Room
@@ -500,7 +500,7 @@ export function HomeArFittingCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
                   : `shrink-0 whitespace-nowrap italic ${AR_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >
@@ -775,7 +775,7 @@ export function ArFittingProjectPage() {
       {/* ── Scrollable content ───────────────────────────────────────────────── */}
       <div
         ref={scrollRef}
-        className="absolute overflow-y-auto"
+        className="absolute overflow-x-hidden overflow-y-auto"
         style={isMedium
           ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
           : isNarrow
@@ -891,10 +891,10 @@ export function ArFittingProjectPage() {
                     fontFamily:    'Arial, sans-serif',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: 44, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
                     {section.label}
                   </p>
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0, maxWidth: '800px' }}>
                     {section.heading}
                   </p>
                   {section.body
@@ -981,12 +981,12 @@ export function ArFittingProjectPage() {
                               />
                             </div>
                           ) : null}
-                          {sub.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{sub.heading}</p>}
+                          {sub.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{sub.heading}</p>}
                           {'subheading' in sub && sub.subheading != null && (
                             <p
                               style={{
                                 fontWeight: 700,
-                                fontSize: 16,
+                                fontSize: 20,
                                 margin: 0,
                                 ...(sub.heading ? { marginTop: -10 } : {}),
                               }}
@@ -1022,7 +1022,7 @@ export function ArFittingProjectPage() {
                           ) : null}
                           {'postContent' in sub && (sub.postContent as { heading?: React.ReactNode; body?: string; media?: string }[]).map((pc, pi) => (
                             <React.Fragment key={pi}>
-                              {pc.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0, marginTop: 40 }}>{pc.heading}</p>}
+                              {pc.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0, marginTop: 40 }}>{pc.heading}</p>}
                               {pc.body && pc.body.split('\n\n').map((para, ri) => (
                                 <p key={ri} style={{ fontWeight: 400, margin: 0 }}>{para}</p>
                               ))}
@@ -1034,7 +1034,7 @@ export function ArFittingProjectPage() {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
-                      {section.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{section.heading}</p>}
+                      {section.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{section.heading}</p>}
                       {section.body.split('\n\n').map((para, pi) => {
                         const leadClass = arSectionBodyParagraphLeadClass(section, pi)
                         const midSrc =

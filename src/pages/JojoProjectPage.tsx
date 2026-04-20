@@ -21,9 +21,9 @@ function jojoSectionRefIndex(id: string): number {
 }
 
 const JOJO_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
-const JOJO_HOME_META_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[16px] leading-tight font-bold`
+const JOJO_HOME_META_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[20px] leading-tight font-bold`
 const JOJO_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const JOJO_HOME_SECTION_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[18px] leading-tight font-bold`
+const JOJO_HOME_SECTION_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[22px] leading-tight font-bold`
 const JOJO_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Instrument Serif for JoJo Research `postContent` paragraphs (merged “And AI / The key” uses ri === 1 for “The key…”; “Then which / Well both” uses ri === 0 for the first line only). */
@@ -391,7 +391,7 @@ export function JojoProjectPage() {
 
       <div
         ref={scrollRef}
-        className={`absolute overflow-y-auto${isMobile ? ' flex min-h-0 flex-col' : ''}`}
+        className={`absolute overflow-x-hidden overflow-y-auto${isMobile ? ' flex min-h-0 flex-col' : ''}`}
         style={
           isMobile
           ? { left: 16, right: 16, top: 0, bottom: 0, overflowX: 'hidden', position: 'absolute', zIndex: 1 }
@@ -518,10 +518,10 @@ export function JojoProjectPage() {
                     fontFamily: 'Arial, sans-serif',
                   }}
                 >
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: isMobile ? 28 : 40, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 800, fontSize: isMobile ? 32 : 44, lineHeight: 1, margin: 0, marginBottom: '1.5rem' }}>
                     {section.label}
                   </p>
-                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: isMobile ? 16 : 20, lineHeight: '22px', margin: 0, maxWidth: '800px' }}>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: isMobile ? 20 : 24, lineHeight: '26px', margin: 0, maxWidth: '800px' }}>
                     {section.heading}
                   </p>
                 </motion.div>
@@ -594,7 +594,7 @@ export function JojoProjectPage() {
                           }}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {sub.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{sub.heading}</p>}
+                            {sub.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{sub.heading}</p>}
                             {'headingMedia' in sub &&
                               (sub as { headingMedia?: string }).headingMedia &&
                               String((sub as { headingMedia: string }).headingMedia).length > 0 && (
@@ -698,8 +698,8 @@ export function JojoProjectPage() {
                                   <p
                                     style={{
                                       fontWeight: 700,
-                                      fontSize: 20,
-                                      lineHeight: '22px',
+                                      fontSize: 24,
+                                      lineHeight: '26px',
                                       margin: 0,
                                       marginTop:
                                         section.id === 'final-solution' ? (pi === 0 ? 0 : 30) : 40,
@@ -756,7 +756,7 @@ export function JojoProjectPage() {
                         </div>
                       ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
-                      {section.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{section.heading}</p>}
+                      {section.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{section.heading}</p>}
                       {section.body
                         ? section.body.split('\n\n').map((para, pi) => (
                             <p
@@ -772,7 +772,7 @@ export function JojoProjectPage() {
                                 pi === 0
                                   ? {
                                       fontFamily: "'Instrument Serif', serif",
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       lineHeight: 1.2,
                                     }
                                   : {}),
@@ -815,8 +815,8 @@ export function JojoProjectPage() {
                               <p
                                 style={{
                                   fontWeight: 700,
-                                  fontSize: 20,
-                                  lineHeight: '22px',
+                                  fontSize: 24,
+                                  lineHeight: '26px',
                                   margin: 0,
                                   marginTop: section.id === 'user-interview' && pi === 0 ? 0 : 24,
                                 }}
@@ -835,7 +835,7 @@ export function JojoProjectPage() {
                                     ...(section.id === 'research' && jojoResearchPostContentInstrumentSerif(pi, ri)
                                       ? {
                                           fontFamily: "'Instrument Serif', serif",
-                                          fontSize: 18,
+                                          fontSize: 22,
                                           lineHeight: 1.2,
                                         }
                                       : {}),
@@ -933,7 +933,7 @@ export function HomeJojoCaseStudy({
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
   const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
     : JOJO_HOME_META_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
@@ -954,13 +954,13 @@ export function HomeJojoCaseStudy({
         <h1
           className={
             testHomeProjectTitles
-              ? `mb-2 mt-0 text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-2 mt-0 text-[38px] font-bold italic leading-none font-['Instrument_Serif',serif]"
+              ? `mb-2 mt-0 text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-2 mt-0 text-[42px] font-bold italic leading-none font-['Instrument_Serif',serif]"
           }
         >
           JoJo
         </h1>
-        <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[20px] font-bold italic leading-tight`}>Think Beyond AI</p>
+        <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[24px] font-bold italic leading-tight`}>Think Beyond AI</p>
         <div className="flex w-full flex-col gap-y-2">
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{JOJO_META_ROWS[0].label}</span>
@@ -1028,7 +1028,7 @@ export function HomeJojoCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
                   : `shrink-0 whitespace-nowrap italic ${JOJO_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >

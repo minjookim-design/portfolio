@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
+import { DraftingCursorProvider } from './context/DraftingCursorContext.tsx'
 import { PageThemeProvider } from './context/PageThemeContext.tsx'
 import { HomeFooterAttributionProvider } from './context/HomeFooterAttributionContext.tsx'
 
@@ -15,11 +16,13 @@ async function bootstrap() {
     <StrictMode>
       <BrowserRouter>
         {DevOverlay ? <DevOverlay /> : null}
-        <PageThemeProvider>
-          <HomeFooterAttributionProvider>
-            <App />
-          </HomeFooterAttributionProvider>
-        </PageThemeProvider>
+        <DraftingCursorProvider>
+          <PageThemeProvider>
+            <HomeFooterAttributionProvider>
+              <App />
+            </HomeFooterAttributionProvider>
+          </PageThemeProvider>
+        </DraftingCursorProvider>
       </BrowserRouter>
     </StrictMode>,
   )

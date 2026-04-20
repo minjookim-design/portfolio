@@ -333,10 +333,8 @@ function SplitResizeGuideTooltip({
             duration: 0.32,
             ease: ONBOARD_EASE,
           }}
-          className={`max-w-[220px] rounded-lg border px-3 py-2 font-mono text-[11px] font-semibold leading-snug shadow-lg ${
-            isDark
-              ? 'border-white/20 bg-black/90 text-white'
-              : 'border-black/10 bg-white/95 text-black'
+          className={`max-w-[220px] rounded-none border-0 px-3 py-2 font-mono text-[11px] font-semibold leading-snug ${
+            isDark ? 'bg-white text-black' : 'bg-black text-white'
           }`}
         >
           {TOOLTIP_TEXT}

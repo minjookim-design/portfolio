@@ -2,7 +2,7 @@
  * Home shell for `/` and `/test`: `HomePage` renders {@link TestHomePageView} with production
  * split keys; `TestHomePage` uses {@link TEST_HOME_PAGE_CONFIG} (e.g. `data-design-test`, separate widths).
  */
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import {
   HomeIntroScrambleText,
@@ -46,6 +46,19 @@ import {
   useProjectListHoverPreviewOptional,
 } from '../components/ProjectListHoverPreview'
 import { FooterEmail } from '../components/FooterEmail'
+import { useProjectRowDraftingCursor } from '../context/DraftingCursorContext'
+import {
+  BlueprintDataPop,
+  BlueprintHorizontalRule,
+  BlueprintMaskedHeadline,
+  BlueprintVerticalStroke,
+  blueprintRevealOrchestratorVariants,
+  BLUEPRINT_COLUMN_LINES_INTRO_DELAY_MS,
+  getBlueprintRevealSessionKey,
+  markBlueprintRevealComplete,
+  readBlueprintRevealSkipped,
+} from '../components/HomeBlueprintReveal'
+import type { BlueprintPhase } from '../components/HomeBlueprintReveal'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -64,14 +77,17 @@ const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=t
 const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
 
 /** Intro name + role: same Instrument treatment as `testHomeProjectTitles` case-study hero `h1`. */
-const HOME_INTRO_SERIF_TEST_HERO = `text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+const HOME_INTRO_SERIF_TEST_HERO = `text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
 const HOME_MONO_SM = 'text-[12px] font-normal font-mono'
 const HOME_INTRO_BIO = `I design multi-platform experiences by transforming complex spatial and product challenges into simple, intuitive interactions. My focus is on creating clear, human-centered flows across web, mobile, and VR, ensuring that emerging technologies feel approachable and highly usable.
 
 By collaborating closely with engineers, I bridge the gap between design intent and technical feasibility to ensure high-quality, real-world implementation. I thrive in 0 to 1 environments, owning the entire design lifecycle and building scalable systems that balance user needs with technical constraints.`
 
-/** Bio typewriter total duration; 0.7× speed → multiply prior ~3250ms baseline by 1/0.7 (each sentence’s share scales with this). */
-const HOME_INTRO_TYPEWRITER_MS = Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320))
+/** Bio typewriter total duration; 0.7× speed baseline scaled by copy length (−400ms vs baseline; 0.2s faster than prior −200ms pass). */
+const HOME_INTRO_TYPEWRITER_MS = Math.max(
+  400,
+  Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320)) - 400,
+)
 
 const SPLIT_DIVIDER_PX = 8
 
@@ -829,6 +845,7 @@ function ClassicHomeFirstColumn({
   introStage,
   setIntroStage,
   introDone,
+  introContentReady,
   muted,
   iconFill,
   restRevealTransition,
@@ -843,6 +860,8 @@ function ClassicHomeFirstColumn({
   introStage: 0 | 1 | 2 | 3
   setIntroStage: React.Dispatch<React.SetStateAction<0 | 1 | 2 | 3>>
   introDone: boolean
+  /** False briefly on first desktop visit so blueprint column lines draw before intro copy. */
+  introContentReady: boolean
   muted: string
   iconFill: string
   restRevealTransition: { duration: number; ease: readonly [number, number, number, number] }
@@ -859,8 +878,9 @@ function ClassicHomeFirstColumn({
   const [foldEducationOpen, setFoldEducationOpen] = useState(true)
   const [foldInterestsOpen, setFoldInterestsOpen] = useState(true)
 
-  const careerFoldCellsTruncate = !isSplitDesktop || col1Width < INITIAL_COL1_PX
-  const careerCellClip = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'
+  /** Career + education table rows: ellipsis when first column is narrow or not split layout. */
+  const classicFoldTableCellsTruncate = !isSplitDesktop || col1Width < INITIAL_COL1_PX
+  const classicFoldCellClip = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'
 
   const humanFoldLinkRowClass = [
     HUMAN_FOLD_TRIGGER_GRID,
@@ -874,36 +894,38 @@ function ClassicHomeFirstColumn({
 
   return (
     <div
-      className={`flex min-h-0 min-w-0 flex-col gap-[20px] overflow-y-auto md:h-full md:shrink-0 ${bodyFont} w-full max-w-full`}
+      className={`flex min-h-0 min-w-0 max-w-full flex-col gap-[20px] overflow-x-hidden overflow-y-auto md:h-full md:shrink-0 ${bodyFont} w-full`}
       style={isSplitDesktop ? { width: col1Width, minWidth: col1MinWidth } : undefined}
     >
       <div className="flex w-full flex-col gap-0">
-        {introStage > 0 ? (
-          <p className={`shrink-0 whitespace-nowrap ${HOME_INTRO_SERIF_TEST_HERO}`}>Minjoo Kim</p>
-        ) : (
-          <HomeIntroScrambleText
-            as="p"
-            className={`shrink-0 whitespace-nowrap ${HOME_INTRO_SERIF_TEST_HERO}`}
-            text="Minjoo Kim"
-            durationMs={1300}
-            onComplete={() => setIntroStage(1)}
-          />
-        )}
-        {introStage >= 1 && (
-          <div className="flex w-full flex-col gap-2">
-            {introStage >= 2 ? (
-              <p className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}>Product Designer</p>
+        {introContentReady ? (
+          <>
+            {introStage > 0 ? (
+              <p className={`shrink-0 whitespace-nowrap ${HOME_INTRO_SERIF_TEST_HERO}`}>Minjoo Kim</p>
             ) : (
               <HomeIntroScrambleText
                 as="p"
-                className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}
-                text="Product Designer"
-                durationMs={750}
-                onComplete={() => setIntroStage(2)}
+                className={`shrink-0 whitespace-nowrap ${HOME_INTRO_SERIF_TEST_HERO}`}
+                text="Minjoo Kim"
+                durationMs={1300}
+                onComplete={() => setIntroStage(1)}
               />
             )}
-            {introStage >= 2 && (
-              <div className="flex w-full flex-col gap-0">
+            {introStage >= 1 && (
+              <div className="flex w-full flex-col gap-2">
+                {introStage >= 2 ? (
+                  <p className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}>Product Designer</p>
+                ) : (
+                  <HomeIntroScrambleText
+                    as="p"
+                    className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}
+                    text="Product Designer"
+                    durationMs={750}
+                    onComplete={() => setIntroStage(2)}
+                  />
+                )}
+                {introStage >= 2 && (
+                  <div className="flex w-full flex-col gap-0">
                 <a
                   href={LINKEDIN_URL}
                   target="_blank"
@@ -971,7 +993,11 @@ function ClassicHomeFirstColumn({
                   onComplete={() => setIntroStage(3)}
                 />
               ))}
-          </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="min-h-[4.5rem] w-full shrink-0 md:min-h-[5.5rem]" aria-hidden />
         )}
         <motion.div
           initial={false}
@@ -1044,35 +1070,39 @@ function ClassicHomeFirstColumn({
                 <div key={`${job.role}-${job.period}`} className={HUMAN_FOLD_BODY_ROW}>
                   <span
                     className={
-                      careerFoldCellsTruncate
-                        ? `${careerCellClip} font-normal tracking-[0.04em]`
+                      classicFoldTableCellsTruncate
+                        ? `${classicFoldCellClip} font-normal tracking-[0.04em]`
                         : 'min-w-0 font-normal tracking-[0.04em]'
                     }
-                    title={careerFoldCellsTruncate ? job.role : undefined}
+                    title={classicFoldTableCellsTruncate ? job.role : undefined}
                   >
                     {job.role.toUpperCase()}
                   </span>
                   <span
                     className={
-                      careerFoldCellsTruncate ? `${careerCellClip} opacity-90` : 'min-w-0 text-balance opacity-90'
+                      classicFoldTableCellsTruncate
+                        ? `${classicFoldCellClip} opacity-90`
+                        : 'min-w-0 text-balance opacity-90'
                     }
-                    title={careerFoldCellsTruncate ? org : undefined}
+                    title={classicFoldTableCellsTruncate ? org : undefined}
                   >
                     {org}
                   </span>
                   <span
-                    className={careerFoldCellsTruncate ? `${careerCellClip} opacity-90` : 'min-w-0 opacity-90'}
-                    title={careerFoldCellsTruncate ? locale : undefined}
+                    className={
+                      classicFoldTableCellsTruncate ? `${classicFoldCellClip} opacity-90` : 'min-w-0 opacity-90'
+                    }
+                    title={classicFoldTableCellsTruncate ? locale : undefined}
                   >
                     {locale}
                   </span>
                   <span
                     className={
-                      careerFoldCellsTruncate
-                        ? `${careerCellClip} tabular-nums opacity-90`
+                      classicFoldTableCellsTruncate
+                        ? `${classicFoldCellClip} tabular-nums opacity-90`
                         : 'tabular-nums opacity-90 whitespace-nowrap'
                     }
-                    title={careerFoldCellsTruncate ? job.period : undefined}
+                    title={classicFoldTableCellsTruncate ? job.period : undefined}
                   >
                     {job.period.toUpperCase()}
                   </span>
@@ -1135,9 +1165,36 @@ function ClassicHomeFirstColumn({
               {DEGREES.map((edu) => {
                 return (
                   <div key={edu.degree} className={HUMAN_FOLD_BODY_ROW_EDUCATION}>
-                    <span className="min-w-0 font-normal tracking-[0.04em]">{edu.degree.toUpperCase()}</span>
-                    <span className="min-w-0 text-balance opacity-90">{edu.school.toUpperCase()}</span>
-                    <span className="tabular-nums opacity-90 whitespace-nowrap">{edu.period.toUpperCase()}</span>
+                    <span
+                      className={
+                        classicFoldTableCellsTruncate
+                          ? `${classicFoldCellClip} font-normal tracking-[0.04em]`
+                          : 'min-w-0 font-normal tracking-[0.04em]'
+                      }
+                      title={classicFoldTableCellsTruncate ? edu.degree.toUpperCase() : undefined}
+                    >
+                      {edu.degree.toUpperCase()}
+                    </span>
+                    <span
+                      className={
+                        classicFoldTableCellsTruncate
+                          ? `${classicFoldCellClip} opacity-90`
+                          : 'min-w-0 text-balance opacity-90'
+                      }
+                      title={classicFoldTableCellsTruncate ? edu.school.toUpperCase() : undefined}
+                    >
+                      {edu.school.toUpperCase()}
+                    </span>
+                    <span
+                      className={
+                        classicFoldTableCellsTruncate
+                          ? `${classicFoldCellClip} tabular-nums opacity-90`
+                          : 'tabular-nums opacity-90 whitespace-nowrap'
+                      }
+                      title={classicFoldTableCellsTruncate ? edu.period.toUpperCase() : undefined}
+                    >
+                      {edu.period.toUpperCase()}
+                    </span>
                   </div>
                 )
               })}
@@ -1190,6 +1247,55 @@ function ClassicHomeFirstColumn({
                 sizes={IMAGE_SIZES.homeIntroFull}
                 placeholder="blur"
               />
+              <OptimizedImage
+                src="/me/4.jpeg"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/5.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/6.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/7.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/8.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/9.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
+              <OptimizedImage
+                src="/me/10.JPG"
+                alt=""
+                className="block h-auto w-full"
+                sizes={IMAGE_SIZES.homeIntroFull}
+                placeholder="blur"
+              />
             </div>
           </div>
         </ClassicFoldSection>
@@ -1214,6 +1320,7 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
 
 function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfig }) {
   const { isDark } = usePageTheme()
+  const draftingRowCursor = useProjectRowDraftingCursor()
   const isMobile = useIsNarrow(768)
   const { detailOpen: mobileProjectDetailOpen, setDetailOpen: setMobileProjectDetailOpen } =
     useHomeMobileProject()
@@ -1706,6 +1813,71 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const menuColumnInteractive = menuSeqPhase === 'done'
   const classicHome = config.classicShellAndIntroColumn === true
 
+  const blueprintSessionKey = getBlueprintRevealSessionKey(config.splitWidthsStorageKey)
+  const blueprintRevealSupported = classicHome && isSplitDesktop && !reduceMotion
+  const blueprintRevealEligible =
+    blueprintRevealSupported && !readBlueprintRevealSkipped(blueprintSessionKey)
+
+  const blueprintShellLinesSkip = !blueprintRevealEligible
+  const blueprintProjectRevealSkip = blueprintShellLinesSkip || !introDone
+
+  const [introContentReady, setIntroContentReady] = useState(
+    () => reduceMotion || !blueprintRevealEligible,
+  )
+
+  useEffect(() => {
+    if (!blueprintRevealEligible) return
+    const id = window.setTimeout(
+      () => setIntroContentReady(true),
+      BLUEPRINT_COLUMN_LINES_INTRO_DELAY_MS,
+    )
+    return () => clearTimeout(id)
+  }, [blueprintRevealEligible])
+
+  const [bpPhase, setBpPhase] = useState<BlueprintPhase>('off')
+
+  const blueprintMountKickRef = useRef(false)
+  useLayoutEffect(() => {
+    if (!blueprintRevealEligible) return
+    if (blueprintMountKickRef.current) return
+    blueprintMountKickRef.current = true
+    setBpPhase('lines')
+  }, [blueprintRevealEligible])
+
+  useEffect(() => {
+    if (bpPhase !== 'lines') return
+    if (!introDone) return
+    const t = window.setTimeout(() => setBpPhase('headlines'), 120)
+    return () => window.clearTimeout(t)
+  }, [bpPhase, introDone])
+
+  useEffect(() => {
+    if (bpPhase !== 'headlines') return
+    const t = window.setTimeout(() => setBpPhase('data'), 820)
+    return () => window.clearTimeout(t)
+  }, [bpPhase])
+
+  useEffect(() => {
+    if (bpPhase !== 'data') return
+    const t = window.setTimeout(() => {
+      markBlueprintRevealComplete(blueprintSessionKey)
+      setBpPhase('off')
+    }, 900)
+    return () => window.clearTimeout(t)
+  }, [bpPhase, blueprintSessionKey])
+
+  const bypassMenuSnapForBlueprint =
+    blueprintRevealSupported && introDone && !readBlueprintRevealSkipped(blueprintSessionKey)
+
+  const blueprintSnapKickoffRef = useRef(false)
+  useEffect(() => {
+    if (!bypassMenuSnapForBlueprint || blueprintSnapKickoffRef.current) return
+    if (!introDone || menuSeqPhase !== 'snap') return
+    blueprintSnapKickoffRef.current = true
+    const id = requestAnimationFrame(() => handleSnapStaggerComplete())
+    return () => cancelAnimationFrame(id)
+  }, [bypassMenuSnapForBlueprint, introDone, menuSeqPhase, handleSnapStaggerComplete])
+
   const splitOnboardingDivider1Ref = useRef<HTMLDivElement>(null)
   const splitColumnGuide = useHomeSplitColumnGuide({
     entranceComplete: menuSeqPhase === 'done',
@@ -1846,7 +2018,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
         </motion.div>
         {activeSpy && (
           <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-2">
-            <CaseStudyRailTitle className={`text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF}`}>
+            <CaseStudyRailTitle className={`text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF}`}>
               {activeSpy.label}
             </CaseStudyRailTitle>
             <p className={`font-normal ${muted}`}>{activeSpy.body}</p>
@@ -1856,22 +2028,34 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
     )
   }
 
+  /** Project column and split chrome appear after intro column typewriter completes. */
+  const revealHomeSplitChrome = introDone
+  /** During blueprint line pass, show the first resize divider so the column stroke reads before intro copy. */
+  const revealDivider1Chrome =
+    revealHomeSplitChrome || (blueprintRevealEligible && bpPhase === 'lines')
+
   const homeSplitTail = (
     <>
         <motion.div
           ref={splitOnboardingDivider1Ref}
           initial={false}
-          animate={{ opacity: introDone ? 1 : 0 }}
-          transition={restRevealTransition}
-          style={{ pointerEvents: introDone ? 'auto' : 'none' }}
-          aria-hidden={!introDone}
+          animate={{ opacity: revealDivider1Chrome ? 1 : 0 }}
+          transition={introDone ? restRevealTransition : { duration: 0.42, ease: [0.45, 0, 0.55, 1] as const }}
+          style={{ pointerEvents: revealHomeSplitChrome ? 'auto' : 'none' }}
+          aria-hidden={!revealHomeSplitChrome}
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize intro column"
+          data-draft-column-resize=""
           className="relative z-[5] hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:flex md:w-2 md:flex-col md:items-stretch md:self-stretch"
           onPointerDown={splitColumnGuide.wrapDividerPointerDown(handleDividerPointerDown(1))}
         >
-          <span className={HOME_GRID_V_LINE} aria-hidden />
+          <BlueprintVerticalStroke
+            className={HOME_GRID_V_LINE}
+            skip={blueprintShellLinesSkip}
+            phase={bpPhase}
+            delay={0}
+          />
           {splitColumnGuide.renderBarGlow()}
         </motion.div>
 
@@ -1879,7 +2063,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
           merge={Boolean(config.mergeProjectDetailsDesktop)}
           project={
             <motion.div
-              animate={{ opacity: introDone ? 1 : 0 }}
+              animate={{ opacity: revealHomeSplitChrome ? 1 : 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.22 }}
               style={{
                 pointerEvents: menuColumnInteractive ? 'auto' : 'none',
@@ -1890,25 +2074,61 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                     }
                   : {}),
               }}
-              aria-hidden={!introDone}
-              className={`max-md:hidden min-h-0 min-w-0 max-w-full overflow-y-auto md:h-full md:max-h-full md:shrink-0 md:self-stretch w-full ${HUMAN_PROJECT_LIST_TYPO} ${isDark ? 'text-[#f2f2f2]' : 'text-black'}`}
+              aria-hidden={!revealHomeSplitChrome}
+              className={`max-md:hidden min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto md:h-full md:max-h-full md:shrink-0 md:self-stretch w-full ${HUMAN_PROJECT_LIST_TYPO} ${isDark ? 'text-[#f2f2f2]' : 'text-black'}`}
             >
               <motion.div
-                variants={entranceV.menuSnapRoot}
-                initial={menuSnapInitial}
-                animate={menuSnapKey}
-                onAnimationComplete={handleSnapStaggerComplete}
+                {...(bypassMenuSnapForBlueprint
+                  ? {
+                      initial: false,
+                      animate: { opacity: 1 },
+                      transition: { duration: 0 },
+                    }
+                  : {
+                      variants: entranceV.menuSnapRoot,
+                      initial: menuSnapInitial,
+                      animate: menuSnapKey,
+                      onAnimationComplete: handleSnapStaggerComplete,
+                    })}
                 className="flex w-full flex-col"
               >
                 <div
-                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-[10px] font-normal opacity-55 dark:opacity-50`}
+                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} relative ${blueprintProjectRevealSkip ? HOME_GRID_ROW_LINE : 'border-b-0'} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-[10px] font-normal opacity-55 dark:opacity-50`}
                   aria-hidden
                 >
-                  <span>Idx</span>
-                  <span>PRJCT</span>
-                  <span>Services</span>
+                  <BlueprintDataPop
+                    phase={bpPhase}
+                    skip={blueprintProjectRevealSkip}
+                    staggerIndex={0}
+                    className="min-w-0"
+                  >
+                    Idx
+                  </BlueprintDataPop>
+                  <BlueprintMaskedHeadline
+                    phase={bpPhase}
+                    skip={blueprintProjectRevealSkip}
+                    className="min-w-0"
+                  >
+                    <span>PRJCT</span>
+                  </BlueprintMaskedHeadline>
+                  <BlueprintDataPop
+                    phase={bpPhase}
+                    skip={blueprintProjectRevealSkip}
+                    staggerIndex={1}
+                    className="min-w-0"
+                  >
+                    Services
+                  </BlueprintDataPop>
+                  {!blueprintProjectRevealSkip ? (
+                    <BlueprintHorizontalRule
+                      className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-px bg-black/[0.18] dark:bg-white/[0.14] md:block"
+                      skip={false}
+                      phase={bpPhase}
+                      delay={0.05}
+                    />
+                  ) : null}
                 </div>
-                {HOME_PROJECTS.map((project) => {
+                {HOME_PROJECTS.map((project, pIdx) => {
                   const isOpen = isFolderOpenUi(project.id)
                   const isHovr = project.id === 'hovr'
                   const useHovrStyleUnfold = isHovr || project.id === 'piikai'
@@ -1926,7 +2146,9 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                   return (
                     <motion.div
                       key={project.id}
-                      variants={entranceV.menuSnapRow}
+                      {...(bypassMenuSnapForBlueprint
+                        ? { initial: false, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+                        : { variants: entranceV.menuSnapRow })}
                       className="w-full"
                       onPointerLeave={(e) => {
                         const pv = projectListHover
@@ -1944,6 +2166,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                         onMouseEnter={() => setMenuFolderHoverId(project.id)}
                         onMouseLeave={() => setMenuFolderHoverId((id) => (id === project.id ? null : id))}
                         onPointerEnter={(e) => {
+                          draftingRowCursor.onProjectRowEnter(project.label)
                           projectListHover?.startHover(
                             project.id === 'hovr'
                               ? isDark
@@ -1954,7 +2177,12 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                             e.clientY,
                           )
                         }}
-                        className={`${HUMAN_PROJECT_LIST_ROW_GRID} w-full border-0 ${HOME_GRID_ROW_LINE} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left transition-colors rounded-none outline-none ${
+                        onPointerLeave={() => {
+                          draftingRowCursor.onProjectRowLeave()
+                        }}
+                        className={`${HUMAN_PROJECT_LIST_ROW_GRID} relative w-full border-0 ${
+                          blueprintProjectRevealSkip ? HOME_GRID_ROW_LINE : 'border-b-0'
+                        } ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-left transition-colors rounded-none outline-none ${
                           isRowActive || menuFolderHoverId === project.id
                             ? isDark
                               ? 'bg-white text-black'
@@ -1966,9 +2194,37 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                               : ''
                         }`}
                       >
-                        <span className="tabular-nums opacity-90">{project.rowCode.toUpperCase()}</span>
-                        <span className="test-project-title min-w-0">{project.label}</span>
-                        <span className="min-w-0 text-balance opacity-90">{project.roles.toUpperCase()}</span>
+                        <BlueprintMaskedHeadline
+                          phase={bpPhase}
+                          skip={blueprintProjectRevealSkip}
+                          className="min-w-0"
+                        >
+                          <span className="tabular-nums opacity-90">{project.rowCode.toUpperCase()}</span>
+                        </BlueprintMaskedHeadline>
+                        <BlueprintMaskedHeadline
+                          phase={bpPhase}
+                          skip={blueprintProjectRevealSkip}
+                          className="min-w-0"
+                        >
+                          <span className="test-project-title min-w-0">{project.label}</span>
+                        </BlueprintMaskedHeadline>
+                        <BlueprintDataPop
+                          phase={bpPhase}
+                          skip={blueprintProjectRevealSkip}
+                          staggerIndex={2 + pIdx}
+                          className="min-w-0 text-balance hyphens-auto break-words opacity-90"
+                          lang="en"
+                        >
+                          {project.roles.toUpperCase()}
+                        </BlueprintDataPop>
+                        {!blueprintProjectRevealSkip ? (
+                          <BlueprintHorizontalRule
+                            className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-px bg-black/[0.18] dark:bg-white/[0.14] md:block"
+                            skip={false}
+                            phase={bpPhase}
+                            delay={0.18 + pIdx * 0.07}
+                          />
+                        ) : null}
                       </button>
                       <div
                         className={`grid w-full transition-[grid-template-rows] duration-[380ms] ease-[cubic-bezier(0.2,0.85,0.25,1)] ${
@@ -2074,17 +2330,23 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
             displayProject != null ? (
               <motion.div
                 initial={false}
-                animate={{ opacity: introDone ? 1 : 0 }}
+                animate={{ opacity: revealHomeSplitChrome ? 1 : 0 }}
                 transition={restRevealTransition}
-                style={{ pointerEvents: introDone ? 'auto' : 'none' }}
-                aria-hidden={!introDone}
+                style={{ pointerEvents: revealHomeSplitChrome ? 'auto' : 'none' }}
+                aria-hidden={!revealHomeSplitChrome}
                 role="separator"
                 aria-orientation="vertical"
                 aria-label="Resize project list column"
+                data-draft-column-resize=""
                 className="relative hidden shrink-0 cursor-col-resize touch-none select-none bg-transparent md:flex md:w-2 md:flex-col md:items-stretch md:self-stretch"
                 onPointerDown={handleDividerPointerDown(2)}
               >
-                <span className={HOME_GRID_V_LINE} aria-hidden />
+                <BlueprintVerticalStroke
+                  className={HOME_GRID_V_LINE}
+                  skip={blueprintProjectRevealSkip}
+                  phase={bpPhase}
+                  delay={0.12}
+                />
               </motion.div>
             ) : null
           }
@@ -2099,7 +2361,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                 aria-hidden={!detailsColumnEntrance}
                 className={
                   config.desktopDetailsColumnFrame
-                    ? 'relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
+                    ? 'relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
                     : config.mergeProjectDetailsDesktop
                       ? `${HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED} md:border-l md:border-l-[0.5px] md:border-black/[0.18] dark:md:border-l-white/[0.14]`
                       : HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED
@@ -2127,10 +2389,33 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
       {...(config.designTestRootDataAttr ? { 'data-design-test': '1' } : {})}
     >
       {classicHome ? (
-      <div
+      <motion.div
         ref={splitContainerRef}
-          className={`flex w-full min-w-0 max-w-full flex-1 min-h-0 flex-col gap-y-8 max-md:min-h-[100dvh] md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden md:box-border ${HOME_GRID_FRAME_H}`}
-        >
+        variants={blueprintRevealOrchestratorVariants}
+        animate={blueprintShellLinesSkip ? 'off' : bpPhase}
+        initial="off"
+        className={`relative flex w-full min-w-0 max-w-full flex-1 min-h-0 flex-col gap-y-8 max-md:min-h-[100dvh] md:h-full md:min-h-0 md:flex-row md:gap-0 md:overflow-hidden md:box-border ${
+          blueprintShellLinesSkip
+            ? HOME_GRID_FRAME_H
+            : 'md:border-y md:border-transparent dark:md:border-transparent'
+        }`}
+      >
+          {!blueprintShellLinesSkip ? (
+            <>
+              <BlueprintHorizontalRule
+                className="pointer-events-none absolute left-0 top-0 z-[2] hidden h-px w-full bg-black/[0.16] dark:bg-white/[0.12] max-md:hidden md:block"
+                skip={false}
+                phase={bpPhase}
+                delay={0}
+              />
+              <BlueprintHorizontalRule
+                className="pointer-events-none absolute bottom-0 left-0 z-[2] hidden h-px w-full bg-black/[0.16] dark:bg-white/[0.12] max-md:hidden md:block"
+                skip={false}
+                phase={bpPhase}
+                delay={0.02}
+              />
+            </>
+          ) : null}
           <ClassicHomeFirstColumn
             bodyFont={bodyFont}
             isSplitDesktop={isSplitDesktop}
@@ -2139,6 +2424,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
             introStage={introStage}
             setIntroStage={setIntroStage}
             introDone={introDone}
+            introContentReady={introContentReady}
             muted={muted}
             iconFill={iconFill}
             restRevealTransition={restRevealTransition}
@@ -2147,7 +2433,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
             folderBrandUnifiedFrame={folderBrandUnifiedFrame}
           />
           {homeSplitTail}
-        </div>
+        </motion.div>
       ) : (
       <>
       {/* Mobile: full-page vertical scroll; intro is not sticky so name + bio scroll together */}
@@ -2155,7 +2441,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
         ref={(el) => {
           introScrollRef.current = el
         }}
-        className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col max-md:overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden"
+        className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden"
       >
         <div
           ref={splitContainerRef}
@@ -2170,6 +2456,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
             introStage={introStage}
             setIntroStage={setIntroStage}
             introDone={introDone}
+            introContentReady={introContentReady}
             muted={muted}
             iconFill={iconFill}
             restRevealTransition={restRevealTransition}

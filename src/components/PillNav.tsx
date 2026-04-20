@@ -161,7 +161,7 @@ export function PillNav() {
 
             {isProjects && isProjectsOpen && (
               <motion.div
-                className={`absolute top-0 left-[calc(100%+1rem)] z-[10001] flex max-h-[min(380px,70vh)] min-w-[380px] flex-col gap-3 overflow-y-auto overscroll-contain rounded-[20px] border-2 border-black p-[10px] backdrop-blur-xl transition-none dark:border-white/[0.22] ${isDark ? 'bg-white/20' : 'bg-white/30'}`}
+                className={`absolute top-0 left-[calc(100%+1rem)] z-[10001] flex max-h-[min(380px,70vh)] min-w-0 w-[min(380px,calc(100vw-2rem))] max-w-[min(380px,calc(100vw-2rem))] flex-col gap-3 overflow-x-hidden overflow-y-auto overscroll-contain rounded-[20px] border-2 border-black p-[10px] backdrop-blur-xl transition-none dark:border-white/[0.22] ${isDark ? 'bg-white/20' : 'bg-white/30'}`}
                 style={{ fontFamily: 'Arial, sans-serif' }}
                 initial={{ x: -16, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -192,40 +192,122 @@ export function PillNav() {
   )
 }
 
+const THEME_SUN_PATH_OUTLINE =
+  'M6 6H4V12H6V6ZM6 6H12V4H6V6ZM2 16H4V14H2V16ZM0 10H2V8H0V10ZM8 18H10V16H8V18ZM6 14H12V12H6V14ZM2 4H4V2H2V4ZM14 16H16V14H14V16ZM12 12H14V6H12V12ZM8 2H10V0H8V2ZM16 10H18V8H16V10ZM14 4H16V2H14V4Z'
+const THEME_SUN_PATH_FILLED =
+  'M6 14H12V12H14V6H12V4H6V6H4V12H6V14ZM2 16H4V14H2V16ZM0 10H2V8H0V10ZM8 18H10V16H8V18ZM2 4H4V2H2V4ZM14 16H16V14H14V16ZM8 2H10V0H8V2ZM16 10H18V8H16V10ZM14 4H16V2H14V4Z'
+const THEME_MOON_PATH_OUTLINE =
+  'M19 16V17H17V18H13V17H11V16H9V15H8V13H7V11H6V7H7V5H8V3H9V2H11V1H13V0H8V1H6V2H4V3H3V4H2V6H1V8H0V14H1V16H2V18H3V19H4V20H6V21H8V22H14V21H16V20H18V19H19V18H20V16H19ZM6 19V18H4V16H3V14H2V8H3V6H4V4H6V5H5V7H4V11H5V13H6V15H7V16H8V17H9V18H11V19H13V20H8V19H6Z'
+const THEME_MOON_PATH_FILLED =
+  'M22 17V19H21V20H20V21H18V22H16V23H10V22H8V21H6V20H5V19H4V17H3V15H2V9H3V7H4V5H5V4H6V3H8V2H10V1H15V2H13V3H11V4H10V6H9V8H8V12H9V14H10V16H11V17H13V18H15V19H19V18H21V17H22Z'
+
+/** Sun: outline when off; filled when on or on hover/press while off. Block SVG + wrapper avoids baseline offset inside the segment. */
+function ThemeLightAppearanceGlyphs({ selected }: { selected: boolean }) {
+  const svgClass = 'block h-[18px] w-[18px] shrink-0'
+  const core = selected ? (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" className={svgClass}>
+      <path d={THEME_SUN_PATH_FILLED} fill="currentColor" />
+    </svg>
+  ) : (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" className={svgClass}>
+      <path
+        d={THEME_SUN_PATH_OUTLINE}
+        fill="currentColor"
+        className="opacity-100 transition-opacity duration-100 ease-out group-hover:opacity-0 group-active:opacity-0"
+      />
+      <path
+        d={THEME_SUN_PATH_FILLED}
+        fill="currentColor"
+        className="opacity-0 transition-opacity duration-100 ease-out group-hover:opacity-100 group-active:opacity-100"
+      />
+    </svg>
+  )
+  return (
+    <span className="inline-flex items-center justify-center leading-none">{core}</span>
+  )
+}
+
+/** Moon slot: outline + filled share the same 20×22px box so hover/active doesn’t resize; scale + parent `place-items` keeps it button-centered. */
+const THEME_MOON_SLOT_CLASS = 'relative block h-[22px] w-5 shrink-0'
+
+function ThemeDarkAppearanceGlyphs({ selected }: { selected: boolean }) {
+  const moonSvgClass = 'absolute inset-0 block h-full w-full'
+  const core = selected ? (
+    <span className={THEME_MOON_SLOT_CLASS}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={moonSvgClass} preserveAspectRatio="xMidYMid meet">
+        <path d={THEME_MOON_PATH_FILLED} fill="currentColor" />
+      </svg>
+    </span>
+  ) : (
+    <span className={THEME_MOON_SLOT_CLASS}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 22"
+        fill="none"
+        className={`${moonSvgClass} opacity-100 transition-opacity duration-100 ease-out group-hover:opacity-0 group-active:opacity-0`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <path d={THEME_MOON_PATH_OUTLINE} fill="currentColor" />
+      </svg>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        className={`${moonSvgClass} opacity-0 transition-opacity duration-100 ease-out group-hover:opacity-100 group-active:opacity-100`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <path d={THEME_MOON_PATH_FILLED} fill="currentColor" />
+      </svg>
+    </span>
+  )
+  return (
+    <span className="inline-flex origin-center scale-[0.81] items-center justify-center leading-none">{core}</span>
+  )
+}
+
+const themeSegOff =
+  'bg-[#faf7f0] text-black transition-colors hover:bg-black hover:text-white dark:bg-[#111111] dark:text-white dark:hover:bg-white dark:hover:text-black'
+const themeSegOn =
+  'bg-black text-white dark:bg-white dark:text-black'
+
+/** Two-segment radiogroup: light | dark — inverted “on” side reads as power / selection. */
 export function ThemeToggle() {
-  const { isDark, toggleTheme } = usePageTheme()
+  const { isDark, setThemePersisted } = usePageTheme()
 
   return (
-    <motion.button
-      type="button"
-      aria-label="Toggle theme"
-      className={`absolute z-[110] rounded-[20px] backdrop-blur-3xl backdrop-saturate-[200%] border flex items-center px-3 py-2 gap-2 transition-none top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] ${
-        isDark ? 'bg-black/60 border-white/20' : 'bg-white/60 border-black/10'
-      }`}
-      initial={{ x: 16, opacity: 0 }}
+    <motion.div
+      role="radiogroup"
+      aria-label="Color theme"
+      className="absolute z-[110] top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] flex h-[29px] min-h-[29px] shrink-0 overflow-hidden rounded-none border border-black/[0.18] font-mono dark:border-white/[0.14]"
+      initial={{ x: 12, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      onClick={() => toggleTheme()}
     >
-      <div className="relative flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="5" fill="black" />
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M20 12.5C19.7 12.5 19.4 12.48 19.1 12.44C17.99 14.8 15.63 16.5 12.9 16.5C9.05 16.5 6 13.45 6 9.6C6 7.02 7.42 4.8 9.57 3.66C9.04 3.54 8.51 3.48 7.96 3.48C4.66 3.48 2 6.14 2 9.44C2 14.29 5.91 18.2 10.76 18.2C15.04 18.2 18.6 15.37 19.7 11.44C19.8 11.8 19.87 12.16 19.92 12.53C19.95 12.52 19.98 12.51 20 12.5Z"
-            fill="#555555"
-          />
-        </svg>
-        <motion.div
-          className="absolute inset-y-[-2px] w-1/2 rounded-full bg-white"
-          initial={false}
-          animate={{ x: isDark ? '100%' : '0%' }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
-          style={{ mixBlendMode: 'soft-light' }}
-        />
-      </div>
-    </motion.button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={!isDark}
+        title="Light appearance"
+        className={`group relative box-border grid min-h-[29px] min-w-[29px] flex-1 place-items-center border-r border-black/[0.18] p-[2px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:border-r-white/[0.14] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${!isDark ? themeSegOn : themeSegOff}`}
+        onClick={() => setThemePersisted(false)}
+      >
+        <span className="pointer-events-none leading-none" aria-hidden>
+          <ThemeLightAppearanceGlyphs selected={!isDark} />
+        </span>
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={isDark}
+        title="Dark appearance"
+        className={`group relative box-border grid min-h-[29px] min-w-[29px] flex-1 place-items-center p-[2px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${isDark ? themeSegOn : themeSegOff}`}
+        onClick={() => setThemePersisted(true)}
+      >
+        <span className="pointer-events-none leading-none" aria-hidden>
+          <ThemeDarkAppearanceGlyphs selected={isDark} />
+        </span>
+      </button>
+    </motion.div>
   )
 }
 

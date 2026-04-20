@@ -16,9 +16,9 @@ import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 
 /** Home third column + `HomeHovrCaseStudy` / mobile `/projects/hovr` typography. */
 const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
-const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[16px] leading-tight font-bold`
+const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[20px] leading-tight font-bold`
 const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[18px] leading-tight font-bold`
+const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[22px] leading-tight font-bold`
 const HOVR_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Bump `?v=` when replacing these files in `public/hovr/` so cached clients load the new PNGs. */
@@ -307,7 +307,7 @@ export function HomeHovrCaseStudy({
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
   const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[18px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
+    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
     : HOVR_CASE_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
@@ -341,8 +341,8 @@ export function HomeHovrCaseStudy({
           variants={heroV.heroItem}
           className={
             testHomeProjectTitles
-              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[38px]"
+              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[42px]"
           }
         >
           HOVR Admin
@@ -416,7 +416,7 @@ export function HomeHovrCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[18px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
                   : `shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >
@@ -603,7 +603,7 @@ export function HovrProjectPage() {
       {/* ── Scrollable content (md+ only) ─────────────────────────────────────── */}
       <div
         ref={scrollRef}
-        className="absolute overflow-y-auto"
+        className="absolute overflow-x-hidden overflow-y-auto"
         style={
           isMedium
             ? { left: 100, right: 100, top: 0, bottom: 0, overflowX: 'hidden' }
@@ -642,9 +642,9 @@ export function HovrProjectPage() {
           {/* Title */}
           <h1
             style={{
-              fontSize:     40,
+              fontSize:     44,
               fontWeight:   700,
-              lineHeight:   '32px',
+              lineHeight:   '36px',
               color:        '#000',
               marginBottom: 26,
               marginTop:    0,

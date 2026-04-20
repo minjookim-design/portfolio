@@ -58,7 +58,8 @@ export function MobileQuickNav() {
 
   const glass = isDark ? 'bg-black/55 text-white' : 'bg-white/70 text-black'
   const menuGlass = isDark ? 'bg-black/60 text-white' : 'bg-white/80 text-black'
-  const rowHover = isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.06]'
+  /** Mobile menu rows only (`md:hidden` shell): invert surface on hover. */
+  const rowHover = isDark ? 'hover:bg-white hover:text-black' : 'hover:bg-black hover:text-white'
 
   return (
     <>
@@ -84,7 +85,7 @@ export function MobileQuickNav() {
           aria-label={open ? 'Close projects menu' : 'Open projects menu'}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className={`pointer-events-auto flex h-14 w-14 items-center justify-center rounded-none shadow-lg backdrop-blur-xl transition-transform active:scale-95 ${glass}`}
+          className={`pointer-events-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-lg backdrop-blur-xl transition-transform active:scale-95 ${glass}`}
         >
           <FolderGlyph className="opacity-90" />
         </button>

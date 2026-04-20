@@ -6,7 +6,7 @@ function LayoutInner() {
   const { scrollContainerRef } = useScrollSpy()
 
   return (
-    <div className="h-screen overflow-hidden flex bg-black font-mono text-[18px] leading-[20px] p-5 gap-8">
+    <div className="flex h-screen min-w-0 max-w-full overflow-x-hidden overflow-y-hidden bg-black font-mono text-[18px] leading-[20px] p-5 gap-8">
       {/* Left floating nav card */}
       <div
         className="flex-shrink-0 flex flex-col rounded-2xl overflow-hidden"
@@ -23,7 +23,7 @@ function LayoutInner() {
       {/* Right scrollable content */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-scroll"
+        className="min-w-0 flex-1 overflow-x-hidden overflow-y-scroll"
         style={{ scrollBehavior: 'smooth' }}
       >
         <Outlet />

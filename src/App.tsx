@@ -13,6 +13,7 @@ import { JojoProjectPage } from './pages/JojoProjectPage'
 import { PiikProjectPage } from './pages/PiikProjectPage'
 import { ArFittingProjectPage } from './pages/ArFittingProjectPage'
 import { ProjectBmadPage } from './pages/ProjectBmadPage'
+import { Cursor } from './components/DraftingCursor'
 import { FooterEmail } from './components/FooterEmail'
 
 /** Standalone `/projects/*` case studies: mobile only; desktop redirects before child mounts. */
@@ -30,7 +31,7 @@ function AppShell() {
   return (
     <HomeMobileProjectProvider>
       <div
-        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-hidden max-md:overflow-x-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'}`}
+        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full min-w-0 max-w-[100vw] overflow-x-hidden overflow-y-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'}`}
       >
         <MobileProjectBackButton />
         <MobileQuickNav />
@@ -81,6 +82,7 @@ function AppShell() {
             }
           />
         </Routes>
+        <Cursor />
       </div>
     </HomeMobileProjectProvider>
   )

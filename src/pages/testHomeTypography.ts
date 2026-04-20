@@ -12,9 +12,9 @@ export const TEST_HOME_PROJECT_TITLE_SERIF =
 export const TEST_HOME_HERO_META_LABEL_SERIF =
   "font-['Instrument_Serif',serif] font-medium not-italic uppercase leading-[1.1] tracking-[-0.02em]"
 
-/** `/test` home: in-column section headings (+4px vs 18px rail), no `uppercase`. */
+/** `/test` home: in-column section headings (Instrument body headings), no `uppercase`. */
 export const TEST_HOME_SECTION_CONTENT_HEADING_SERIF =
-  "font-['Instrument_Serif',serif] text-[22px] font-normal not-italic leading-[1.1] tracking-[-0.02em]"
+  "font-['Instrument_Serif',serif] text-[26px] font-normal not-italic leading-[1.1] tracking-[-0.02em]"
 
 /**
  * `/test` details column: same inverted surface as active `humanSpyRow` in the project list
