@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
+import { ClickRipple } from './components/ClickRipple'
 import { Cursor } from './components/DraftingCursor'
 import { DraftingCursorProvider } from './context/DraftingCursorContext.tsx'
 import { PageThemeProvider } from './context/PageThemeContext.tsx'
@@ -27,6 +28,7 @@ async function bootstrap() {
               Avoid transform/opacity/filter/isolation on any real parent of `<Cursor />`.
             */}
             <div style={{ display: 'contents' }}>
+              <ClickRipple />
               <Cursor />
             </div>
           </PageThemeProvider>
