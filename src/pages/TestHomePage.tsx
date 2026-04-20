@@ -83,10 +83,10 @@ const HOME_INTRO_BIO = `I design multi-platform experiences by transforming comp
 
 By collaborating closely with engineers, I bridge the gap between design intent and technical feasibility to ensure high-quality, real-world implementation. I thrive in 0 to 1 environments, owning the entire design lifecycle and building scalable systems that balance user needs with technical constraints.`
 
-/** Bio typewriter total duration; 0.7× speed baseline scaled by copy length (−400ms vs baseline; 0.2s faster than prior −200ms pass). */
+/** Bio typewriter total duration; length-scaled baseline, then ÷1.3² (~1.3× faster than prior pass). Floor 400ms. */
 const HOME_INTRO_TYPEWRITER_MS = Math.max(
   400,
-  Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320)) - 400,
+  Math.round((Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320)) - 400) / 1.3 / 1.3),
 )
 
 const SPLIT_DIVIDER_PX = 8
@@ -894,7 +894,7 @@ function ClassicHomeFirstColumn({
 
   return (
     <div
-      className={`flex min-h-0 min-w-0 max-w-full flex-col gap-[20px] overflow-x-hidden overflow-y-auto md:h-full md:shrink-0 ${bodyFont} w-full`}
+      className={`flex min-h-0 min-w-0 max-w-full flex-col gap-[20px] overflow-x-hidden overflow-y-auto md:h-full md:shrink-0 bg-[var(--color-bg-base,#faf7f0)] ${bodyFont} w-full`}
       style={isSplitDesktop ? { width: col1Width, minWidth: col1MinWidth } : undefined}
     >
       <div className="flex w-full flex-col gap-0">
@@ -2075,7 +2075,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                   : {}),
               }}
               aria-hidden={!revealHomeSplitChrome}
-              className={`max-md:hidden min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto md:h-full md:max-h-full md:shrink-0 md:self-stretch w-full ${HUMAN_PROJECT_LIST_TYPO} ${isDark ? 'text-[#f2f2f2]' : 'text-black'}`}
+              className={`max-md:hidden min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto md:h-full md:max-h-full md:shrink-0 md:self-stretch w-full bg-[var(--color-bg-base,#faf7f0)] ${HUMAN_PROJECT_LIST_TYPO} ${isDark ? 'text-[#f2f2f2]' : 'text-black'}`}
             >
               <motion.div
                 {...(bypassMenuSnapForBlueprint
@@ -2383,8 +2383,8 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
       }}
       className={
         classicHome
-          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-2 pb-[4px] pt-2.5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'} ${text}`
-          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-2 pt-[max(0.625rem,env(safe-area-inset-top,0px)+0.125rem)] pb-[max(2.75rem,env(safe-area-inset-bottom,0px)+2rem)] max-md:overflow-x-hidden max-md:pb-[calc(2.75rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-[4px] md:pt-2.5 ${isDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'} ${text}`
+          ? `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col overflow-x-hidden px-2 pb-[4px] pt-2.5 max-md:overflow-x-hidden max-md:overflow-y-auto md:overflow-x-hidden md:overflow-hidden bg-[var(--color-bg-base,#faf7f0)] ${text}`
+          : `theme-surface-transition fixed inset-0 z-0 flex h-full w-full max-w-full min-h-0 flex-col px-2 pt-[max(0.625rem,env(safe-area-inset-top,0px)+0.125rem)] pb-[max(2.75rem,env(safe-area-inset-bottom,0px)+2rem)] max-md:overflow-x-hidden max-md:pb-[calc(2.75rem+env(safe-area-inset-bottom,0px))] md:overflow-x-hidden md:overflow-hidden md:pb-[4px] md:pt-2.5 bg-[var(--color-bg-base,#faf7f0)] ${text}`
       }
       {...(config.designTestRootDataAttr ? { 'data-design-test': '1' } : {})}
     >
@@ -2441,7 +2441,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
         ref={(el) => {
           introScrollRef.current = el
         }}
-        className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden"
+        className="flex min-h-0 w-full min-w-0 max-w-full max-h-full flex-1 flex-col overflow-x-hidden max-md:overflow-y-auto md:h-full md:min-h-0 md:max-h-full md:overflow-hidden bg-[var(--color-bg-base,#faf7f0)]"
       >
         <div
           ref={splitContainerRef}

@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion'
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { DRAFT_COLUMN_RESIZE_ATTR } from '../constants/draftingCursorDom'
 import { ZOOMABLE_IMAGE_CLASS } from '../constants/zoomableImage'
 import { useHomeFinePointer } from './ProjectListHoverPreview'
@@ -75,6 +75,18 @@ function elementIsResizeHandle(el: Element | null): boolean {
 
 type CenterKey = 'default' | 'zoom' | 'resize' | 'view'
 
+/**
+ * Crosshair hairlines: no Framer `x`/`y` (integer `left`/`top`); no `transform` / `will-change` here.
+ * Paint: `.drafting-cursor-crosshair-line` — `#C0BCB0` + `mix-blend-mode: difference` (`index.css`).
+ */
+const CAD_LINE_STYLE: CSSProperties = {
+  position: 'fixed',
+  pointerEvents: 'none',
+  zIndex: 99999,
+  boxSizing: 'border-box',
+  flexShrink: 0,
+}
+
 /** Full-screen CAD drafting crosshair + hub label (fine pointer only). */
 export function DraftingCursor() {
   const finePointer = useHomeFinePointer()
@@ -84,6 +96,9 @@ export function DraftingCursor() {
   const y = useMotionValue(0)
   const sx = useSpring(x, SPRING)
   const sy = useSpring(y, SPRING)
+  /** Integer device pixels for `left`/`top` — sub-pixel springs thicken/blur a 1px hairline. */
+  const crispX = useTransform(sx, (v) => Math.round(v))
+  const crispY = useTransform(sy, (v) => Math.round(v))
 
   const [zoomHit, setZoomHit] = useState(false)
   const [resizeHit, setResizeHit] = useState(false)
@@ -159,11 +174,6 @@ export function DraftingCursor() {
   const hubZoomResizeClass = `${hubLabelBaseClass} text-black dark:text-white`
   const hubViewClass = `${hubLabelBaseClass} text-white dark:text-black`
 
-  /** Thinner than home column rules (`0.5px`); colour matches `TestHomePage` column borders. */
-  const lineHairline = { width: '0.25px', height: '0.25px' } as const
-
-  const lineColourClass = 'bg-black/[0.18] dark:bg-white/[0.14]'
-
   const showCadLines = centerKey === 'default'
 
   const cursor = (
@@ -171,18 +181,28 @@ export function DraftingCursor() {
       {showCadLines ? (
         <>
           <motion.div
-            className={`fixed left-0 top-0 z-[1] rounded-none will-change-transform ${lineColourClass}`}
-            style={{ x: sx, width: lineHairline.width, height: '100vh' }}
+            className="drafting-cursor-crosshair-line drafting-cursor-crosshair-line--v shrink-0 rounded-none"
+            style={{
+              ...CAD_LINE_STYLE,
+              left: crispX,
+              top: 0,
+              height: '100vh',
+            }}
           />
           <motion.div
-            className={`fixed left-0 top-0 z-[1] w-[100vw] rounded-none will-change-transform ${lineColourClass}`}
-            style={{ y: sy, height: lineHairline.height }}
+            className="drafting-cursor-crosshair-line drafting-cursor-crosshair-line--h shrink-0 rounded-none"
+            style={{
+              ...CAD_LINE_STYLE,
+              left: 0,
+              top: crispY,
+              width: '100vw',
+            }}
           />
         </>
       ) : null}
       {centerKey !== 'default' ? (
         <motion.div
-          className="pointer-events-none fixed left-0 top-0 z-[2] size-0 overflow-visible rounded-none will-change-transform"
+          className="pointer-events-none fixed left-0 top-0 z-[100000] size-0 overflow-visible rounded-none will-change-transform"
           /* Raw motion values: hub must sit on the real pointer (springs on `sx`/`sy` lag — obvious on resize drags). */
           style={{ x, y }}
         >

@@ -16,7 +16,8 @@ const EMAIL = 'minjoo.kim.kor@gmail.com'
 /** Canonical copy — keep in sync with `DESIGN_SYSTEM.md` §5. */
 const FOOTER_ATTRIBUTION = 'Designed by me, Coded by Claude & Cursor'
 
-const FOOTER_ATTRIBUTION_CHAR_MS = 38
+/** ms per character; `0.7×` playback = slower reveal (`38 / 0.7`). */
+const FOOTER_ATTRIBUTION_CHAR_MS = Math.round(38 / 0.7)
 
 function FooterAttributionTypewriter({
   text,
@@ -61,13 +62,16 @@ function FooterAttributionTypewriter({
   }, [start, text, reduceMotion])
 
   const color = isDark ? '#B8B8B8' : '#666666'
-  const showCursor = start && len < text.length && !reduceMotion
+  const isTyping = start && len < text.length && !reduceMotion
+  const showCursor = isTyping
   const srHidden = len < text.length && !reduceMotion
 
   return (
     <span
-      className="inline-flex min-w-0 max-w-[min(100%,52ch)] flex-wrap items-center text-pretty font-mono text-[12px] font-medium leading-[1.2] md:max-w-none"
-      style={{ color }}
+      className={`inline-flex min-w-0 max-w-[min(100%,52ch)] flex-wrap items-center text-pretty font-mono text-[12px] leading-[1.2] md:max-w-none ${
+        isTyping ? 'font-bold text-red-600 dark:text-red-400' : 'font-medium'
+      }`}
+      style={isTyping ? undefined : { color }}
       aria-hidden={srHidden}
     >
       <span>{text.slice(0, len)}</span>
