@@ -91,13 +91,13 @@ const HOME_INTRO_TYPEWRITER_MS = Math.max(
 
 const SPLIT_DIVIDER_PX = 8
 
-/** Desktop home: hairline grid (column + row rules). */
+/** Desktop home: hairline grid (column + row rules) — matches `--color-blueprint-hairline`. */
 const HOME_GRID_V_LINE =
-  'pointer-events-none absolute inset-y-0 left-1/2 z-0 w-px -translate-x-1/2 bg-black/[0.18] dark:bg-white/[0.14]'
-const HOME_GRID_ROW_LINE =
-  'border-b-[0.5px] border-black/[0.18] dark:border-b-white/[0.14]'
-const HOME_GRID_FRAME_H =
-  'md:border-y md:border-black/[0.16] dark:md:border-white/[0.12]'
+  'pointer-events-none absolute inset-y-0 left-1/2 z-0 w-[0.5px] min-w-[0.5px] max-w-[0.5px] -translate-x-1/2 bg-[color:rgb(192_188_176/0.38)]'
+const HOME_GRID_ROW_LINE = 'border-b-[0.5px] border-[color:rgb(192_188_176/0.36)]'
+const HOME_GRID_FRAME_H = 'md:border-y md:border-[color:rgb(192_188_176/0.34)]'
+/** Mono meta on blueprint rows (Idx, roles, etc.). */
+const HOME_BLUEPRINT_MICRO = 'font-mono text-[10px] font-normal text-[color:var(--color-blueprint-hairline)]'
 const HOME_GRID_CELL_PAD_X = 'px-2'
 const HOME_GRID_CELL_PAD_Y = 'py-1.5'
 
@@ -2093,21 +2093,21 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                 className="flex w-full flex-col"
               >
                 <div
-                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} relative ${blueprintProjectRevealSkip ? HOME_GRID_ROW_LINE : 'border-b-0'} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-[10px] font-normal opacity-55 dark:opacity-50`}
+                  className={`${HUMAN_PROJECT_LIST_ROW_GRID} relative ${blueprintProjectRevealSkip ? HOME_GRID_ROW_LINE : 'border-b-0'} ${HOME_GRID_CELL_PAD_X} ${HOME_GRID_CELL_PAD_Y} text-[10px] font-normal text-[color:var(--color-blueprint-hairline)]`}
                   aria-hidden
                 >
                   <BlueprintDataPop
                     phase={bpPhase}
                     skip={blueprintProjectRevealSkip}
                     staggerIndex={0}
-                    className="min-w-0"
+                    className={`min-w-0 ${HOME_BLUEPRINT_MICRO}`}
                   >
                     Idx
                   </BlueprintDataPop>
                   <BlueprintMaskedHeadline
                     phase={bpPhase}
                     skip={blueprintProjectRevealSkip}
-                    className="min-w-0"
+                    className={`min-w-0 ${TEST_HOME_PROJECT_TITLE_SERIF} text-[color:var(--color-blueprint-hairline)]`}
                   >
                     <span>PRJCT</span>
                   </BlueprintMaskedHeadline>
@@ -2115,13 +2115,13 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                     phase={bpPhase}
                     skip={blueprintProjectRevealSkip}
                     staggerIndex={1}
-                    className="min-w-0"
+                    className={`min-w-0 ${HOME_BLUEPRINT_MICRO}`}
                   >
                     Services
                   </BlueprintDataPop>
                   {!blueprintProjectRevealSkip ? (
                     <BlueprintHorizontalRule
-                      className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-px bg-black/[0.18] dark:bg-white/[0.14] md:block"
+                      className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-[0.5px] min-h-[0.5px] bg-[color:rgb(192_188_176/0.42)] md:block"
                       skip={false}
                       phase={bpPhase}
                       delay={0.05}
@@ -2212,14 +2212,14 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                           phase={bpPhase}
                           skip={blueprintProjectRevealSkip}
                           staggerIndex={2 + pIdx}
-                          className="min-w-0 text-balance hyphens-auto break-words opacity-90"
+                          className={`min-w-0 text-balance hyphens-auto break-words ${HOME_BLUEPRINT_MICRO}`}
                           lang="en"
                         >
                           {project.roles.toUpperCase()}
                         </BlueprintDataPop>
                         {!blueprintProjectRevealSkip ? (
                           <BlueprintHorizontalRule
-                            className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-px bg-black/[0.18] dark:bg-white/[0.14] md:block"
+                            className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] hidden h-[0.5px] min-h-[0.5px] bg-[color:rgb(192_188_176/0.42)] md:block"
                             skip={false}
                             phase={bpPhase}
                             delay={0.18 + pIdx * 0.07}
@@ -2239,7 +2239,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                               animate={hovrUnfoldKey}
                               className="w-full will-change-transform"
                             >
-                              <div className="flex flex-col gap-0 border-t-[0.5px] border-black/[0.14] dark:border-white/[0.12]">
+                              <div className="flex flex-col gap-0 border-t-[0.5px] border-[color:rgb(192_188_176/0.34)]">
                                 {project.spy.map((s, idx) => {
                                   const active =
                                     displayProject != null &&
@@ -2280,7 +2280,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                               </div>
                             </motion.div>
                           ) : (
-                            <div className="flex flex-col gap-0 border-t-[0.5px] border-black/[0.14] dark:border-white/[0.12]">
+                            <div className="flex flex-col gap-0 border-t-[0.5px] border-[color:rgb(192_188_176/0.34)]">
                               {project.spy.map((s, spyIdx) => {
                                 const active =
                                   displayProject != null &&
@@ -2363,7 +2363,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                   config.desktopDetailsColumnFrame
                     ? 'relative z-0 hidden min-h-0 min-w-0 max-w-full flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto md:flex md:h-full md:min-h-full md:max-h-full md:self-stretch box-border rounded-none border-2 border-black bg-[#faf7f0] p-[10px] dark:border-white/[0.22] dark:bg-[#252320]'
                     : config.mergeProjectDetailsDesktop
-                      ? `${HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED} md:border-l md:border-l-[0.5px] md:border-black/[0.18] dark:md:border-l-white/[0.14]`
+                      ? `${HOME_DESKTOP_DETAILS_COLUMN_SHELL_MERGED} md:border-l md:border-l-[0.5px] md:border-[color:rgb(192_188_176/0.38)]`
                       : HOME_DESKTOP_DETAILS_COLUMN_SHELL_UNFRAMED
                 }
               >
@@ -2403,13 +2403,13 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
           {!blueprintShellLinesSkip ? (
             <>
               <BlueprintHorizontalRule
-                className="pointer-events-none absolute left-0 top-0 z-[2] hidden h-px w-full bg-black/[0.16] dark:bg-white/[0.12] max-md:hidden md:block"
+                className="pointer-events-none absolute left-0 top-0 z-[2] hidden h-[0.5px] min-h-[0.5px] w-full bg-[color:rgb(192_188_176/0.42)] max-md:hidden md:block"
                 skip={false}
                 phase={bpPhase}
                 delay={0}
               />
               <BlueprintHorizontalRule
-                className="pointer-events-none absolute bottom-0 left-0 z-[2] hidden h-px w-full bg-black/[0.16] dark:bg-white/[0.12] max-md:hidden md:block"
+                className="pointer-events-none absolute bottom-0 left-0 z-[2] hidden h-[0.5px] min-h-[0.5px] w-full bg-[color:rgb(192_188_176/0.42)] max-md:hidden md:block"
                 skip={false}
                 phase={bpPhase}
                 delay={0.02}
