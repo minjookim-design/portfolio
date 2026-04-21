@@ -222,6 +222,10 @@ html.dark .blueprint-mode-toggle {
   background-color: color-mix(in srgb, var(--color-blueprint-hairline) 12%, var(--color-bg-base));
 }
 
+html.dark .blueprint-mode-toggle:hover {
+  background-color: color-mix(in srgb, var(--color-blueprint-hairline) 22%, var(--color-bg-base));
+}
+
 html.blueprint-enabled #root :where(div, section, article, header, footer, nav, aside, ul, ol, form, table) {
   outline: 0.5px dashed var(--color-blueprint-hairline);
   outline-offset: -0.5px;
