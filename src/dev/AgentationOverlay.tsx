@@ -3,13 +3,7 @@
  * This file must not be imported from production code paths.
  */
 import { Agentation } from 'agentation'
-import { BlueprintModeOverlay } from './BlueprintModeOverlay'
 
 export default function AgentationOverlay() {
-  return (
-    <>
-      <Agentation />
-      <BlueprintModeOverlay />
-    </>
-  )
+  return <Agentation />
 }

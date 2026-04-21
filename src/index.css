@@ -166,11 +166,12 @@ html body .drafting-cursor-root .drafting-cursor-crosshair-line--h {
   max-height: 0.5px !important;
 }
 
-/* ── Dev: Blueprint Mode (`BlueprintModeOverlay`) — hairline grid + dashed layout shells ── */
+/* ── Blueprint Mode (`BlueprintModeOverlay`) — hairline grid + dashed layout shells ── */
 .blueprint-grid-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10050;
+  /* Below `.blueprint-mode-toggle` (`z-[99999])`; above app chrome. */
+  z-index: 99950;
   pointer-events: none !important;
   contain: strict;
   background-image:
@@ -190,17 +191,8 @@ html body .drafting-cursor-root .drafting-cursor-crosshair-line--h {
     );
 }
 
-/*
- * Sits immediately left of `ThemeToggle` (`PillNav.tsx`): same `top` + `right` safe-area as that
- * control; offset = dual 29px segments + hairline frame (~2px) + gap (`ThemeToggle` uses `z-[110]`).
- */
+/* Position + stacking: Tailwind on the button (beside `ThemeToggle`, `z-[99999]`). */
 .blueprint-mode-toggle {
-  position: fixed;
-  top: max(1rem, env(safe-area-inset-top, 0px));
-  right: calc(max(1rem, env(safe-area-inset-right, 0px)) + 61px + 0.5rem);
-  bottom: auto;
-  left: auto;
-  z-index: 10060;
   box-sizing: border-box;
   display: inline-flex;
   min-height: 29px;

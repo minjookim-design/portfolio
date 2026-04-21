@@ -1,6 +1,6 @@
 /**
- * Dev-only: full-site layout grid + dashed outlines (`html.blueprint-enabled`).
- * See `index.css` for paint rules.
+ * Blueprint layout mode: grid overlay + `html.blueprint-enabled` outlines.
+ * Mounted from `main.tsx` in all builds (not behind `import.meta.env.DEV`).
  */
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -39,25 +39,27 @@ export function BlueprintModeOverlay() {
     })
   }, [])
 
-  const gridLayer =
-    on && typeof document !== 'undefined'
-      ? createPortal(
-          <div className="blueprint-grid-overlay" aria-hidden />,
-          document.body,
-        )
-      : null
+  const gridLayer = on
+    ? createPortal(<div className="blueprint-grid-overlay" aria-hidden />, document.body)
+    : null
+
+  /** Aligned with `ThemeToggle` (`PillNav`): same `top` / safe-area `right`; offset = 2×29px rail + frame + gap. */
+  const toggleButton = createPortal(
+    <button
+      type="button"
+      className="blueprint-mode-toggle fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-[calc(max(1rem,env(safe-area-inset-right,0px))+61px+0.5rem)] z-[99999]"
+      onClick={toggle}
+      aria-pressed={on}
+    >
+      {on ? '[ SYSTEM_CORE: ON ]' : '[ SYSTEM_CORE: OFF ]'}
+    </button>,
+    document.body,
+  )
 
   return (
     <>
       {gridLayer}
-      <button
-        type="button"
-        className="blueprint-mode-toggle"
-        onClick={toggle}
-        aria-pressed={on}
-      >
-        {on ? '[ SYSTEM_CORE: ON ]' : '[ SYSTEM_CORE: OFF ]'}
-      </button>
+      {toggleButton}
     </>
   )
 }

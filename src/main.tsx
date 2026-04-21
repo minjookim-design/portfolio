@@ -8,6 +8,7 @@ import { Cursor } from './components/DraftingCursor'
 import { DraftingCursorProvider } from './context/DraftingCursorContext.tsx'
 import { PageThemeProvider } from './context/PageThemeContext.tsx'
 import { HomeFooterAttributionProvider } from './context/HomeFooterAttributionContext.tsx'
+import { BlueprintModeOverlay } from './components/BlueprintModeOverlay.tsx'
 
 async function bootstrap() {
   const DevOverlay: ComponentType | undefined = import.meta.env.DEV
@@ -18,6 +19,7 @@ async function bootstrap() {
     <StrictMode>
       <BrowserRouter>
         {DevOverlay ? <DevOverlay /> : null}
+        <BlueprintModeOverlay />
         <DraftingCursorProvider>
           <PageThemeProvider>
             <HomeFooterAttributionProvider>
