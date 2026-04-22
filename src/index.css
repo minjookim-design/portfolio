@@ -14,15 +14,18 @@
   --color-muted: #666666;
   /**
    * Hairline / section rule color (~0.5px borders): drafting grid, home split chrome,
-   * blueprint dev overlay (shared with `DraftingCursor` crosshair in `index.css`).
+   * blueprint overlay (shared with `DraftingCursor` crosshair). Slightly deeper than dark
+   * theme so rules read clearly on cream `#faf7f0`.
    */
-  --color-blueprint-hairline: #c0bcb0;
+  --color-blueprint-hairline: #b6b1a5;
 }
 
 html.dark {
   --color-bg-base: #111111;
   --color-text-primary: #ffffff;
   --color-muted: #b8b8b8;
+  /** Original neutral hairline on charcoal (unchanged from prior `#c0bcb0`). */
+  --color-blueprint-hairline: #c0bcb0;
 }
 
 /*
