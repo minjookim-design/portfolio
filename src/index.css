@@ -194,6 +194,25 @@ html body .drafting-cursor-root .drafting-cursor-crosshair-line--h {
     );
 }
 
+/* Light only: slightly stronger grid lines on cream (`SYSTEM_CORE` on). Dark stays at 20% above. */
+html.blueprint-enabled:not(.dark) .blueprint-grid-overlay {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(20px - 0.5px),
+      color-mix(in srgb, var(--color-blueprint-hairline) 26%, transparent) calc(20px - 0.5px),
+      color-mix(in srgb, var(--color-blueprint-hairline) 26%, transparent) 20px
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(20px - 0.5px),
+      color-mix(in srgb, var(--color-blueprint-hairline) 26%, transparent) calc(20px - 0.5px),
+      color-mix(in srgb, var(--color-blueprint-hairline) 26%, transparent) 20px
+    );
+}
+
 /* Position + stacking: Tailwind on the button (beside `ThemeToggle`, `z-[99999]`). */
 .blueprint-mode-toggle {
   box-sizing: border-box;
