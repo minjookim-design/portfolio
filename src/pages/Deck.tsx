@@ -11,6 +11,9 @@ const DECK_SECTION_MEDIA_FRAME =
   'flex min-h-[min(38dvh,340px)] min-w-0 flex-1 flex-col overflow-hidden'
 const INSTRUMENT = "font-['Instrument_Serif',serif]"
 const MONO = "font-['IBM_Plex_Mono',monospace]"
+/** Deck `TitleSlide` hero H1 only (+2px vs default clamp). */
+const DECK_TITLE_H1 =
+  `${INSTRUMENT} mt-6 max-w-full text-[clamp(calc(2.1rem+2px),calc(7.5vw+2px),calc(3.75rem+2px))] font-normal leading-[0.92] tracking-[-0.035em] text-black not-italic dark:text-neutral-100 sm:mt-8 md:text-[calc(3.25rem+2px)]`
 
 /** `toDeckVisualSections` ids: top-level `takeaway` or expanded `takeaway--…`. */
 function deckSectionIsTakeaway(sectionId: string): boolean {
@@ -213,9 +216,7 @@ function TitleSlide({ project, ordinal }: { project: DeckProject; ordinal: strin
               </p>
             </div>
 
-            <h1
-              className={`${INSTRUMENT} mt-6 max-w-full text-[clamp(2.1rem,7.5vw,3.75rem)] font-normal leading-[0.92] tracking-[-0.035em] text-black not-italic dark:text-neutral-100 sm:mt-8 md:text-[3.25rem]`}
-            >
+            <h1 className={DECK_TITLE_H1}>
               {displayName}
             </h1>
 
