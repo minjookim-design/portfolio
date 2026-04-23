@@ -12,6 +12,7 @@ import { JojoProjectPage } from './pages/JojoProjectPage'
 import { PiikProjectPage } from './pages/PiikProjectPage'
 import { ArFittingProjectPage } from './pages/ArFittingProjectPage'
 import { ProjectBmadPage } from './pages/ProjectBmadPage'
+import { Deck } from './pages/Deck'
 import { FooterEmail } from './components/FooterEmail'
 
 /** Standalone `/projects/*` case studies: mobile only; desktop redirects before child mounts. */
@@ -23,7 +24,8 @@ function MobileOnlyCaseStudyRoute({ children }: { children: React.ReactNode }) {
 
 function AppShell() {
   const { pathname } = useLocation()
-  const isHomeShellRoute = pathname === '/' || pathname === '' || pathname === '/test'
+  const isHomeShellRoute =
+    pathname === '/' || pathname === '' || pathname === '/test' || pathname === '/deck'
 
   return (
     <HomeMobileProjectProvider>
@@ -37,6 +39,7 @@ function AppShell() {
         <Routes>
           <Route index element={<HomePage />} />
           <Route path="test" element={<TestPage />} />
+          <Route path="deck" element={<Deck />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route
             path="projects/bmad"

@@ -1,9 +1,10 @@
 /**
  * Blueprint layout mode: grid overlay + `html.blueprint-enabled` outlines.
- * Mounted from `main.tsx` in all builds (not behind `import.meta.env.DEV`).
+ * Fixed SYSTEM_CORE toggle matches home (`PillNav` / theme rail offset) on every route including `/deck`.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router-dom'
 
 const STORAGE_KEY = 'portfolio-blueprint-mode'
 
@@ -17,7 +18,12 @@ function readStoredOn(): boolean {
 }
 
 export function BlueprintModeOverlay() {
+  const { pathname } = useLocation()
   const [on, setOn] = useState(readStoredOn)
+
+  useEffect(() => {
+    setOn(readStoredOn())
+  }, [pathname])
 
   useEffect(() => {
     document.documentElement.classList.toggle('blueprint-enabled', on)
@@ -39,22 +45,26 @@ export function BlueprintModeOverlay() {
     })
   }, [])
 
-  const gridLayer = on
-    ? createPortal(<div className="blueprint-grid-overlay" aria-hidden />, document.body)
-    : null
+  const gridLayer =
+    on && typeof document !== 'undefined'
+      ? createPortal(<div className="blueprint-grid-overlay" aria-hidden />, document.body)
+      : null
 
   /** Aligned with `ThemeToggle` (`PillNav`): same `top` / safe-area `right`; offset = 2×29px rail + frame + gap. */
-  const toggleButton = createPortal(
-    <button
-      type="button"
-      className="blueprint-mode-toggle fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-[calc(max(1rem,env(safe-area-inset-right,0px))+61px+0.5rem)] z-[99999]"
-      onClick={toggle}
-      aria-pressed={on}
-    >
-      {on ? '[ SYSTEM_CORE: ON ]' : '[ SYSTEM_CORE: OFF ]'}
-    </button>,
-    document.body,
-  )
+  const toggleButton =
+    typeof document !== 'undefined'
+      ? createPortal(
+          <button
+            type="button"
+            className="blueprint-mode-toggle fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-[calc(max(1rem,env(safe-area-inset-right,0px))+61px+0.5rem)] z-[99999]"
+            onClick={toggle}
+            aria-pressed={on}
+          >
+            {on ? '[ SYSTEM_CORE: ON ]' : '[ SYSTEM_CORE: OFF ]'}
+          </button>,
+          document.body,
+        )
+      : null
 
   return (
     <>
