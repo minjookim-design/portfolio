@@ -16,6 +16,7 @@ export default {
       },
       fontFamily: {
         mono: ['"IBM Plex Mono"', 'monospace'],
+        serif: ['ChosunIlboMyungjo', 'serif'],
       },
     },
   },

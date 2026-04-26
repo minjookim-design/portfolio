@@ -1,5 +1,11 @@
-/* Instrument Serif (Google Fonts). Design docs sometimes say “Instrumental Serif”; CSS stacks may list both. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+@font-face {
+  font-family: 'ChosunIlboMyungjo';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+
+/* IBM Plex Mono loads from `index.html` so this file can lead with `@font-face` (CSS `@import` must be first). */
 
 @tailwind base;
 @tailwind components;

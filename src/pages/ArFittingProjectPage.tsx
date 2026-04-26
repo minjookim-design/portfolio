@@ -4,6 +4,7 @@ import {
   TEST_HOME_PROJECT_TITLE_SERIF,
   TEST_HOME_HERO_META_LABEL_SERIF,
   TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  TEST_HOME_SECTION_RAIL_TITLE_SERIF,
   testHomeDetailsSectionHighlightClass,
 } from './testHomeTypography'
 import { CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
@@ -20,18 +21,18 @@ import {
   AR_FITTING_THUMB_DARK,
 } from './arFittingHomeData'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
+import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
 
 /** Match `HomePage` third-column case study typography (same as Piik). */
-const AR_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
-const AR_HOME_META_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[20px] leading-tight font-bold`
+const AR_HOME_META_LABEL_CLASS = 'font-mono text-[12px] font-bold not-italic uppercase leading-[1.2]'
 const AR_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const AR_HOME_SECTION_LABEL_CLASS = `${AR_HOME_INSTRUMENT} text-[22px] leading-tight font-bold`
+const AR_HOME_SECTION_CONTENT_HEADING_CLASS = `${CHOSUN_DISPLAY} text-[23px] leading-tight font-normal not-italic tracking-[-0.06em]`
 const AR_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 function arSectionBodyParagraphLeadClass(
   section: { heading?: string; bodyLeadParagraphIndices?: number[] },
   paragraphIndex: number,
-  labelClass: string = AR_HOME_SECTION_LABEL_CLASS,
+  labelClass: string = AR_HOME_SECTION_CONTENT_HEADING_CLASS,
 ): string {
   const hasHeading = Boolean(section.heading && String(section.heading).trim() !== '')
   const indices = section.bodyLeadParagraphIndices
@@ -263,7 +264,7 @@ function ArFittingHomeSubContent({
   onMediaClick,
   sectionId,
   subIndex,
-  sectionHeadingClass = AR_HOME_SECTION_LABEL_CLASS,
+  sectionHeadingClass = AR_HOME_SECTION_CONTENT_HEADING_CLASS,
 }: {
   sub: ArFittingCaseStudySub
   onMediaClick: (src: string) => void
@@ -398,12 +399,10 @@ export function HomeArFittingCaseStudy({
   const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
-  const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
-    : AR_HOME_META_LABEL_CLASS
+  const heroMetaLabelClass = testHomeProjectTitles ? TEST_HOME_HERO_META_LABEL_SERIF : AR_HOME_META_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
-    : AR_HOME_SECTION_LABEL_CLASS
+    : AR_HOME_SECTION_CONTENT_HEADING_CLASS
 
   return (
     <div
@@ -417,12 +416,15 @@ export function HomeArFittingCaseStudy({
         initial={heroInitial}
         animate={heroState}
       >
-        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+        <motion.div
+          variants={heroV.heroItem}
+          className="h-fit w-full shrink-0 overflow-hidden mb-[15px]"
+        >
           <OptimizedImage
             key={isDark ? 'ar-thumb-dark' : 'ar-thumb-light'}
             src={isDark ? AR_FITTING_THUMB_DARK : AR_FITTING_THUMB_LIGHT}
             alt="AR Fitting Room"
-          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            className="block h-auto w-full max-w-full rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
@@ -433,8 +435,8 @@ export function HomeArFittingCaseStudy({
           variants={heroV.heroItem}
           className={
             testHomeProjectTitles
-              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[42px]"
+              ? `mb-[10px] mt-0 text-[clamp(2.1rem,8.4vw,3rem)] md:text-[48px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : `${CHOSUN_DISPLAY} mb-[10px] mt-0 text-[clamp(2.1rem,8.4vw,3rem)] font-normal not-italic leading-none tracking-[-0.06em] md:text-[48px]`
           }
         >
           AR Fitting Room
@@ -500,8 +502,8 @@ export function HomeArFittingCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
-                  : `shrink-0 whitespace-nowrap italic ${AR_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap ${TEST_HOME_SECTION_RAIL_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap not-italic ${AR_HOME_SECTION_CONTENT_HEADING_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >
               {arSectionNavLabel(section)}

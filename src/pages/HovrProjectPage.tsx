@@ -9,16 +9,18 @@ import {
   TEST_HOME_PROJECT_TITLE_SERIF,
   TEST_HOME_HERO_META_LABEL_SERIF,
   TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  TEST_HOME_SECTION_RAIL_TITLE_SERIF,
   testHomeDetailsSectionHighlightClass,
 } from './testHomeTypography'
 import { CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
 import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
+import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
 
 /** Home third column + `HomeHovrCaseStudy` / mobile `/projects/hovr` typography. */
-const INSTRUMENT_SERIF = "font-['Instrument_Serif',serif]"
-const HOVR_CASE_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[20px] leading-tight font-bold`
+const HOVR_CASE_LABEL_CLASS = 'font-mono text-[12px] font-bold not-italic uppercase leading-[1.2]'
 const HOVR_CASE_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const HOVR_SECTION_LABEL_CLASS = `${INSTRUMENT_SERIF} text-[22px] leading-tight font-bold`
+/** In-column section headings (non–`/test`) — Chosun; same stack as left-rail `CaseStudyRailTitle`. */
+const HOVR_SECTION_CONTENT_HEADING_CLASS = `${CHOSUN_DISPLAY} text-[23px] leading-tight font-normal not-italic tracking-[-0.06em]`
 const HOVR_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
 /** Bump `?v=` when replacing these files in `public/hovr/` so cached clients load the new PNGs. */
@@ -296,7 +298,7 @@ export function HomeHovrCaseStudy({
   entranceActive: boolean
   reduceMotion: boolean
   onHeroEntranceComplete?: () => void
-  /** When set (e.g. `/test` home), hero + rail headings use upright Instrument Serif 400. */
+  /** When set (e.g. `/test` home), hero + rail headings use Chosun Ilbo Myeongjo via `testHomeTypography`. */
   testHomeProjectTitles?: boolean
   /** `/test` home: scroll-synced section id — that section gets the same inverted panel as the active spy row. */
   testHomeHighlightSectionId?: string | null
@@ -306,12 +308,10 @@ export function HomeHovrCaseStudy({
   const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
   const heroState = entranceActive ? 'visible' : 'hidden'
   const heroInitial = reduceMotion ? false : 'hidden'
-  const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
-    : HOVR_CASE_LABEL_CLASS
+  const heroMetaLabelClass = testHomeProjectTitles ? TEST_HOME_HERO_META_LABEL_SERIF : HOVR_CASE_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
-    : HOVR_SECTION_LABEL_CLASS
+    : HOVR_SECTION_CONTENT_HEADING_CLASS
 
   return (
     <div
@@ -325,12 +325,15 @@ export function HomeHovrCaseStudy({
         initial={heroInitial}
         animate={heroState}
       >
-        <motion.div variants={heroV.heroItem} className="overflow-hidden">
+        <motion.div
+          variants={heroV.heroItem}
+          className="h-fit w-full shrink-0 overflow-hidden mb-[15px]"
+        >
           <OptimizedImage
             key={isDark ? 'hovr-thumb-dark' : 'hovr-thumb-light'}
             src={isDark ? HOVR_HERO_THUMB_DARK : HOVR_HERO_THUMB_LIGHT}
             alt="HOVR Admin"
-            className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+            className="block h-auto w-full max-w-full rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             priority
             placeholder="blur"
@@ -341,8 +344,8 @@ export function HomeHovrCaseStudy({
           variants={heroV.heroItem}
           className={
             testHomeProjectTitles
-              ? `mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-[10px] mt-0 text-[clamp(1.75rem,7vw,2.375rem)] font-bold italic leading-none font-['Instrument_Serif',serif] md:text-[42px]"
+              ? `mb-[10px] mt-0 text-[clamp(2.1rem,8.4vw,3rem)] md:text-[48px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : `${CHOSUN_DISPLAY} mb-[10px] mt-0 text-[clamp(2.1rem,8.4vw,3rem)] font-normal not-italic leading-none tracking-[-0.06em] md:text-[48px]`
           }
         >
           HOVR Admin
@@ -416,8 +419,8 @@ export function HomeHovrCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
-                  : `shrink-0 whitespace-nowrap italic ${HOVR_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap ${TEST_HOME_SECTION_RAIL_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap not-italic ${HOVR_SECTION_CONTENT_HEADING_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >
               {section.label}

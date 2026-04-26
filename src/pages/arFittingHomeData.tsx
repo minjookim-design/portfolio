@@ -46,7 +46,7 @@ export const AR_FITTING_SECTIONS = [
     /** Insert after body paragraph at this index (0-based). */
     midMediaAfterParagraphIndex: 1,
     midMedia: '/arfittingroom/sketch.png',
-    /** Same Instrument Serif lead style as paragraph 0 (e.g. opening “What if…”). */
+    /** Same Bodoni Moda lead style as paragraph 0 (e.g. opening “What if…”). */
     bodyLeadParagraphIndices: [0, 2],
   },
   {

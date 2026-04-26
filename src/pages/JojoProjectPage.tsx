@@ -8,9 +8,11 @@ import {
   TEST_HOME_PROJECT_TITLE_SERIF,
   TEST_HOME_HERO_META_LABEL_SERIF,
   TEST_HOME_SECTION_CONTENT_HEADING_SERIF,
+  TEST_HOME_SECTION_RAIL_TITLE_SERIF,
   testHomeDetailsSectionHighlightClass,
 } from './testHomeTypography'
 import { CASE_STUDY_MOBILE_DETAILS_COLUMN_CLASS, CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
+import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { PiikCaseStudyMediaBlock, PiikCaseStudyCarouselBlock, PiikCaseStudyPhoneCarousel } from './PiikProjectPage'
 import { JOJO_SECTIONS, JOJO_META_ROWS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
@@ -20,14 +22,13 @@ function jojoSectionRefIndex(id: string): number {
   return i < 0 ? 0 : i + 1
 }
 
-const JOJO_HOME_INSTRUMENT = "font-['Instrument_Serif',serif]"
-const JOJO_HOME_META_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[20px] leading-tight font-bold`
+const JOJO_HOME_META_LABEL_CLASS = 'font-mono text-[12px] font-bold not-italic uppercase leading-[1.2]'
 const JOJO_HOME_META_BODY_CLASS = 'font-mono text-[12px] font-normal leading-[1.2]'
-const JOJO_HOME_SECTION_LABEL_CLASS = `${JOJO_HOME_INSTRUMENT} text-[22px] leading-tight font-bold`
+const JOJO_HOME_SECTION_CONTENT_HEADING_CLASS = `${CHOSUN_DISPLAY} text-[23px] leading-tight font-normal not-italic tracking-[-0.06em]`
 const JOJO_HOME_SECTION_BODY_CLASS = 'text-[12px] font-normal font-mono leading-[1.2] tracking-[-0.02em]'
 
-/** Instrument Serif for JoJo Research `postContent` paragraphs (merged “And AI / The key” uses ri === 1 for “The key…”; “Then which / Well both” uses ri === 0 for the first line only). */
-function jojoResearchPostContentInstrumentSerif(pi: number, ri: number): boolean {
+/** Chosun Ilbo Myeongjo lead lines in JoJo Research `postContent` (merged “And AI / The key” uses ri === 1 for “The key…”; “Then which / Well both” uses ri === 0 for the first line only). */
+function jojoResearchPostContentChosunLead(pi: number, ri: number): boolean {
   if (pi === 3 && ri === 1) return true
   if ((pi === 1 || pi === 2 || pi === 4 || pi === 5 || pi === 6) && ri === 0) return true
   return false
@@ -594,7 +595,7 @@ export function JojoProjectPage() {
                           }}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {sub.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{sub.heading}</p>}
+                            {sub.heading && <p style={{ fontWeight: 700, fontSize: 20, lineHeight: '22px', margin: 0 }}>{sub.heading}</p>}
                             {'headingMedia' in sub &&
                               (sub as { headingMedia?: string }).headingMedia &&
                               String((sub as { headingMedia: string }).headingMedia).length > 0 && (
@@ -698,8 +699,8 @@ export function JojoProjectPage() {
                                   <p
                                     style={{
                                       fontWeight: 700,
-                                      fontSize: 24,
-                                      lineHeight: '26px',
+                                      fontSize: 20,
+                                      lineHeight: '22px',
                                       margin: 0,
                                       marginTop:
                                         section.id === 'final-solution' ? (pi === 0 ? 0 : 30) : 40,
@@ -756,24 +757,34 @@ export function JojoProjectPage() {
                         </div>
                       ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
-                      {section.heading && <p style={{ fontWeight: 700, fontSize: 24, lineHeight: '26px', margin: 0 }}>{section.heading}</p>}
+                      {section.heading && (
+                        <p
+                          style={{
+                            fontFamily: "'ChosunIlboMyungjo', serif",
+                            fontWeight: 400,
+                            fontSize: 20,
+                            lineHeight: '22px',
+                            letterSpacing: '-0.06em',
+                            margin: 0,
+                          }}
+                        >
+                          {section.heading}
+                        </p>
+                      )}
                       {section.body
                         ? section.body.split('\n\n').map((para, pi) => (
                             <p
                               key={pi}
                               style={{
-                                fontWeight:
-                                  (section.id === 'research' || section.id === 'the-goal' || section.id === 'design') &&
-                                  pi === 0
-                                    ? 700
-                                    : 400,
+                                fontWeight: 400,
                                 margin: 0,
                                 ...((section.id === 'research' || section.id === 'the-goal' || section.id === 'design') &&
                                 pi === 0
                                   ? {
-                                      fontFamily: "'Instrument Serif', serif",
-                                      fontSize: 22,
+                                      fontFamily: "'ChosunIlboMyungjo', serif",
+                                      fontSize: 18,
                                       lineHeight: 1.2,
+                                      letterSpacing: '-0.06em',
                                     }
                                   : {}),
                               }}
@@ -814,9 +825,11 @@ export function JojoProjectPage() {
                             {pc.heading && (
                               <p
                                 style={{
-                                  fontWeight: 700,
-                                  fontSize: 24,
-                                  lineHeight: '26px',
+                                  fontFamily: "'ChosunIlboMyungjo', serif",
+                                  fontWeight: 400,
+                                  fontSize: 20,
+                                  lineHeight: '22px',
+                                  letterSpacing: '-0.06em',
                                   margin: 0,
                                   marginTop: section.id === 'user-interview' && pi === 0 ? 0 : 24,
                                 }}
@@ -829,19 +842,17 @@ export function JojoProjectPage() {
                                 <p
                                   key={ri}
                                   style={{
-                                    fontWeight:
-                                      section.id === 'research' && jojoResearchPostContentInstrumentSerif(pi, ri) ? 700 : 400,
+                                    fontWeight: 400,
                                     margin: 0,
-                                    ...(section.id === 'research' && jojoResearchPostContentInstrumentSerif(pi, ri)
+                                    ...(section.id === 'research' && jojoResearchPostContentChosunLead(pi, ri)
                                       ? {
-                                          fontFamily: "'Instrument Serif', serif",
-                                          fontSize: 22,
+                                          fontFamily: "'ChosunIlboMyungjo', serif",
+                                          fontSize: 18,
                                           lineHeight: 1.2,
+                                          letterSpacing: '-0.06em',
                                         }
                                       : {}),
-                                    ...(jojoPostContentParagraphRed(pc, ri)
-                                      ? { color: 'red', fontWeight: 700 }
-                                      : {}),
+                                    ...(jojoPostContentParagraphRed(pc, ri) ? { color: 'red' } : {}),
                                   }}
                                 >
                                   {para}
@@ -932,12 +943,10 @@ export function HomeJojoCaseStudy({
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
-  const heroMetaLabelClass = testHomeProjectTitles
-    ? `text-[22px] ${TEST_HOME_HERO_META_LABEL_SERIF}`
-    : JOJO_HOME_META_LABEL_CLASS
+  const heroMetaLabelClass = testHomeProjectTitles ? TEST_HOME_HERO_META_LABEL_SERIF : JOJO_HOME_META_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
-    : JOJO_HOME_SECTION_LABEL_CLASS
+    : JOJO_HOME_SECTION_CONTENT_HEADING_CLASS
 
   return (
     <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-4" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
@@ -946,7 +955,7 @@ export function HomeJojoCaseStudy({
           key={isDark ? 'jojo-thumb-dark' : 'jojo-thumb-light'}
           src={isDark ? JOJO_HERO_THUMB_DARK : JOJO_HERO_THUMB_LIGHT}
           alt="JoJo"
-          className="mb-[30px] block h-auto w-full max-w-full rounded-none"
+          className="mb-[15px] block h-auto w-full max-w-full rounded-none"
           sizes={IMAGE_SIZES.caseStudyFull}
           priority
           placeholder="blur"
@@ -954,13 +963,15 @@ export function HomeJojoCaseStudy({
         <h1
           className={
             testHomeProjectTitles
-              ? `mb-2 mt-0 text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
-              : "mb-2 mt-0 text-[42px] font-bold italic leading-none font-['Instrument_Serif',serif]"
+              ? `mb-2 mt-0 text-[48px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+              : `${CHOSUN_DISPLAY} mb-2 mt-0 text-[48px] font-normal not-italic leading-none tracking-[-0.06em]`
           }
         >
           JoJo
         </h1>
-        <p className={`mb-[26px] ${JOJO_HOME_INSTRUMENT} text-[24px] font-bold italic leading-tight`}>Think Beyond AI</p>
+        <p className={`mb-[26px] ${CHOSUN_DISPLAY} text-[20px] font-normal not-italic leading-tight tracking-[-0.06em]`}>
+          Think Beyond AI
+        </p>
         <div className="flex w-full flex-col gap-y-2">
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{JOJO_META_ROWS[0].label}</span>
@@ -1028,8 +1039,8 @@ export function HomeJojoCaseStudy({
             <CaseStudyRailTitle
               className={
                 testHomeProjectTitles
-                  ? `shrink-0 whitespace-nowrap text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
-                  : `shrink-0 whitespace-nowrap italic ${JOJO_HOME_SECTION_LABEL_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  ? `shrink-0 whitespace-nowrap ${TEST_HOME_SECTION_RAIL_TITLE_SERIF} ${isMobile ? 'w-full' : 'w-[130px]'}`
+                  : `shrink-0 whitespace-nowrap not-italic ${JOJO_HOME_SECTION_CONTENT_HEADING_CLASS} ${isMobile ? 'w-full' : 'w-[130px]'}`
               }
             >
               {jojoSectionNavLabel(section)}
@@ -1281,7 +1292,7 @@ export function HomeJojoCaseStudy({
                                 [
                                   !pc.heading && ri === 0 ? 'mt-10' : '',
                                   pc.heading && ri === 0 ? '-mt-[10px]' : '',
-                                  section.id === 'research' && jojoResearchPostContentInstrumentSerif(pi, ri)
+                                  section.id === 'research' && jojoResearchPostContentChosunLead(pi, ri)
                                     ? homeSectionContentHeadingClass
                                     : '',
                                 ]

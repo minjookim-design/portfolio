@@ -3,17 +3,17 @@ import { HOVR_SECTIONS } from './HovrProjectPage'
 import { PIIK_SECTIONS, PiikCaseStudyCarouselBlock } from './PiikProjectPage'
 import { AR_FITTING_SECTIONS } from './arFittingHomeData'
 import { toDeckVisualSections } from './deck/toDeckVisualSections'
+import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
 
 const CREAM = 'bg-[#faf7f0]'
 const DECK_BORDER = 'border-[0.5px] border-[#c0bcb0]'
 /** Deck `SectionSlide` only: consistent media band height across slides (pair / carousel / single). */
 const DECK_SECTION_MEDIA_FRAME =
   'flex min-h-[min(38dvh,340px)] min-w-0 flex-1 flex-col overflow-hidden'
-const INSTRUMENT = "font-['Instrument_Serif',serif]"
 const MONO = "font-['IBM_Plex_Mono',monospace]"
 /** Deck `TitleSlide` hero H1 only (+2px vs default clamp). */
 const DECK_TITLE_H1 =
-  `${INSTRUMENT} mt-6 max-w-full text-[clamp(calc(2.1rem+2px),calc(7.5vw+2px),calc(3.75rem+2px))] font-normal leading-[0.92] tracking-[-0.035em] text-black not-italic dark:text-neutral-100 sm:mt-8 md:text-[calc(3.25rem+2px)]`
+  `${CHOSUN_DISPLAY} mt-6 max-w-full text-[clamp(calc(2.1rem+2px),calc(7.5vw+2px),calc(3.75rem+2px))] font-normal leading-[0.92] tracking-[-0.06em] text-black not-italic dark:text-neutral-100 sm:mt-8 md:text-[calc(3.25rem+2px)]`
 
 /** `toDeckVisualSections` ids: top-level `takeaway` or expanded `takeaway--…`. */
 function deckSectionIsTakeaway(sectionId: string): boolean {
@@ -171,12 +171,12 @@ function PsiColumn({ label, block }: { label: string; block: DeckPsiBlock }) {
       </div>
       <div className="flex flex-col gap-3 px-2.5 py-3 sm:gap-4 sm:px-3 sm:py-4">
         <p
-          className={`${INSTRUMENT} text-[clamp(1.75rem,4vw,2.75rem)] font-normal leading-none tracking-[-0.03em] text-black`}
+          className={`${CHOSUN_DISPLAY} text-[clamp(1.75rem,4vw,2.75rem)] font-normal leading-none tracking-[-0.06em] text-black`}
         >
           {block.metric}
         </p>
         <h3
-          className={`${INSTRUMENT} text-[clamp(1.05rem,2.2vw,1.35rem)] font-normal leading-[1.12] tracking-[-0.02em] text-black`}
+          className={`${CHOSUN_DISPLAY} text-[clamp(1.05rem,2.2vw,1.35rem)] font-normal leading-[1.12] tracking-[-0.06em] text-black`}
         >
           {block.heading}
         </h3>
@@ -273,7 +273,7 @@ function SectionSlide({ project, section }: { project: DeckProject; section: Dec
           {project.name} · {section.label}
         </p>
         <h2
-          className={`${INSTRUMENT} mt-1 text-[clamp(1.5rem,4.5vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.03em] text-black`}
+          className={`${CHOSUN_DISPLAY} mt-1 text-[clamp(1.5rem,4.5vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.06em] text-black`}
         >
           {section.heading}
         </h2>
@@ -370,7 +370,7 @@ function QaSlide({ project }: { project: DeckProject }) {
     <div className={`flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-10 text-center`}>
       <p className={`${MONO} text-[9px] font-medium uppercase tracking-[0.2em] text-black/40`}>Close</p>
       <p
-        className={`${INSTRUMENT} mt-4 text-[clamp(2.5rem,10vw,5rem)] font-normal leading-none tracking-[-0.03em] text-black`}
+        className={`${CHOSUN_DISPLAY} mt-4 text-[clamp(2.5rem,10vw,5rem)] font-normal leading-none tracking-[-0.06em] text-black`}
       >
         Q&amp;A
       </p>

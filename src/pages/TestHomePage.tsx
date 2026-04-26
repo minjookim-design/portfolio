@@ -32,7 +32,7 @@ import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
-import { TEST_HOME_PROJECT_TITLE_SERIF } from './testHomeTypography'
+import { TEST_HOME_PROJECT_TITLE_SERIF, TEST_HOME_SECTION_RAIL_TITLE_SERIF } from './testHomeTypography'
 import { useHomeSplitColumnGuide } from '../components/HomeSplitOnboarding'
 import { HOME_ENTRANCE_SPRING } from './homeCaseStudyHeroMotion'
 import {
@@ -76,8 +76,8 @@ const DEGREES = [
 const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true'
 const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
 
-/** Intro name + role: same Instrument treatment as `testHomeProjectTitles` case-study hero `h1`. */
-const HOME_INTRO_SERIF_TEST_HERO = `text-[clamp(1.75rem,7vw,2.375rem)] md:text-[42px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
+/** Intro name + role: same Chosun Ilbo Myeongjo treatment as `testHomeProjectTitles` case-study hero `h1`. */
+const HOME_INTRO_SERIF_TEST_HERO = `text-[clamp(1.75rem,7vw,2.375rem)] md:text-[38px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
 const HOME_MONO_SM = 'text-[12px] font-normal font-mono'
 const HOME_INTRO_BIO = `I design multi-platform experiences by transforming complex spatial and product challenges into simple, intuitive interactions. My focus is on creating clear, human-centered flows across web, mobile, and VR, ensuring that emerging technologies feel approachable and highly usable.
 
@@ -2011,7 +2011,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
 
         <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-4">
           <p
-            className={`text-[clamp(1.75rem,8vw,2.5rem)] md:text-[40px] ${TEST_HOME_PROJECT_TITLE_SERIF}`}
+            className={`text-[clamp(1.75rem,8vw,2.5rem)] md:text-[36px] ${TEST_HOME_PROJECT_TITLE_SERIF}`}
           >
             {displayProject.label}
           </p>
@@ -2019,7 +2019,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
         </motion.div>
         {activeSpy && (
           <motion.div variants={entranceV.genericRailItem} className="flex flex-col gap-2">
-            <CaseStudyRailTitle className={`text-[22px] ${TEST_HOME_PROJECT_TITLE_SERIF}`}>
+            <CaseStudyRailTitle className={`shrink-0 whitespace-nowrap ${TEST_HOME_SECTION_RAIL_TITLE_SERIF}`}>
               {activeSpy.label}
             </CaseStudyRailTitle>
             <p className={`font-normal ${muted}`}>{activeSpy.body}</p>

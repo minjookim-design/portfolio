@@ -30,7 +30,7 @@ export function TestPage() {
       <style>
         {`
           /* Design-test-only overrides — selectors must include [data-design-test="1"] */
-          /* Project name column: match Idx / table (IBM Plex Mono), not Instrument Serif */
+          /* Project name column: match Idx / table (IBM Plex Mono), not Chosun display */
           [data-design-test="1"] .test-project-title {
             font-family: "IBM Plex Mono", monospace;
             font-weight: 500;
