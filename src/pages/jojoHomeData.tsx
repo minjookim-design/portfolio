@@ -45,7 +45,7 @@ export const JOJO_SECTIONS = [
     id: 'research',
     label: 'Research',
     spyLabel: 'Research',
-    heading: <span style={{ color: 'red' }}>Research Question</span>,
+    heading: <span className="case-study-emphasis-red">Research Question</span>,
     body:
       'How can conversational AI be designed as a complementary tool to engage critical thinking and address cognitive accessibility challenges for adults aged 18 to 35, reducing the effects of over-reliance on digital technology?\n\nAs someone who grew up immersed in digital technology, I often feel that it has negatively impacted our generation\'s cognitive abilities. This project aims to explore whether there is a correlation between digital technology and cognitive challenges and to investigate how conversational AI can be leveraged to address these issues.',
     media: '',
@@ -56,7 +56,7 @@ export const JOJO_SECTIONS = [
           'Over the past two years, AI has revolutionized the tech industry and become an integral part of daily life. Efforts to implement AI in the existing products are increasing rapidly, and I\'ve noticed both myself and those around me frequently relying on AI tools. Since the use of digital technology is inevitable, I want to explore ways to optimize its implementation, ensuring it serves as a solution rather than exacerbating existing problems.\n\nThis project is dedicated to answering this research question and finding ways to design conversational AI that supports critical thinking and cognitive health.',
       },
       {
-        heading: <span style={{ color: 'red' }}>Research Findings</span>,
+        heading: <span className="case-study-emphasis-red">Research Findings</span>,
         body:
           'Does digital technology truly cause cognitive issues, or is it merely a delusion?\n\nThe answer is yes, it does cause cognitive issues.',
         media: '/jojo/research1.png',
@@ -136,7 +136,7 @@ export const JOJO_SECTIONS = [
       {
         heading: (
           <>
-            <span style={{ color: 'red' }}>Problem 1</span>
+            <span className="case-study-emphasis-red">Problem 1</span>
           </>
         ),
         body:
@@ -159,7 +159,7 @@ export const JOJO_SECTIONS = [
       {
         heading: (
           <>
-            <span style={{ color: 'red', fontWeight: 700 }}>Problem 2</span>
+            <span className="case-study-emphasis-red">Problem 2</span>
           </>
         ),
         body:
@@ -202,7 +202,7 @@ export const JOJO_SECTIONS = [
       {
         heading: (
           <>
-            <span style={{ color: 'red' }}>Activeness mode + AI Character</span>
+            <span className="case-study-emphasis-red">Activeness mode + AI Character</span>
             {': JoJo offers thought-provoking questions or prompts based on what\'s on your screen'}
           </>
         ),
@@ -239,7 +239,7 @@ export const JOJO_SECTIONS = [
       {
         heading: (
           <>
-            <span style={{ color: 'red' }}>Report</span>
+            <span className="case-study-emphasis-red">Report</span>
             {
               ': JoJo\'s report is designed to help you build better habits with technology by tracking how you think, focus, and interact throughout your day.'
             }

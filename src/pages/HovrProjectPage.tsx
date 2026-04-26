@@ -33,7 +33,7 @@ export const HOVR_SECTIONS = [
   {
     id: 'overview',
     label: 'Overview',
-    heading: <>On the original website, the driver approval process took 48.08 seconds. This lengthy process was reduced to 7.26 seconds, achieving an <span style={{ color: 'red' }}>84.9%</span> time savings.</>,
+    heading: <>On the original website, the driver approval process took 48.08 seconds. This lengthy process was reduced to 7.26 seconds, achieving an <span className="case-study-emphasis-red">84.9%</span> time savings.</>,
     body: 'Restructured the flow to give permissions all required documents for driver approval. Organized a vast amount of driver data to ensure it was easily scannable at a glance.',
     media: '/hovr/Workflow-time.mp4',
   },
@@ -67,7 +67,7 @@ export const HOVR_SECTIONS = [
     media: '',
     subSections: [
       {
-        heading: <><span style={{ color: 'red' }}>Bulk Approval</span>: The support team can quickly review all submitted documents at once.</>,
+        heading: <><span className="case-study-emphasis-red">Bulk Approval</span>: The support team can quickly review all submitted documents at once.</>,
         body: 'If the information appears correct, they can select all documents and approve them in a single action.',
         media: '/hovr/Bulk-approval.mp4',
       },
@@ -77,13 +77,13 @@ export const HOVR_SECTIONS = [
         media: '/hovr/After-Approval.mp4',
       },
       {
-        heading: <><span style={{ color: 'red' }}>Approve Documents Individually</span>: Support team members can review and approve documents one at a time as needed.</>,
+        heading: <><span className="case-study-emphasis-red">Approve Documents Individually</span>: Support team members can review and approve documents one at a time as needed.</>,
         body: 'If the scanned document and manually entered data don\'t match, users can click each document card on the left to compare and verify the information.',
         media: '/hovr/Document-list.mp4',
         postContent: [
           { body: 'Then, if the document looks legitimate, the support team can approve it directly on the same screen without seeing a popup or navigating to another page.', media: '/hovr/Approve-one.mp4' },
           {
-            heading: <><span style={{ color: 'red' }}>Rejection Process</span>: The support team can reject submitted documents individually. To prevent mistakes, the rejection process includes a few additional steps.</>,
+            heading: <><span className="case-study-emphasis-red">Rejection Process</span>: The support team can reject submitted documents individually. To prevent mistakes, the rejection process includes a few additional steps.</>,
             body: 'If a document is invalid, users can reject it by clicking the Reject button located above the document images.\n\nA rejection reason must be provided to complete the process. Users can either select a reason from a predefined list or enter a custom reason manually.\n\nThe rejection reason is then sent to the driver via SMS, guiding them to resubmit the document correctly and avoid repeating the same mistake.',
             media: '/hovr/Reject.mp4',
           },

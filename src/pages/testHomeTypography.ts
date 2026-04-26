@@ -24,9 +24,11 @@ export const TEST_HOME_SECTION_RAIL_TITLE_SERIF =
 
 /**
  * `/test` details column: same inverted surface as active `humanSpyRow` in the project list
- * (`bg-black text-white` light / `bg-white text-black` dark).
+ * (`bg-black text-white` light / `bg-white text-black` dark). Adds `case-study-section--invert-*`
+ * so `.case-study-emphasis-red` can pick a readable red on that surface.
  */
 export function testHomeDetailsSectionHighlightClass(isDark: boolean, active: boolean): string {
   if (!active) return ''
-  return `px-3 py-4 transition-colors ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`
+  const invert = isDark ? 'case-study-section--invert-white' : 'case-study-section--invert-black'
+  return `px-3 py-4 transition-colors ${isDark ? 'bg-white text-black' : 'bg-black text-white'} ${invert}`
 }

@@ -841,6 +841,7 @@ export function JojoProjectPage() {
                               pc.body.split('\n\n').map((para, ri) => (
                                 <p
                                   key={ri}
+                                  className={jojoPostContentParagraphRed(pc, ri) ? 'case-study-emphasis-red' : undefined}
                                   style={{
                                     fontWeight: 400,
                                     margin: 0,
@@ -852,7 +853,6 @@ export function JojoProjectPage() {
                                           letterSpacing: '-0.06em',
                                         }
                                       : {}),
-                                    ...(jojoPostContentParagraphRed(pc, ri) ? { color: 'red' } : {}),
                                   }}
                                 >
                                   {para}
@@ -1295,14 +1295,10 @@ export function HomeJojoCaseStudy({
                                   section.id === 'research' && jojoResearchPostContentChosunLead(pi, ri)
                                     ? homeSectionContentHeadingClass
                                     : '',
+                                  jojoPostContentParagraphRed(pc, ri) ? 'case-study-emphasis-red font-bold' : '',
                                 ]
                                   .filter(Boolean)
                                   .join(' ') || undefined
-                              }
-                              style={
-                                jojoPostContentParagraphRed(pc, ri)
-                                  ? { color: 'red', fontWeight: 700 }
-                                  : undefined
                               }
                             >
                               {para}

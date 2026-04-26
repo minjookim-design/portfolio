@@ -42,17 +42,17 @@ export const PIIK_SECTIONS = [
     media: '',
     subSections: [
       {
-        heading: <><span style={{ color: 'red' }}>Problem 1: the lack of editing tools.</span></>,
+        heading: <><span className="case-study-emphasis-red">Problem 1: the lack of editing tools.</span></>,
         body: 'The editing tool currently only performs the bare minimum for writing an article. Users mentioned that essential features they would like to see include a divider, font size adjustment, font selection, and font styling.',
         media: '/piikai/problem1.png',
       },
       {
-        heading: <><span style={{ color: 'red', fontWeight: 700 }}>Problem 2: The Maximum Width of the MVP Was Only 660px.</span></>,
+        heading: <><span className="case-study-emphasis-red">Problem 2: The Maximum Width of the MVP Was Only 660px.</span></>,
         body: 'While the industry standard for editor text areas is 700px, the editor in our MVP was only 660px. This narrower width caused discomfort for creators when writing articles.\n\nOn mobile screens, unnecessary double padding further reduced the already limited text area, making the writing experience even more restrictive.',
         media: '/piikai/problem2.png',
       },
       {
-        heading: <><span style={{ color: 'red', fontWeight: 700 }}>Problem 3: No draft-save feature</span></>,
+        heading: <><span className="case-study-emphasis-red">Problem 3: No draft-save feature</span></>,
         subheading: 'It Causes Significant Inconveniences for Users When Writing Articles.',
         body: 'What if creators aren\'t ready to publish? What if they just want to archive their article? Some creators have even experienced losing their work due to log-in timeouts while writing an article.\n\nThe auto log-out feature after inactivity is necessary for security reasons. However, writing an article can take a significant amount of time—sometimes even an entire day. One creator shared that they took a day off from work to dedicate themselves to writing an article on our platform. Unfortunately, due to the lack of an auto-save or save-draft feature, their work was lost when they were automatically logged out after the session timed out.\n\nThis highlights a major flaw in the current system. The absence of a draft-saving feature is a critical issue and has been identified as a must-have for the next phase of development.',
         media: '',

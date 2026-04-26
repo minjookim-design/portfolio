@@ -2108,7 +2108,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                   <BlueprintMaskedHeadline
                     phase={bpPhase}
                     skip={blueprintProjectRevealSkip}
-                    className={`min-w-0 ${TEST_HOME_PROJECT_TITLE_SERIF} text-[color:var(--color-blueprint-hairline)]`}
+                    className={`min-w-0 ${HOME_BLUEPRINT_MICRO}`}
                   >
                     <span>PRJCT</span>
                   </BlueprintMaskedHeadline>
