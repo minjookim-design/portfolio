@@ -117,7 +117,9 @@ export const PIIK_SECTIONS = [
   },
 ]
 
-export const PIIK_META_ROWS = [
+export type PiikMetaRow = { label: string; value: React.ReactNode }
+
+export const PIIK_META_ROWS: PiikMetaRow[] = [
   {
     label: 'Team / Role',
     value: 'Piik AI Design team\u00a0\u00a0·\u00a0\u00a0Product Designer',
@@ -134,8 +136,12 @@ export const PIIK_META_ROWS = [
   },
   {
     label: 'Impact',
-    value:
-      'Reduced user complaints by 75% and significantly boosted platform adoption, acquiring 50+ unique creators within days.',
+    value: (
+      <>
+        <span className="font-bold">Reduced user complaints by 75%</span>
+        {' and significantly boosted platform adoption, acquiring 50+ unique creators within days.'}
+      </>
+    ),
   },
 ]
 
@@ -320,12 +326,28 @@ export function PiikCaseStudyCarouselBlock({
   const [viewportW, setViewportW] = useState(0)
   const gapPx = fullWidthSlideGap
   const twoUp = Boolean(fullWidthSlides && fullWidthTwoUp && n >= 2)
-  const maxIdx = twoUp ? Math.max(0, n - 2) : n - 1
+  /** Three slides + two-up: three stops (0→1→2) so next/prev each take two clicks to cross the strip. */
+  const maxIdx = twoUp ? (n === 3 ? 2 : Math.max(0, n - 2)) : n - 1
   /** Half-viewport column (two-up); image hugs `cellW * scale` width. */
   const cellW = twoUp && viewportW > 0 && gapPx >= 0 ? (viewportW - gapPx) / 2 : 0
   const twoUpScaleClamped = Math.min(1.5, fullWidthImageScale)
   const imgW = twoUp && cellW > 0 ? cellW * twoUpScaleClamped : 0
   const stepPx = imgW + gapPx
+  const trackWTwoUp = twoUp && imgW > 0 ? n * imgW + (n - 1) * gapPx : 0
+  const maxTranslateTwoUp =
+    twoUp && imgW > 0 && viewportW > 0 ? Math.max(0, trackWTwoUp - viewportW) : 0
+  const twoUpTranslatePx =
+    twoUp && imgW > 0
+      ? n === 3
+        ? index === 0
+          ? 0
+          : index === 1
+            ? Math.min(Math.max(0, maxTranslateTwoUp / 2), maxTranslateTwoUp)
+            : maxTranslateTwoUp
+        : index < maxIdx
+          ? Math.min(index * stepPx, maxTranslateTwoUp)
+          : maxTranslateTwoUp
+      : 0
 
   useLayoutEffect(() => {
     if (!twoUp) return
@@ -348,17 +370,39 @@ export function PiikCaseStudyCarouselBlock({
       : `calc(-${index * 80}% - ${index * 16}px)`
   const translateX = fullWidthSlides ? translateXFull : translateX80
   const arrowStyle: React.CSSProperties = {
-    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-    background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
-    width: 32, height: 32, cursor: 'pointer', fontSize: 16, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', color: '#fff',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    height: 32,
+    background: 'rgba(0,0,0,0.5)',
+    border: 'none',
+    borderRadius: '50%',
+    width: 32,
+    cursor: 'pointer',
+    fontSize: 16,
+    lineHeight: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    zIndex: 1,
   }
   if (fullWidthSlides && n > 0) {
     if (twoUp) {
       return (
         <div
           ref={outerRef}
-          style={{ position: 'relative', overflow: 'hidden', borderRadius: 0, width: '100%', height: 'fit-content' }}
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            borderRadius: 0,
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            height: 'fit-content',
+          }}
         >
           {imgW > 0 ? (
             <div
@@ -368,7 +412,7 @@ export function PiikCaseStudyCarouselBlock({
                 gap: gapPx,
                 width: n * imgW + (n - 1) * gapPx,
                 transition: 'transform 0.4s ease',
-                transform: `translateX(-${index * stepPx}px)`,
+                transform: `translateX(-${twoUpTranslatePx}px)`,
               }}
             >
               {srcs.map((src, ci) => {
@@ -379,6 +423,7 @@ export function PiikCaseStudyCarouselBlock({
                       ? 'flex-end'
                       : 'center'
                   : 'center'
+                const edgeLastTwoUp = Boolean(fullWidthEdgeAlign && ci === n - 1)
                 return src ? (
                   <div
                     key={src + ci}
@@ -397,7 +442,9 @@ export function PiikCaseStudyCarouselBlock({
                       onMediaClick={onMediaClick}
                       className="cursor-zoom-in"
                       style={{
-                        width: '100%',
+                        ...(edgeLastTwoUp
+                          ? { width: 'auto', maxWidth: '100%' }
+                          : { width: '100%' }),
                         height: 'auto',
                         display: 'block',
                         borderRadius: 0,
@@ -491,6 +538,8 @@ export function PiikCaseStudyCarouselBlock({
           overflow: 'hidden',
           borderRadius: 0,
           width: '100%',
+          maxWidth: '100%',
+          minWidth: 0,
           height: 'fit-content',
         }}
       >
@@ -516,6 +565,8 @@ export function PiikCaseStudyCarouselBlock({
               : 'center'
             const columnAlign =
               justify === 'flex-start' ? 'flex-start' : justify === 'flex-end' ? 'flex-end' : 'center'
+            const edgeLastFull = Boolean(fullWidthEdgeAlign && ci === n - 1)
+            const scaledMediaW = `${Math.min(1, fullWidthImageScale) * 100}%`
             return src ? (
               <div
                 key={src + ci}
@@ -541,8 +592,12 @@ export function PiikCaseStudyCarouselBlock({
                   onMediaClick={onMediaClick}
                   className="cursor-zoom-in"
                   style={{
-                    width: `${Math.min(1, fullWidthImageScale) * 100}%`,
-                    maxWidth: '100%',
+                    ...(edgeLastFull
+                      ? { width: 'auto', maxWidth: '100%', alignSelf: 'flex-end' }
+                      : {
+                          width: scaledMediaW,
+                          maxWidth: '100%',
+                        }),
                     height: 'auto',
                     display: 'block',
                     borderRadius: 0,

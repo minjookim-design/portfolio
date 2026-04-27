@@ -8,6 +8,7 @@ const MENU_PROJECTS = [
   { id: 'hovr', label: 'HOVR', href: '/projects/hovr' },
   { id: 'piikai', label: 'Piik AI', href: '/projects/piik' },
   { id: 'ar-fitting-room', label: 'AR Fitting Room', href: '/projects/ar-fitting-room' },
+  { id: 'jojo', label: 'JoJo', href: '/projects/jojo' },
 ] as const
 
 function FolderGlyph({ className }: { className?: string }) {

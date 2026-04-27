@@ -130,6 +130,20 @@ html.dark {
   .case-study-section--invert-white .case-study-emphasis-red {
     color: rgb(185 28 28);
   }
+
+  /** Solution titles: readable blue on cream, dark chrome, and `/test` invert panels. */
+  .case-study-emphasis-blue {
+    color: rgb(29 78 216);
+  }
+  html.dark .case-study-emphasis-blue {
+    color: rgb(96 165 250);
+  }
+  .case-study-section--invert-black .case-study-emphasis-blue {
+    color: rgb(125 211 252);
+  }
+  .case-study-section--invert-white .case-study-emphasis-blue {
+    color: rgb(29 78 216);
+  }
 }
 
 /* ── Terminal cursor blink ───────────────────────────────────────────────── */

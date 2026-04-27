@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState, useEffect, useRef } from 'react'
+import React, { Fragment, useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
 import { usePageTheme } from '../context/PageThemeContext'
@@ -232,12 +232,41 @@ export function MediaBlock({ src, onMediaClick }: { src: string; onMediaClick?: 
 
 // ── Carousel block ─────────────────────────────────────────────────────────────
 
+const HOVR_CAROUSEL_GAP_PX = 16
+const HOVR_CAROUSEL_SLIDE_FR = 0.8
+
 export function CarouselBlock({ srcs, onMediaClick }: { srcs: string[]; onMediaClick?: (src: string) => void }) {
   const [index, setIndex] = useState(0)
-  const isLast = index === srcs.length - 1
-  const translateX = isLast
-    ? `calc(${-(index * 80 - 20)}% - ${index * 16}px)`
-    : `calc(-${index * 80}% - ${index * 16}px)`
+  const outerRef = useRef<HTMLDivElement>(null)
+  const [viewportW, setViewportW] = useState(0)
+  const n = srcs.length
+  const maxIdx = Math.max(0, n - 1)
+
+  useLayoutEffect(() => {
+    const el = outerRef.current
+    if (!el || n === 0) return
+    const ro = new ResizeObserver(() => setViewportW(el.getBoundingClientRect().width))
+    ro.observe(el)
+    setViewportW(el.getBoundingClientRect().width)
+    return () => ro.disconnect()
+  }, [n])
+
+  useEffect(() => {
+    setIndex((i) => Math.min(i, maxIdx))
+  }, [maxIdx])
+
+  const slideW = viewportW > 0 ? viewportW * HOVR_CAROUSEL_SLIDE_FR : 0
+  const trackW = viewportW > 0 && n > 0 ? n * slideW + (n - 1) * HOVR_CAROUSEL_GAP_PX : 0
+  const stepPx = slideW + HOVR_CAROUSEL_GAP_PX
+  const maxTranslate = viewportW > 0 && trackW > 0 ? Math.max(0, trackW - viewportW) : 0
+  const translatePx =
+    viewportW > 0 && n > 0
+      ? index === maxIdx
+        ? maxTranslate
+        : Math.min(index * stepPx, maxTranslate)
+      : 0
+  const viewportReady = viewportW > 0 && slideW > 0
+
   const arrowStyle: React.CSSProperties = {
     position: 'absolute', top: '50%', transform: 'translateY(-50%)',
     background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
@@ -245,29 +274,57 @@ export function CarouselBlock({ srcs, onMediaClick }: { srcs: string[]; onMediaC
     alignItems: 'center', justifyContent: 'center', color: '#fff',
   }
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          transition: 'transform 0.4s ease',
-          transform: `translateX(${translateX})`,
-          gap: 16,
-        }}
-      >
-        {srcs.map((src, ci) => (
-          <OptimizedImage
-            key={src}
-            src={src}
-            alt=""
-            className="cursor-zoom-in flex-shrink-0"
-            style={{ width: '80%', height: 'auto', borderRadius: 0 }}
-            sizes={IMAGE_SIZES.carouselSlide80}
-            placeholder="blur"
-            priority={ci === 0}
-            onClick={() => onMediaClick?.(src)}
-          />
-        ))}
-      </div>
+    <div ref={outerRef} style={{ position: 'relative', overflow: 'hidden', borderRadius: 0 }}>
+      {viewportReady ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            width: trackW,
+            transition: 'transform 0.4s ease',
+            transform: `translateX(-${translatePx}px)`,
+            gap: HOVR_CAROUSEL_GAP_PX,
+          }}
+        >
+          {srcs.map((src, ci) => (
+            <div key={src} style={{ flex: `0 0 ${slideW}px`, width: slideW, minWidth: 0 }}>
+              <OptimizedImage
+                src={src}
+                alt=""
+                className="cursor-zoom-in h-auto w-full"
+                style={{ width: '100%', height: 'auto', borderRadius: 0 }}
+                sizes={IMAGE_SIZES.carouselSlide80}
+                placeholder="blur"
+                priority={ci === 0}
+                onClick={() => onMediaClick?.(src)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            transition: 'transform 0.4s ease',
+            transform: 'translateX(0)',
+            gap: HOVR_CAROUSEL_GAP_PX,
+          }}
+        >
+          {srcs.map((src, ci) => (
+            <OptimizedImage
+              key={src}
+              src={src}
+              alt=""
+              className="cursor-zoom-in flex-shrink-0"
+              style={{ width: '80%', height: 'auto', borderRadius: 0 }}
+              sizes={IMAGE_SIZES.carouselSlide80}
+              placeholder="blur"
+              priority={ci === 0}
+              onClick={() => onMediaClick?.(src)}
+            />
+          ))}
+        </div>
+      )}
       {index > 0 && (
         <button onClick={() => setIndex(index - 1)} style={{ ...arrowStyle, left: 8 }}>‹</button>
       )}

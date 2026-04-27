@@ -117,12 +117,9 @@ export const JOJO_SECTIONS = [
       {
         heading: 'Common painpoints',
         body:
-          'Participants highlighted concerns about over-reliance on AI, as instant answers often diminish opportunities for critical thinking. They emphasized the need for AI tools to strike a balance between convenience and engagement by supporting focus and offering guided solutions.\n\nOver-Reliance, Distractions, and Vicious Cycle\n\nParticipants expressed concerns that instant answers from AI tools often reduced their opportunities to think critically.',
+          'Participants highlighted concerns about over-reliance on AI, as instant answers often diminish opportunities for critical thinking. They emphasized the need for AI tools to strike a balance between convenience and engagement by supporting focus and offering guided solutions.\n\nOver-Reliance, Distractions, and Vicious Cycle\n\nParticipants expressed concerns that instant answers from AI tools often reduced their opportunities to think critically.\n\nSome found it challenging to stay focused when accessing AI tools via laptops, often ending up distracted by social media.\n\nFeatures like automated meeting notes made participants less focused during meetings, leading to greater reliance on AI.',
         media: '/jojo/user interview.jpg',
-      },
-      {
-        body:
-          'Some found it challenging to stay focused when accessing AI tools via laptops, often ending up distracted by social media.\nFeatures like automated meeting notes made participants less focused during meetings, leading to greater reliance on AI.',
+        carousel: ['/jojo/map1.png', '/jojo/map2.png', '/jojo/map3.png'],
       },
     ],
   },
@@ -144,16 +141,22 @@ export const JOJO_SECTIONS = [
         media: '',
       },
       {
-        heading: <>Solution 1-1 (cognitive thinking decline)</>,
+        heading: (
+          <span className="case-study-emphasis-blue">Solution 1-1 (cognitive thinking decline)</span>
+        ),
         subheading: 'Activeness Mode: stimulate deeper thought and active engagement without user prompts.',
         body:
           'A Background-Working Web App That Monitors User Activity\n\nJoJo runs in the background, using screen activity tracking, face recognition, and eye tracking to analyze user focus, confusion, or hesitation. Based on this data, JoJo proactively initiates thought-provoking questions tailored to the user\'s context, encouraging them to think critically rather than simply absorb information.\n\nQuestion Prompts Instead of Direct Answers\n\nJoJo runs in the background, using screen activity tracking, face recognition, and eye tracking to analyze user focus, confusion, or hesitation. Based on this data, JoJo proactively initiates thought-provoking questions tailored to the user\'s context, encouraging them to think critically rather than simply absorb information.',
         media: '',
       },
       {
-        heading: <>Solution 1-2 (decreased engagement)</>,
+        heading: (
+          <span className="case-study-emphasis-blue">Solution 1-2 (decreased engagement)</span>
+        ),
+        subheading:
+          'An AI character that can express emotions through facial expressions based on the conversation flow.',
         body:
-          'An AI character that can express emotions through facial expressions based on the conversation flow.\n\nThe character\'s expressions help users stay focused and emotionally connected to the topic. Over time, the character learns from the user\'s expressions and gradually begins to mirror them, creating a more personal and empathetic interaction.',
+          'The character\'s expressions help users stay focused and emotionally connected to the topic. Over time, the character learns from the user\'s expressions and gradually begins to mirror them, creating a more personal and empathetic interaction.',
         media: '',
       },
       {
@@ -162,14 +165,18 @@ export const JOJO_SECTIONS = [
             <span className="case-study-emphasis-red">Problem 2</span>
           </>
         ),
+        subheading:
+          'Cognitive thinking and engagement are abstract, which makes it hard for users to gauge their progress or improvement.',
         body:
-          'Cognitive thinking and engagement are abstract, which makes it hard for users to gauge their progress or improvement.\n\nCognitive challenges caused by digital technology are real, and many people rely on AI tools to help them stay focused and manage their tasks.',
+          'Cognitive challenges caused by digital technology are real, and many people rely on AI tools to help them stay focused and manage their tasks.',
         media: '',
       },
       {
-        heading: <>Solution 2</>,
+        heading: <span className="case-study-emphasis-blue">Solution 2</span>,
+        subheading:
+          'An intuitive reporting system that measures both cognitive thinking and engagement levels',
         body:
-          'An intuitive reporting system that measures both cognitive thinking and engagement levels\n\nThe report translates complex data into clear, visual scores. Based on these insights, JoJo provides personalized feedback and motivational encouragement, helping users reflect on their behaviour, track their progress, and feel supported in their journey.',
+          'The report translates complex data into clear, visual scores. Based on these insights, JoJo provides personalized feedback and motivational encouragement, helping users reflect on their behaviour, track their progress, and feel supported in their journey.',
         media: '',
       },
     ],
@@ -240,24 +247,71 @@ export const JOJO_SECTIONS = [
         heading: (
           <>
             <span className="case-study-emphasis-red">Report</span>
-            {
-              ': JoJo\'s report is designed to help you build better habits with technology by tracking how you think, focus, and interact throughout your day.'
-            }
+            {': Key Metrics JoJo Tracks'}
           </>
         ),
-        body:
-          'Each circle represents a day\'s data.\nWhen you hover over a circle, you can see detailed data for that day on the right side. The red-filled circle highlights today\'s data.\n\nJoJo compares your current scores with your personal goals.\n\n• Your progress over time (daily, weekly, monthly)\n\n• Goal achievement rate\n\n• Specific recommendations on how to improve',
-        bodyStyle: { fontFamily: 'Arial, sans-serif' },
+        media: '/jojo/keymetrics.png',
+      },
+      {
+        subsectionKey: 'final-solution-report-narrative',
+        heading:
+          "JoJo's report is designed to help you build better habits with technology by tracking how you think, focus, and interact throughout your day.",
+        body: `Each circle represents a day's data.
+
+When you hover over a circle, you can see detailed data for that day on the right side. The red-filled circle highlights today's data.
+
+JoJo compares your current scores with your personal goals.
+
+Your progress over time (daily, weekly, monthly)
+
+Goal achievement rate
+
+Specific recommendations on how to improve`,
+        bodyBoldParagraphIndices: [0, 2],
+        bodyBulletParagraphIndices: [3, 4, 5],
+        media: '/jojo/hover circles.mp4',
+      },
+      {
+        subsectionKey: 'final-solution-set-goal',
+        heading: 'User can set a cognitive thinking & Engagement goal.',
+        body: 'To set or edit your goals, click the "Set Goal" or "Edit Goal" button located in the bottom-right corner of the screen.',
+        media: '/jojo/how to set goal.mp4',
+      },
+      {
+        subsectionKey: 'final-solution-chart-goals',
+        heading: "JoJo shows user's goal in a very simple and intuitive way.",
+        parallelMedia: ['/jojo/goal hover.mp4', '/jojo/goal acheive.mp4'],
+        body: `The orange lines represent your personal goals on the chart.
+
+For example, if your Cognitive Thinking Goal is set to 70 and your Engagement Goal is 80, the graph will display those thresholds with horizontal and vertical orange lines.
+
+The orange square highlights the area where you've met your Cognitive Thinking Goal.
+
+The blue square highlights where you've achieved your Engagement Goal.
+
+The yellow square (where the two overlap) means you've successfully achieved both goals.`,
         media: '',
+      },
+      {
+        subsectionKey: 'final-solution-report-more',
+        heading: 'Wanna see more details?',
+        body: `You can explore more detailed information on the Report page!
+
+Click on JoJo in the doc → Select the report icon on the far-left navigation bar → Then click the "How to Read" section in the report menu next to the nav bar.`,
+        media: '/jojo/Go to report-portfolio_1.mp4',
+        figmaPrototypeEmbedSrc:
+          'https://embed.figma.com/proto/EdrIp4qRKZmBAq9buYUBMZ/Degree-project?node-id=699-41403&scaling=min-zoom&content-scaling=fixed&page-id=400%3A3947&starting-point-node-id=699%3A41403&embed-host=share',
       },
     ],
   },
   {
     id: 'takeaway',
     label: 'Takeaway',
-    heading: 'SHIFT Grad Show 2025',
-    body:
-      'I also made a JoJo poster!\nFeatured at the SHIFT Grad Show 2025\n\n© 2025\ncontact@kimminjoo.com',
+    heading:
+      'AI has already become deeply embedded in our daily lives, and we will likely coexist with it indefinitely. Rather than simply using it, we must study and cultivate the right habits to integrate it meaningfully into our existence.',
+    body: `Technological advancement doesn't necessarily make us lazy, but it can lead to "cognitive offloading." This isn't a form of human devolution, but rather a side effect of tool dependency. If we consciously define AI as an intellectual lever rather than a crutch, it becomes a golden opportunity for creative expansion.
+
+Through this research, I have gained deep insights into how technology affects our cognitive abilities. To thrive in the long term, we must maintain a conscious awareness of how we use these tools, ensuring we remain the masters of the creative process. I am committed to practicing this balance—viewing AI as a powerful partner while ensuring that its vast energy is always channeled through human intuition and intentionality to create real value.`,
     media: '',
   },
 ]

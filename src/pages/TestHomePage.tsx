@@ -28,6 +28,7 @@ import {
   getArFittingHomeSpyItems,
   AR_FITTING_HOME_SPY_FIRST_ID,
 } from './arFittingHomeData'
+import { HomeAiWorksPlaceholderCaseStudy } from './HomeAiWorksPlaceholderCaseStudy'
 import { HomeJojoCaseStudy } from './JojoProjectPage'
 import { JOJO_SECTIONS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
@@ -301,8 +302,10 @@ type HomeProject = {
   rowCode: string
   route: string
   label: string
+  /** Optional longer title for the details column only (list still uses `label`). */
+  detailTitle?: string
   desc: string
-  /** Services / roles — shown uppercase in the table. */
+  /** Services / roles — third column uses `normal-case` so casing matches this string. */
   roles: string
   heroImage: string
   spy: SpyItem[]
@@ -327,6 +330,9 @@ const HUMAN_FOLD_EDUCATION_BODY_ROW_GRID =
 /** 3-column project list / detail strip: code | name | services (no location/date, `/test` only). */
 const HUMAN_PROJECT_LIST_ROW_GRID =
   'grid w-full grid-cols-[minmax(2.5rem,2.75rem)_minmax(0,1.15fr)_minmax(0,1.85fr)] items-start gap-x-4 md:gap-x-8 lg:gap-x-12 gap-y-0.5 text-left'
+
+/** PR05 hero (`public/aiworks/framer component.png`). */
+const AI_WORKS_HERO_SRC = '/aiworks/framer%20component.png'
 
 const HUMAN_PROJECT_LIST_TYPO =
   'font-mono text-[11px] font-normal uppercase leading-snug tracking-[0.06em] md:text-[12px]'
@@ -395,7 +401,62 @@ const HOME_PROJECTS: HomeProject[] = [
       media: AR_FITTING_THUMB_LIGHT,
     })),
   },
+  {
+    id: 'jojo',
+    rowCode: 'PR04',
+    route: '/projects/jojo',
+    label: 'JoJo',
+    desc: 'Personalized AI companion for active thinking, focus, and cognitive balance in digital life.',
+    roles: 'Product Design, UX Research, AI Companion',
+    heroImage: JOJO_HERO_THUMB_LIGHT,
+    spy: JOJO_SECTIONS.map((s) => ({
+      id: s.id,
+      label: 'spyLabel' in s && s.spyLabel ? s.spyLabel : s.label,
+      body: typeof s.body === 'string' ? s.body.slice(0, 160) + (s.body.length > 160 ? '…' : '') : '',
+      media:
+        typeof s.media === 'string' && s.media.length > 0 ? s.media : JOJO_HERO_THUMB_LIGHT,
+    })),
+  },
+  {
+    id: 'ai-works',
+    rowCode: 'PR05',
+    route: '/deck',
+    label: 'AI Works',
+    detailTitle: 'AI Works:\nHow I Work With AI',
+    desc: 'AI-assisted workflow, vibe coding, and monetization experiments.',
+    roles: 'AI Assisted Workflow, Vibe Coding, Monetization',
+    heroImage: AI_WORKS_HERO_SRC,
+    spy: [
+      {
+        id: 'framer-components',
+        label: 'Framer Components',
+        body: 'Reusable interaction and layout primitives—built for motion, responsive breakpoints, and handoff-friendly structure in Framer.',
+        media: AI_WORKS_HERO_SRC,
+      },
+      {
+        id: 'framer-components--process',
+        label: 'Process',
+        body:
+          'Research trending UI patterns and component gaps, then spec motion and breakpoints in small slices. Prompt-assisted builds in Cursor and Claude iterate on Framer-native structure, with manual passes for easing, accessibility, and responsive edge cases before publishing reusable variants.',
+      },
+      {
+        id: 'portfolio-website',
+        label: 'Portfolio Website',
+        body: 'This site: split home, case studies, blueprint reveal, and deck—typed content, image pipeline, and theme-aware surfaces.',
+        media: AI_WORKS_HERO_SRC,
+      },
+      {
+        id: 'portfolio-website--process',
+        label: 'Process',
+        body:
+          'Content and layout live in typed TSX modules; images flow through a catalog script and OptimizedImage variants. Theme tokens swap light/dark surfaces, blueprint mode is session-persisted, and the deck route reuses the same case-study data for a consistent narrative shell.',
+      },
+    ],
+  },
 ]
+
+/** Hidden from home rail until ready; `/deck` and `HOME_PROJECTS` entry remain for routes and detail UI. */
+const HOME_PROJECTS_RAIL = HOME_PROJECTS.filter((p) => p.id !== 'ai-works')
 
 function ProjectFolderClosedIcon({ className }: { className?: string }) {
   return (
@@ -1337,6 +1398,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const hovrSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const piikSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const arFittingSectionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const aiWorksSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const jojoSectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const detailsColumnRef = useRef<HTMLDivElement>(null)
   const introScrollRef = useRef<HTMLDivElement>(null)
@@ -1351,6 +1413,9 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const [hovrSpyFromScroll, setHovrSpyFromScroll] = useState<string>(HOVR_SECTIONS[0].id)
   const [piikSpyFromScroll, setPiikSpyFromScroll] = useState<string>(PIIK_SECTIONS[0].id)
   const [arFittingSpyFromScroll, setArFittingSpyFromScroll] = useState<string>(AR_FITTING_HOME_SPY_FIRST_ID)
+  const [aiWorksSpyFromScroll, setAiWorksSpyFromScroll] = useState<string>(
+    () => HOME_PROJECTS.find((p) => p.id === 'ai-works')?.spy[0]?.id ?? 'framer-components',
+  )
   const [jojoSpyFromScroll, setJojoSpyFromScroll] = useState<string>(JOJO_SECTIONS[0].id)
   const [meImg, setMeImg] = useState<1 | 2>(1)
   const reduceMotion = usePrefersReducedMotion()
@@ -1385,9 +1450,11 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
           ? piikSpyFromScroll
           : displayProject.id === 'ar-fitting-room'
             ? arFittingSpyFromScroll
-            : displayProject.id === 'jojo'
-              ? jojoSpyFromScroll
-          : (spyByProject[displayProject.id] ?? displayProject.spy[0]?.id)
+            : displayProject.id === 'ai-works'
+              ? aiWorksSpyFromScroll
+              : displayProject.id === 'jojo'
+                ? jojoSpyFromScroll
+                : (spyByProject[displayProject.id] ?? displayProject.spy[0]?.id)
 
   const activeSpy = useMemo(() => {
     if (displayProject == null || activeSpyId == null) return null
@@ -1442,9 +1509,22 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
     })
   }, [])
 
+  const scrollAiWorksSection = useCallback((spyId: string) => {
+    const p = HOME_PROJECTS.find((x) => x.id === 'ai-works')
+    const idx = p?.spy.findIndex((s) => s.id === spyId) ?? -1
+    if (!p || idx < 0) return
+    requestAnimationFrame(() => {
+      aiWorksSectionRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
+
   const toggleProject = useCallback((id: string) => {
     setOpenProjectId((prev) => (prev === id ? null : id))
     setSpyByProject((prev) => ({ ...prev, [id]: HOME_PROJECTS.find((p) => p.id === id)?.spy[0]?.id ?? 'overview' }))
+    if (id === 'ai-works') {
+      const first = HOME_PROJECTS.find((p) => p.id === 'ai-works')?.spy[0]?.id
+      if (first) setAiWorksSpyFromScroll(first)
+    }
   }, [])
 
   const openMobileProjectSheet = useCallback(
@@ -1457,6 +1537,10 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
       if (projectId === 'piikai') setPiikSpyFromScroll(PIIK_SECTIONS[0]?.id ?? firstSpy)
       if (projectId === 'ar-fitting-room') {
         setArFittingSpyFromScroll(AR_FITTING_HOME_SPY_FIRST_ID)
+      }
+      if (projectId === 'ai-works') {
+        const firstAi = HOME_PROJECTS.find((p) => p.id === 'ai-works')?.spy[0]?.id
+        if (firstAi) setAiWorksSpyFromScroll(firstAi)
       }
       if (projectId === 'jojo') setJojoSpyFromScroll(JOJO_SECTIONS[0]?.id ?? firstSpy)
       setMobileProjectDetailOpen(true)
@@ -1528,6 +1612,15 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
     if (id) setJojoSpyFromScroll(id)
   }, [displayProject?.id])
 
+  const updateAiWorksSpyFromScroll = useCallback(() => {
+    const container = detailsColumnRef.current
+    if (!container || displayProject?.id !== 'ai-works') return
+    const idx = getHovrActiveSectionIndex(container, aiWorksSectionRefs.current)
+    const p = HOME_PROJECTS.find((x) => x.id === 'ai-works')
+    const id = p?.spy[idx]?.id
+    if (id) setAiWorksSpyFromScroll(id)
+  }, [displayProject?.id])
+
   useEffect(() => {
     const container = detailsColumnRef.current
     if (!container || displayProject?.id !== 'hovr') return
@@ -1583,6 +1676,20 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
       ro.disconnect()
     }
   }, [displayProject?.id, updateJojoSpyFromScroll])
+
+  useEffect(() => {
+    const container = detailsColumnRef.current
+    if (!container || displayProject?.id !== 'ai-works') return
+    const onScroll = () => updateAiWorksSpyFromScroll()
+    container.addEventListener('scroll', onScroll, { passive: true })
+    const ro = new ResizeObserver(() => updateAiWorksSpyFromScroll())
+    ro.observe(container)
+    requestAnimationFrame(() => updateAiWorksSpyFromScroll())
+    return () => {
+      container.removeEventListener('scroll', onScroll)
+      ro.disconnect()
+    }
+  }, [displayProject?.id, updateAiWorksSpyFromScroll])
 
   useEffect(() => {
     const id = setInterval(() => setMeImg((n) => (n === 1 ? 2 : 1)), 2500)
@@ -1967,6 +2074,23 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
         />
       )
     }
+    if (displayProject.id === 'ai-works') {
+      return (
+        <HomeAiWorksPlaceholderCaseStudy
+          isDark={isDark}
+          isMobile={isMobile}
+          sectionRefs={aiWorksSectionRefs}
+          onMediaClick={setSelectedMedia}
+          entranceActive={detailsColumnEntrance}
+          reduceMotion={reduceMotion}
+          onHeroEntranceComplete={handleHeroEntranceComplete}
+          testHomeHighlightSectionId={activeSpyId}
+          title={displayProject.detailTitle ?? displayProject.label}
+          rolesLine={`${displayProject.roles.replace(/,/g, ' ·')} · Claude, Cursor, Gemini`}
+          sections={displayProject.spy}
+        />
+      )
+    }
     if (displayProject.id === 'jojo') {
       return (
         <HomeJojoCaseStudy
@@ -2129,7 +2253,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                     />
                   ) : null}
                 </div>
-                {HOME_PROJECTS.map((project, pIdx) => {
+                {HOME_PROJECTS_RAIL.map((project, pIdx) => {
                   const isOpen = isFolderOpenUi(project.id)
                   const isHovr = project.id === 'hovr'
                   const useHovrStyleUnfold = isHovr || project.id === 'piikai'
@@ -2213,10 +2337,10 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                           phase={bpPhase}
                           skip={blueprintProjectRevealSkip}
                           staggerIndex={2 + pIdx}
-                          className={`min-w-0 text-balance hyphens-auto break-words ${HOME_BLUEPRINT_MICRO}`}
+                          className={`min-w-0 text-balance hyphens-auto break-words normal-case ${HOME_BLUEPRINT_MICRO}`}
                           lang="en"
                         >
-                          {project.roles.toUpperCase()}
+                          {project.roles}
                         </BlueprintDataPop>
                         {!blueprintProjectRevealSkip ? (
                           <BlueprintHorizontalRule
@@ -2300,6 +2424,10 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                                         setArFittingSpyFromScroll(s.id)
                                         setSpyForProject(project.id, s.id)
                                         scrollArFittingSection(s.id)
+                                      } else if (project.id === 'ai-works') {
+                                        setAiWorksSpyFromScroll(s.id)
+                                        setSpyForProject(project.id, s.id)
+                                        scrollAiWorksSection(s.id)
                                       } else if (project.id === 'jojo') {
                                         setJojoSpyFromScroll(s.id)
                                         setSpyForProject(project.id, s.id)
@@ -2313,7 +2441,14 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
                                     <span className="select-none opacity-25" aria-hidden>
                                       —
                                     </span>
-                                    <span className="col-span-2 min-w-0">{s.label.toUpperCase()}</span>
+                                    {project.id === 'ai-works' && s.id.endsWith('--process') ? (
+                                      <>
+                                        <span className="min-w-0 select-none">-</span>
+                                        <span className="min-w-0">PROCESS</span>
+                                      </>
+                                    ) : (
+                                      <span className="col-span-2 min-w-0">{s.label.toUpperCase()}</span>
+                                    )}
                                   </button>
                                 )
                               })}

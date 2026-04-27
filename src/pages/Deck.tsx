@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useInView } from 'framer-motion'
 import { HOVR_SECTIONS } from './HovrProjectPage'
 import { PIIK_SECTIONS, PiikCaseStudyCarouselBlock } from './PiikProjectPage'
 import { AR_FITTING_SECTIONS } from './arFittingHomeData'
@@ -18,6 +19,15 @@ const DECK_TITLE_H1 =
 /** `toDeckVisualSections` ids: top-level `takeaway` or expanded `takeaway--…`. */
 function deckSectionIsTakeaway(sectionId: string): boolean {
   return sectionId === 'takeaway' || sectionId.startsWith('takeaway--')
+}
+
+/**
+ * Long case-study blocks (e.g. Final Solution) — deck-only extended in-view window so the
+ * inverted text panel does not flip back to cream while the reader is still in the lower area.
+ * Does not apply to title, PSI, Q&A, or other section slides.
+ */
+function deckSectionUsesLongScrollInvert(section: DeckVisualSection): boolean {
+  return section.id.startsWith('final-solution')
 }
 
 /** Title (1) + PSI (1) + one slide per visual section + Q&A (1). */
@@ -66,6 +76,11 @@ export type DeckProject = {
   /** Home-style mono line under the hero title (scope · context). */
   heroMetaLine: string
   visualSections: DeckVisualSection[]
+  /**
+   * PSI slide (slide 2): `text` = label row + mono body only (no metric/heading display).
+   * Default `cards` keeps metric + heading + body for legacy decks.
+   */
+  psiLayout?: 'cards' | 'text'
   psi: {
     problem: DeckPsiBlock
     solution: DeckPsiBlock
@@ -159,28 +174,79 @@ export const deckData: DeckProject[] = [
       },
     },
   },
+  {
+    id: 'framer-components',
+    navLabel: '[ Framer Components ]',
+    name: 'Framer Components',
+    year: '2024',
+    role: 'Component Designer & Creator (Independent)',
+    platform: 'Framer · Components',
+    psiLayout: 'text',
+    heroMetaLine:
+      'Component-driven strategy, AI-assisted vibe coding, and modular Framer micro-assets—bridging visual craft with shippable front-end quality.',
+    visualSections: [],
+    psi: {
+      problem: {
+        metric: 'Agility',
+        heading: 'Design-to-build friction',
+        body:
+          'High-fidelity visual designs often stall at the implementation phase due to the technical gap between design and code. Traditional full-scale development is too rigid to match the rapid pace of AI-driven market trends, trapping designers in single-platform silos and limiting their execution speed.',
+      },
+      solution: {
+        metric: 'Systems',
+        heading: 'Component + AI execution',
+        body:
+          'Pioneered a "Vibe Coding" methodology, leveraging generative AI to bridge the gap between human aesthetic sensibility and technical execution. Shifted from building static sites to crafting modular, high-trend "plug-and-play" micro-assets, ensuring maximum agility and production-ready visual fidelity.',
+      },
+      impact: {
+        metric: '3K+',
+        heading: 'Reach, revenue & narrative',
+        body:
+          '• Commercial Success: Successfully commercialized digital assets, achieving 3,000+ cumulative views and generating $100+ USD in early revenue.\n\n• Technical Independence: Proven ability for designers to execute high-quality front-end components independently through AI-enhanced workflows.\n\n• Thought Leadership: Established a professional narrative around "AI-Era Designer Survival Strategies" on LinkedIn, advocating for the balance of human touch and AI execution.',
+      },
+    },
+  },
 ]
 
 const SWIPE_PX = 48
 
-function PsiColumn({ label, block }: { label: string; block: DeckPsiBlock }) {
+const PSI_COLUMN_HEADER =
+  `${CHOSUN_DISPLAY} text-[9px] font-normal uppercase leading-tight tracking-[-0.06em] text-black/70 sm:text-[10px]`
+
+function PsiColumn({
+  label,
+  block,
+  textOnly,
+}: {
+  label: string
+  block: DeckPsiBlock
+  textOnly?: boolean
+}) {
   return (
     <div className={`flex min-h-0 min-w-0 flex-col ${CREAM}`}>
       <div className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-1.5 sm:px-3`}>
-        <p className={`${MONO} text-[9px] font-medium uppercase tracking-[0.16em] text-black/50`}>{label}</p>
+        <p className={PSI_COLUMN_HEADER}>{label}</p>
       </div>
       <div className="flex flex-col gap-3 px-2.5 py-3 sm:gap-4 sm:px-3 sm:py-4">
+        {textOnly ? null : (
+          <>
+            <p
+              className={`${CHOSUN_DISPLAY} text-[clamp(1.75rem,4vw,2.75rem)] font-normal leading-none tracking-[-0.06em] text-black`}
+            >
+              {block.metric}
+            </p>
+            <h3
+              className={`${CHOSUN_DISPLAY} text-[clamp(1.05rem,2.2vw,1.35rem)] font-normal leading-[1.12] tracking-[-0.06em] text-black`}
+            >
+              {block.heading}
+            </h3>
+          </>
+        )}
         <p
-          className={`${CHOSUN_DISPLAY} text-[clamp(1.75rem,4vw,2.75rem)] font-normal leading-none tracking-[-0.06em] text-black`}
+          className={`${MONO} whitespace-pre-line text-[11px] font-normal leading-[1.55] text-black/78 sm:text-[12px]`}
         >
-          {block.metric}
+          {block.body}
         </p>
-        <h3
-          className={`${CHOSUN_DISPLAY} text-[clamp(1.05rem,2.2vw,1.35rem)] font-normal leading-[1.12] tracking-[-0.06em] text-black`}
-        >
-          {block.heading}
-        </h3>
-        <p className={`${MONO} text-[11px] font-normal leading-[1.55] text-black/78 sm:text-[12px]`}>{block.body}</p>
       </div>
     </div>
   )
@@ -251,9 +317,9 @@ function PsiSlide({ project }: { project: DeckProject }) {
         </p>
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-[0.5px] bg-[#c0bcb0] p-[0.5px] md:grid-cols-3">
-        <PsiColumn label="PROBLEM" block={project.psi.problem} />
-        <PsiColumn label="SOLUTION" block={project.psi.solution} />
-        <PsiColumn label="IMPACT" block={project.psi.impact} />
+        <PsiColumn label="PROBLEM" block={project.psi.problem} textOnly={project.psiLayout === 'text'} />
+        <PsiColumn label="SOLUTION" block={project.psi.solution} textOnly={project.psiLayout === 'text'} />
+        <PsiColumn label="IMPACT" block={project.psi.impact} textOnly={project.psiLayout === 'text'} />
       </div>
     </div>
   )
@@ -263,21 +329,43 @@ function SectionSlide({ project, section }: { project: DeckProject; section: Dec
   const takeawayOnly = deckSectionIsTakeaway(section.id)
   const hideMediaPanel =
     takeawayOnly || (project.id === 'ar-fitting' && section.id === 'overview')
+  const longScrollInvert = deckSectionUsesLongScrollInvert(section)
+  const longScrollRef = useRef<HTMLDivElement>(null)
+  const longScrollInView = useInView(longScrollRef, {
+    once: false,
+    margin: '0px 0px -40% 0px',
+  })
+  const inv = longScrollInvert && longScrollInView
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div
+      ref={longScrollInvert ? longScrollRef : undefined}
+      className="flex min-h-0 flex-1 flex-col"
+    >
       <div
-        className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-2 sm:px-4 sm:py-3 ${takeawayOnly ? 'min-h-0 flex-1 overflow-y-auto' : ''}`}
+        className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-2 sm:px-4 sm:py-3 ${
+          longScrollInvert ? 'transition-[background-color] duration-300' : ''
+        } ${takeawayOnly ? 'min-h-0 flex-1 overflow-y-auto' : ''} ${inv ? 'bg-[#111]' : CREAM}`}
       >
-        <p className={`${MONO} text-[9px] font-medium uppercase tracking-[0.12em] text-black/45 sm:text-[10px]`}>
+        <p
+          className={`${MONO} text-[9px] font-medium uppercase tracking-[0.12em] sm:text-[10px] ${
+            inv ? 'text-white/55' : 'text-black/45'
+          }`}
+        >
           {project.name} · {section.label}
         </p>
         <h2
-          className={`${CHOSUN_DISPLAY} mt-1 text-[clamp(1.5rem,4.5vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.06em] text-black`}
+          className={`${CHOSUN_DISPLAY} mt-1 text-[clamp(1.5rem,4.5vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.06em] ${
+            inv ? 'text-white' : 'text-black'
+          }`}
         >
           {section.heading}
         </h2>
-        <p className={`${MONO} mt-2 max-w-[60ch] text-[11px] font-normal leading-relaxed text-black/72 sm:text-[12px]`}>
+        <p
+          className={`${MONO} mt-2 max-w-[60ch] text-[11px] font-normal leading-relaxed sm:text-[12px] ${
+            inv ? 'text-white/78' : 'text-black/72'
+          }`}
+        >
           {section.body}
         </p>
       </div>

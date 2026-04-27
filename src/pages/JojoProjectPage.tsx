@@ -52,6 +52,23 @@ function jojoFinalSolutionVideoGapStyle(sectionId: string, src: string): React.C
   return sectionId === 'final-solution' && src.endsWith('.mp4') ? { marginBottom: 80 } : undefined
 }
 
+/** Figma Share embed (16:9), responsive within max 800px width. */
+function JojoFigmaPrototypeEmbed({ src }: { src: string }) {
+  return (
+    <div className="w-full min-w-0 max-w-[800px]">
+      <div className="relative w-full overflow-hidden pt-[56.25%]">
+        <iframe
+          title="JoJo — Figma prototype"
+          className="absolute inset-0 h-full w-full"
+          style={{ border: '1px solid rgba(0, 0, 0, 0.1)' }}
+          src={src}
+          allowFullScreen
+        />
+      </div>
+    </div>
+  )
+}
+
 function jojoSectionNavLabel(s: (typeof JOJO_SECTIONS)[number]): string {
   return 'spyLabel' in s && s.spyLabel != null ? String(s.spyLabel) : s.label
 }
@@ -76,6 +93,86 @@ function jojoCarouselEdgeAlign(sectionId: string) {
 
 function jojoCarouselTwoUp(sectionId: string) {
   return sectionId === 'prototypes' || sectionId === 'final-solution'
+}
+
+/** Subsection `body` split on `\n\n` with optional bold lines and grouped disc list runs. */
+type JojoSubsectionBodySplitSub = {
+  body?: string
+  bodyStyle?: React.CSSProperties
+  bodyBoldParagraphIndices?: number[]
+  bodyBulletParagraphIndices?: number[]
+}
+
+function jojoSubsectionBodySplitNodes(sub: JojoSubsectionBodySplitSub, mode: 'home' | 'scroll'): React.ReactNode[] {
+  if (!sub.body) return []
+  const paras = sub.body.split('\n\n')
+  const boldSet = new Set(sub.bodyBoldParagraphIndices ?? [])
+  const bulletSet = new Set(sub.bodyBulletParagraphIndices ?? [])
+  const baseStyle = sub.bodyStyle ?? {}
+
+  const out: React.ReactNode[] = []
+  let pi = 0
+  while (pi < paras.length) {
+    if (bulletSet.has(pi)) {
+      const start = pi
+      const items: string[] = []
+      while (pi < paras.length && bulletSet.has(pi)) {
+        items.push(paras[pi])
+        pi++
+      }
+      out.push(
+        <ul
+          key={`jojo-body-bullet-${start}`}
+          className={mode === 'home' ? 'm-0 list-disc pl-5 marker:text-[inherit]' : undefined}
+          style={
+            mode === 'scroll'
+              ? {
+                  margin: 0,
+                  paddingLeft: '1.125rem',
+                  listStyleType: 'disc',
+                  listStylePosition: 'outside',
+                  ...baseStyle,
+                }
+              : Object.keys(baseStyle).length > 0
+                ? baseStyle
+                : undefined
+          }
+        >
+          {items.map((text, li) => (
+            <li
+              key={li}
+              style={
+                mode === 'scroll'
+                  ? { margin: 0, fontWeight: 400, ...baseStyle }
+                  : { margin: 0, ...baseStyle }
+              }
+            >
+              {text}
+            </li>
+          ))}
+        </ul>,
+      )
+    } else {
+      const boldIdx = boldSet.has(pi)
+      out.push(
+        <p
+          key={pi}
+          style={{
+            ...baseStyle,
+            ...(mode === 'home'
+              ? boldIdx
+                ? { fontWeight: 700 }
+                : {}
+              : { fontWeight: boldIdx ? 700 : 400, margin: 0 }),
+          }}
+        >
+          {paras[pi]}
+        </p>,
+      )
+      pi++
+    }
+  }
+  return out
 }
 
 // ── Lightbox (match Piik: sharp corners) ───────────────────────────────────────
@@ -340,13 +437,14 @@ export function JojoProjectPage() {
   const mobileJojoSectionRefs = useRef<(HTMLDivElement | null)[]>([])
 
   if (isMobile) {
+    /** Match `TestHomePage` mobile project sheet (`mobileProjectDetailOpen` overlay) so JoJo matches home. */
     const mobileJojoText = pageIsDark ? 'text-[#FFFFFF]' : 'text-black'
     return (
       <>
         <div
           className={`fixed inset-0 z-0 flex min-h-0 flex-col md:hidden ${
             pageIsDark ? 'bg-[#111111]' : 'bg-[#faf7f0]'
-          } pt-[max(3.5rem,env(safe-area-inset-top,0px)+0.25rem)] px-4 pb-[max(5.5rem,env(safe-area-inset-bottom,0px))]`}
+          } pt-[max(1.75rem,env(safe-area-inset-top,0px)+0.125rem)] px-2 pb-[max(2.75rem,env(safe-area-inset-bottom,0px))]`}
         >
           <div className={`${CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS} ${mobileJojoText}`}>
             <HomeJojoCaseStudy
@@ -574,8 +672,15 @@ export function JojoProjectPage() {
                           heading?: React.ReactNode
                           body?: string
                           bodyStyle?: React.CSSProperties
+                          /** Paragraph indices (after `\n\n` split) to render bold */
+                          bodyBoldParagraphIndices?: number[]
+                          /** Consecutive paragraph indices (after split) rendered as one `<ul>`. */
+                          bodyBulletParagraphIndices?: number[]
+                          /** Two videos side-by-side below body (e.g. Final Solution chart goals). */
+                          parallelMedia?: string[]
                           media?: string
                           subsectionKey?: string
+                          figmaPrototypeEmbedSrc?: string
                           postContent?: {
                             heading?: React.ReactNode
                             body?: string
@@ -620,8 +725,15 @@ export function JojoProjectPage() {
                               <p
                                 style={{
                                   fontWeight: 700,
-                                  fontSize: 16,
                                   margin: 0,
+                                  ...(section.id === 'problems'
+                                    ? {
+                                        fontFamily: "'ChosunIlboMyungjo', serif",
+                                        fontSize: 20,
+                                        lineHeight: '22px',
+                                        letterSpacing: '-0.06em',
+                                      }
+                                    : { fontSize: 16 }),
                                   ...(sub.heading ? { marginTop: -10 } : {}),
                                 }}
                               >
@@ -645,6 +757,7 @@ export function JojoProjectPage() {
                                       {g.title}
                                     </p>
                                     <p
+                                      className="whitespace-pre-line"
                                       style={{
                                         fontWeight: 400,
                                         margin: 0,
@@ -657,25 +770,7 @@ export function JojoProjectPage() {
                                 ))}
                               </div>
                             ) : (
-                              sub.body &&
-                              sub.body.split('\n\n').map((para, pi) => {
-                                const boldIdx =
-                                  'bodyBoldParagraphIndices' in sub &&
-                                  Array.isArray((sub as { bodyBoldParagraphIndices?: number[] }).bodyBoldParagraphIndices) &&
-                                  (sub as { bodyBoldParagraphIndices?: number[] }).bodyBoldParagraphIndices?.includes(pi)
-                                return (
-                                  <p
-                                    key={pi}
-                                    style={{
-                                      fontWeight: boldIdx ? 700 : 400,
-                                      margin: 0,
-                                      ...('bodyStyle' in sub ? (sub.bodyStyle as React.CSSProperties) : {}),
-                                    }}
-                                  >
-                                    {para}
-                                  </p>
-                                )
-                              })
+                              sub.body && jojoSubsectionBodySplitNodes(sub as JojoSubsectionBodySplitSub, 'scroll')
                             )}
                           </div>
                           {sub.media ? (
@@ -687,6 +782,41 @@ export function JojoProjectPage() {
                               />
                             </div>
                           ) : null}
+                          {'figmaPrototypeEmbedSrc' in sub &&
+                            typeof (sub as { figmaPrototypeEmbedSrc?: string }).figmaPrototypeEmbedSrc === 'string' &&
+                            (sub as { figmaPrototypeEmbedSrc: string }).figmaPrototypeEmbedSrc.trim() !== '' && (
+                              <div style={{ marginTop: 16, width: '100%', minWidth: 0, maxWidth: '100%' }}>
+                                <JojoFigmaPrototypeEmbed
+                                  src={(sub as { figmaPrototypeEmbedSrc: string }).figmaPrototypeEmbedSrc}
+                                />
+                              </div>
+                            )}
+                          {Array.isArray((sub as { parallelMedia?: string[] }).parallelMedia) &&
+                            (sub as { parallelMedia: string[] }).parallelMedia.length > 0 && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  gap: 8,
+                                  width: '100%',
+                                  minWidth: 0,
+                                  maxWidth: '100%',
+                                }}
+                              >
+                                {(sub as { parallelMedia: string[] }).parallelMedia.map((src) => (
+                                  <div
+                                    key={src}
+                                    style={{
+                                      flex: 1,
+                                      minWidth: 0,
+                                      ...jojoFinalSolutionVideoGapStyle(section.id, src),
+                                    }}
+                                  >
+                                    <MediaBlock src={src} onMediaClick={setSelectedMedia} />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           {'postContent' in sub &&
                             (sub.postContent as {
                               heading?: React.ReactNode
@@ -721,15 +851,17 @@ export function JojoProjectPage() {
                                   </div>
                                 ))}
                                 {'carousel' in pc && (pc as { carousel?: string[] }).carousel && (
-                                  <PiikCaseStudyCarouselBlock
-                                    srcs={(pc as { carousel: string[] }).carousel}
-                                    onMediaClick={setSelectedMedia}
-                                    fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                                    fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                                    fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                                    fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                                    fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                                  />
+                                  <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
+                                    <PiikCaseStudyCarouselBlock
+                                      srcs={(pc as { carousel: string[] }).carousel}
+                                      onMediaClick={setSelectedMedia}
+                                      fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                                      fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                                      fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                                      fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                                      fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                                    />
+                                  </div>
                                 )}
                                 </React.Fragment>
                               ))}
@@ -738,7 +870,9 @@ export function JojoProjectPage() {
                             (sub as { carousel: string[] }).carousel.length > 0 && (
                               <div
                                 className={
-                                  section.id === 'final-solution' ? 'mt-6 w-full' : 'w-full'
+                                  section.id === 'final-solution'
+                                    ? 'mt-6 w-full min-w-0 max-w-full overflow-hidden'
+                                    : 'w-full min-w-0 max-w-full overflow-hidden'
                                 }
                               >
                                 <PiikCaseStudyCarouselBlock
@@ -756,7 +890,16 @@ export function JojoProjectPage() {
                           ))}
                         </div>
                       ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                        flex: 1,
+                        minWidth: 0,
+                        maxWidth: '100%',
+                      }}
+                    >
                       {section.heading && (
                         <p
                           style={{
@@ -801,15 +944,17 @@ export function JojoProjectPage() {
                       {(() => {
                         const c = (section as { carousel?: string[] }).carousel
                         return Array.isArray(c) ? (
-                          <PiikCaseStudyCarouselBlock
-                            srcs={c}
-                            onMediaClick={setSelectedMedia}
-                            fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                            fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                            fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                            fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                            fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                          />
+                          <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
+                            <PiikCaseStudyCarouselBlock
+                              srcs={c}
+                              onMediaClick={setSelectedMedia}
+                              fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                              fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                              fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                              fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                              fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                            />
+                          </div>
                         ) : null
                       })()}
                       {'postContent' in section &&
@@ -864,15 +1009,17 @@ export function JojoProjectPage() {
                               </div>
                             ))}
                             {'carousel' in pc && (pc as { carousel?: string[] }).carousel && (
-                              <PiikCaseStudyCarouselBlock
-                                srcs={(pc as { carousel: string[] }).carousel}
-                                onMediaClick={setSelectedMedia}
-                                fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                                fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                                fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                                fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                                fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                              />
+                              <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
+                                <PiikCaseStudyCarouselBlock
+                                  srcs={(pc as { carousel: string[] }).carousel}
+                                  onMediaClick={setSelectedMedia}
+                                  fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                                  fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                                  fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                                  fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                                  fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                                />
+                              </div>
                             )}
                           </React.Fragment>
                         ))}
@@ -977,8 +1124,7 @@ export function HomeJojoCaseStudy({
             <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{JOJO_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${JOJO_HOME_META_BODY_CLASS}`}>{JOJO_META_ROWS[0].value}</span>
           </div>
-          <div className="h-[10px] shrink-0" aria-hidden />
-          <div className="grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
+          <div className="mt-[10px] grid w-full grid-cols-[auto_1fr] items-start gap-x-[20px] gap-y-2">
             {JOJO_META_ROWS.slice(1).map(({ label, value }) => (
               <Fragment key={label}>
                 <span className={`whitespace-nowrap ${heroMetaLabelClass}`}>{label}</span>
@@ -986,19 +1132,22 @@ export function HomeJojoCaseStudy({
               </Fragment>
             ))}
           </div>
-          <div className="relative mt-6 aspect-video w-full max-w-full overflow-hidden rounded-none">
-            <iframe
-              src="https://www.youtube.com/embed/AbZmZJe7ve0?mute=0&autoplay=1&loop=1&playlist=AbZmZJe7ve0&playsinline=1"
-              title="JoJo project video"
-              className="absolute left-0 top-0 h-full w-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
+          <div className="mt-6 w-full min-w-0 max-w-full overflow-hidden rounded-none">
+            <div className="relative aspect-video w-full min-h-0">
+              <iframe
+                className="absolute inset-0 h-full w-full border-0"
+                src="https://www.youtube.com/embed/AbZmZJe7ve0?autoplay=1&mute=1&loop=1&playlist=AbZmZJe7ve0&playsinline=1&rel=0&modestbranding=1"
+                title="JoJo — demo video (YouTube)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
           </div>
           <OptimizedImage
             src="/jojo/timeline.jpg"
             alt=""
-            className="mt-6 block h-auto w-full max-w-full cursor-zoom-in rounded-none"
+            className="mt-4 block h-auto w-full max-w-full cursor-zoom-in rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             placeholder="blur"
             onClick={() => onMediaClick('/jojo/timeline.jpg')}
@@ -1047,7 +1196,7 @@ export function HomeJojoCaseStudy({
             </CaseStudyRailTitle>
 
             <div
-              className={`flex min-w-0 w-full flex-col gap-4 ${JOJO_HOME_SECTION_BODY_CLASS}`}
+              className={`flex min-w-0 w-full max-w-full flex-col gap-4 ${JOJO_HOME_SECTION_BODY_CLASS}`}
               style={{ width: isMobile ? '100%' : undefined }}
             >
               {'subSections' in section && section.subSections ? (
@@ -1061,6 +1210,10 @@ export function HomeJojoCaseStudy({
                       bodyStyle?: React.CSSProperties
                       /** Paragraph indices (after `\\n\\n` split) to render bold */
                       bodyBoldParagraphIndices?: number[]
+                      /** Consecutive paragraph indices (after split) rendered as one `<ul>`. */
+                      bodyBulletParagraphIndices?: number[]
+                      /** Two videos side-by-side below body (e.g. Final Solution chart goals). */
+                      parallelMedia?: string[]
                       /** Pairs of bold title + body; when set, used instead of `body` split */
                       bodyGroups?: { title: string; body: string }[]
                       media?: string
@@ -1068,6 +1221,7 @@ export function HomeJojoCaseStudy({
                       headingMedia?: string
                       headingMediaPlaybackRate?: number
                       mediaPlaybackRate?: number
+                      figmaPrototypeEmbedSrc?: string
                       phoneCarousel?: { srcs: string[]; captions: { title: string; body: string }[] }
                       postContent?: {
                         heading?: React.ReactNode
@@ -1080,11 +1234,11 @@ export function HomeJojoCaseStudy({
                   ).map((sub, si) => (
                     <div
                       key={sub.subsectionKey ?? `${section.id}-sub-${si}`}
-                      className={`flex flex-col gap-4 ${
+                      className={`flex min-w-0 max-w-full flex-col gap-4 ${
                         (section.id === 'final-solution' ? si === 2 : si === 2 && section.id !== 'problems') ? 'mt-10' : ''
                       } ${section.id === 'problems' && si === 2 ? 'mb-[30px]' : ''}`.trim()}
                     >
-                      <div className="flex flex-col gap-2">
+                      <div className="flex min-w-0 max-w-full flex-col gap-2">
                         {sub.heading && <p className={homeSectionContentHeadingClass}>{sub.heading}</p>}
                         {'headingMedia' in sub &&
                           (sub as { headingMedia?: string }).headingMedia &&
@@ -1122,29 +1276,17 @@ export function HomeJojoCaseStudy({
                                 >
                                   {g.title}
                                 </p>
-                                <p style={{ ...(sub.bodyStyle ?? {}), fontWeight: 400 }}>{g.body}</p>
+                                <p
+                                  className="whitespace-pre-line"
+                                  style={{ ...(sub.bodyStyle ?? {}), fontWeight: 400 }}
+                                >
+                                  {g.body}
+                                </p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          sub.body &&
-                          sub.body.split('\n\n').map((para, pi) => {
-                            const boldIdx =
-                              'bodyBoldParagraphIndices' in sub &&
-                              Array.isArray(sub.bodyBoldParagraphIndices) &&
-                              sub.bodyBoldParagraphIndices.includes(pi)
-                            return (
-                              <p
-                                key={pi}
-                                style={{
-                                  ...(sub.bodyStyle ?? {}),
-                                  ...(boldIdx ? { fontWeight: 700 } : {}),
-                                }}
-                              >
-                                {para}
-                              </p>
-                            )
-                          })
+                          sub.body && jojoSubsectionBodySplitNodes(sub as JojoSubsectionBodySplitSub, 'home')
                         )}
                       </div>
                       {sub.media && (
@@ -1156,6 +1298,28 @@ export function HomeJojoCaseStudy({
                           />
                         </div>
                       )}
+                      {'figmaPrototypeEmbedSrc' in sub &&
+                        typeof (sub as { figmaPrototypeEmbedSrc?: string }).figmaPrototypeEmbedSrc === 'string' &&
+                        (sub as { figmaPrototypeEmbedSrc: string }).figmaPrototypeEmbedSrc.trim() !== '' && (
+                          <div className="mt-4 w-full min-w-0 max-w-full">
+                            <JojoFigmaPrototypeEmbed
+                              src={(sub as { figmaPrototypeEmbedSrc: string }).figmaPrototypeEmbedSrc}
+                            />
+                          </div>
+                        )}
+                      {Array.isArray((sub as { parallelMedia?: string[] }).parallelMedia) &&
+                        (sub as { parallelMedia: string[] }).parallelMedia.length > 0 && (
+                          <div className="flex min-w-0 w-full max-w-full flex-row gap-2">
+                            {(sub as { parallelMedia: string[] }).parallelMedia.map((src) => (
+                              <div
+                                key={src}
+                                className={`min-w-0 flex-1 ${jojoFinalSolutionVideoGapClass(section.id, src)}`}
+                              >
+                                <PiikCaseStudyMediaBlock src={src} onMediaClick={onMediaClick} />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       {sub.phoneCarousel ? (
                         <PiikCaseStudyPhoneCarousel
                           srcs={sub.phoneCarousel.srcs}
@@ -1198,22 +1362,30 @@ export function HomeJojoCaseStudy({
                             </div>
                           ))}
                           {'carousel' in pc && (pc as { carousel?: string[] }).carousel && (
-                            <PiikCaseStudyCarouselBlock
-                              srcs={(pc as { carousel: string[] }).carousel}
-                              onMediaClick={onMediaClick}
-                              fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                              fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                              fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                              fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                              fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                            />
+                            <div className="w-full min-w-0 max-w-full overflow-hidden">
+                              <PiikCaseStudyCarouselBlock
+                                srcs={(pc as { carousel: string[] }).carousel}
+                                onMediaClick={onMediaClick}
+                                fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                                fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                                fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                                fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                                fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                              />
+                            </div>
                           )}
                         </Fragment>
                       ))}
                       {'carousel' in sub &&
                         Array.isArray((sub as { carousel?: string[] }).carousel) &&
                         (sub as { carousel: string[] }).carousel.length > 0 && (
-                          <div className={section.id === 'final-solution' ? 'mt-6 w-full' : 'w-full'}>
+                          <div
+                            className={
+                              section.id === 'final-solution'
+                                ? 'mt-6 w-full min-w-0 max-w-full overflow-hidden'
+                                : 'w-full min-w-0 max-w-full overflow-hidden'
+                            }
+                          >
                             <PiikCaseStudyCarouselBlock
                               srcs={(sub as { carousel: string[] }).carousel}
                               onMediaClick={onMediaClick}
@@ -1255,15 +1427,17 @@ export function HomeJojoCaseStudy({
                     ? section.media.map((m) => <PiikCaseStudyMediaBlock key={m} src={m} onMediaClick={onMediaClick} />)
                     : section.media && <PiikCaseStudyMediaBlock src={section.media} onMediaClick={onMediaClick} />}
                   {'carousel' in section && section.carousel && (
-                    <PiikCaseStudyCarouselBlock
-                      srcs={section.carousel as string[]}
-                      onMediaClick={onMediaClick}
-                      fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                      fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                      fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                      fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                      fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                    />
+                    <div className="w-full min-w-0 max-w-full overflow-hidden">
+                      <PiikCaseStudyCarouselBlock
+                        srcs={section.carousel as string[]}
+                        onMediaClick={onMediaClick}
+                        fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                        fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                        fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                        fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                        fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                      />
+                    </div>
                   )}
                   {'postContent' in section &&
                     section.postContent &&
@@ -1310,15 +1484,17 @@ export function HomeJojoCaseStudy({
                           </div>
                         ))}
                         {'carousel' in pc && (pc as { carousel?: string[] }).carousel && (
-                          <PiikCaseStudyCarouselBlock
-                            srcs={(pc as { carousel: string[] }).carousel}
-                            onMediaClick={onMediaClick}
-                            fullWidthSlides={jojoCarouselFullWidth(section.id)}
-                            fullWidthImageScale={jojoCarouselImageScale(section.id)}
-                            fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
-                            fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
-                            fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
-                          />
+                          <div className="w-full min-w-0 max-w-full overflow-hidden">
+                            <PiikCaseStudyCarouselBlock
+                              srcs={(pc as { carousel: string[] }).carousel}
+                              onMediaClick={onMediaClick}
+                              fullWidthSlides={jojoCarouselFullWidth(section.id)}
+                              fullWidthImageScale={jojoCarouselImageScale(section.id)}
+                              fullWidthSlideGap={jojoCarouselSlideGap(section.id)}
+                              fullWidthEdgeAlign={jojoCarouselEdgeAlign(section.id)}
+                              fullWidthTwoUp={jojoCarouselTwoUp(section.id)}
+                            />
+                          </div>
                         )}
                         </Fragment>
                       ))}
