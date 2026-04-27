@@ -2098,6 +2098,9 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
           isMobile={isMobile}
           sectionRefs={jojoSectionRefs}
           onMediaClick={setSelectedMedia}
+          entranceActive={detailsColumnEntrance}
+          reduceMotion={reduceMotion}
+          onHeroEntranceComplete={handleHeroEntranceComplete}
           testHomeProjectTitles
           testHomeHighlightSectionId={activeSpyId}
         />

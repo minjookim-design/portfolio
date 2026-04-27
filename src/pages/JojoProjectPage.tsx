@@ -1,6 +1,6 @@
-import React, { Fragment, useState, useEffect, useLayoutEffect, useRef } from 'react'
+import React, { Fragment, useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { useIsNarrow } from '../hooks/useIsNarrow'
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import { IMAGE_SIZES, OptimizedImage } from '../components/OptimizedImage'
 import { readStoredThemePrefersDark, usePageTheme } from '../context/PageThemeContext'
 import { CaseStudyRailTitle } from '../components/CaseStudyRailTitle'
@@ -14,6 +14,7 @@ import {
 import { CASE_STUDY_MOBILE_DETAILS_COLUMN_CLASS, CASE_STUDY_MOBILE_DETAILS_SCROLL_CLASS } from './caseStudyMobileShell'
 import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
 import { useCaseStudyHomeRailGap } from '../hooks/useCaseStudyHomeRailGap'
+import { buildCaseStudyHeroEntranceVariants } from './homeCaseStudyHeroMotion'
 import { PiikCaseStudyMediaBlock, PiikCaseStudyCarouselBlock, PiikCaseStudyPhoneCarousel } from './PiikProjectPage'
 import { JOJO_SECTIONS, JOJO_META_ROWS, JOJO_HERO_THUMB_DARK, JOJO_HERO_THUMB_LIGHT } from './jojoHomeData'
 
@@ -285,6 +286,7 @@ export function JojoProjectPage() {
   const isNarrow = useIsNarrow(1200)
   const isMedium = useIsNarrow(1000)
   const isMobile = useIsNarrow(768)
+  const reduceMotionPref = useReducedMotion()
 
   const [activeSection, setActiveSection] = useState(0)
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null)
@@ -452,6 +454,8 @@ export function JojoProjectPage() {
               isMobile={isMobile}
               sectionRefs={mobileJojoSectionRefs}
               onMediaClick={setSelectedMedia}
+              entranceActive
+              reduceMotion={Boolean(reduceMotionPref)}
               testHomeProjectTitles
             />
           </div>
@@ -1078,6 +1082,9 @@ export function HomeJojoCaseStudy({
   isMobile,
   sectionRefs,
   onMediaClick,
+  entranceActive,
+  reduceMotion,
+  onHeroEntranceComplete,
   testHomeProjectTitles,
   testHomeHighlightSectionId,
 }: {
@@ -1085,29 +1092,48 @@ export function HomeJojoCaseStudy({
   isMobile: boolean
   sectionRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
   onMediaClick: (src: string) => void
+  entranceActive: boolean
+  reduceMotion: boolean
+  onHeroEntranceComplete?: () => void
   testHomeProjectTitles?: boolean
   testHomeHighlightSectionId?: string | null
 }) {
   const fg = isDark ? '#FFFFFF' : '#000000'
   const { rootRef, railGapPx } = useCaseStudyHomeRailGap()
+  const heroV = useMemo(() => buildCaseStudyHeroEntranceVariants(reduceMotion), [reduceMotion])
+  const heroState = entranceActive ? 'visible' : 'hidden'
+  const heroInitial = reduceMotion ? false : 'hidden'
   const heroMetaLabelClass = testHomeProjectTitles ? TEST_HOME_HERO_META_LABEL_SERIF : JOJO_HOME_META_LABEL_CLASS
   const homeSectionContentHeadingClass = testHomeProjectTitles
     ? TEST_HOME_SECTION_CONTENT_HEADING_SERIF
     : JOJO_HOME_SECTION_CONTENT_HEADING_CLASS
 
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 flex-col pb-4" style={{ fontFamily: 'Arial, sans-serif', color: fg }}>
-      <div className="mb-[150px] w-full">
-        <OptimizedImage
-          key={isDark ? 'jojo-thumb-dark' : 'jojo-thumb-light'}
-          src={isDark ? JOJO_HERO_THUMB_DARK : JOJO_HERO_THUMB_LIGHT}
-          alt="JoJo"
-          className="mb-[15px] block h-auto w-full max-w-full rounded-none"
-          sizes={IMAGE_SIZES.caseStudyFull}
-          priority
-          placeholder="blur"
-        />
-        <h1
+    <div
+      ref={rootRef}
+      className="flex w-full min-w-0 flex-col pb-4 md:min-h-0"
+      style={{ fontFamily: 'Arial, sans-serif', color: fg }}
+    >
+      <motion.div
+        className="mb-0 w-full"
+        variants={heroV.heroContainer}
+        initial={heroInitial}
+        animate={heroState}
+      >
+        <motion.div variants={heroV.heroItem} className="h-fit w-full shrink-0 overflow-hidden mb-[15px]">
+          <OptimizedImage
+            key={isDark ? 'jojo-thumb-dark' : 'jojo-thumb-light'}
+            src={isDark ? JOJO_HERO_THUMB_DARK : JOJO_HERO_THUMB_LIGHT}
+            alt="JoJo"
+            className="block h-auto w-full max-w-full rounded-none"
+            sizes={IMAGE_SIZES.caseStudyFull}
+            priority
+            placeholder="blur"
+          />
+        </motion.div>
+
+        <motion.h1
+          variants={heroV.heroItem}
           className={
             testHomeProjectTitles
               ? `mb-2 mt-0 text-[48px] ${TEST_HOME_PROJECT_TITLE_SERIF}`
@@ -1115,11 +1141,22 @@ export function HomeJojoCaseStudy({
           }
         >
           JoJo
-        </h1>
-        <p className={`mb-[26px] ${CHOSUN_DISPLAY} text-[20px] font-normal not-italic leading-tight tracking-[-0.06em]`}>
+        </motion.h1>
+
+        <motion.p
+          variants={heroV.heroItem}
+          className={`mb-[26px] ${CHOSUN_DISPLAY} text-[20px] font-normal not-italic leading-tight tracking-[-0.06em]`}
+        >
           Think Beyond AI
-        </p>
-        <div className="flex w-full flex-col gap-y-2">
+        </motion.p>
+
+        <motion.div
+          variants={heroV.heroItem}
+          className="flex w-full flex-col gap-y-2"
+          onAnimationComplete={() => {
+            if (entranceActive) onHeroEntranceComplete?.()
+          }}
+        >
           <div className="flex w-full items-center gap-x-[20px]">
             <span className={`shrink-0 whitespace-nowrap ${heroMetaLabelClass}`}>{JOJO_META_ROWS[0].label}</span>
             <span className={`min-w-0 flex-1 ${JOJO_HOME_META_BODY_CLASS}`}>{JOJO_META_ROWS[0].value}</span>
@@ -1147,13 +1184,13 @@ export function HomeJojoCaseStudy({
           <OptimizedImage
             src="/jojo/timeline.jpg"
             alt=""
-            className="mt-4 block h-auto w-full max-w-full cursor-zoom-in rounded-none"
+            className="mt-4 mb-[150px] block h-auto w-full max-w-full cursor-zoom-in rounded-none"
             sizes={IMAGE_SIZES.caseStudyFull}
             placeholder="blur"
             onClick={() => onMediaClick('/jojo/timeline.jpg')}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {JOJO_SECTIONS.map((section, i) => {
         const sectionSpyActive =
