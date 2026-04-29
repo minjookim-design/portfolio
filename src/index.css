@@ -278,11 +278,15 @@ html.dark .blueprint-mode-toggle {
 }
 
 .blueprint-mode-toggle:hover {
-  background-color: color-mix(in srgb, var(--color-blueprint-hairline) 12%, var(--color-bg-base));
+  background-color: #000;
+  color: #fff;
+  border-color: #000;
 }
 
 html.dark .blueprint-mode-toggle:hover {
-  background-color: color-mix(in srgb, var(--color-blueprint-hairline) 22%, var(--color-bg-base));
+  background-color: #faf7f0;
+  color: #000;
+  border-color: #faf7f0;
 }
 
 html.blueprint-enabled #root :where(div, section, article, header, footer, nav, aside, ul, ol, form, table) {
