@@ -7,7 +7,7 @@
     "dev": "vite",
     "catalog:images": "node scripts/catalog-image-variants.mjs",
     "prebuild": "node scripts/catalog-image-variants.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b --force && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
