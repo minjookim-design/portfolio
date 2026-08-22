@@ -84,7 +84,6 @@ const HOME_SUIT =
   "font-['SUIT_Variable',sans-serif]"
 /** First-column SUIT size — bio (sentence case). */
 const HOME_COL1_SUIT_SIZE = 'text-[10pt]'
-const HOME_MONO_SM = `${HOME_SUIT} ${HOME_COL1_SUIT_SIZE} font-normal`
 /** First-column uppercase UI (folds / links) — 9pt. */
 const HOME_COL1_SUIT_TYPO =
   `${HOME_SUIT} text-[9pt] font-normal uppercase leading-snug tracking-[0.06em]`
