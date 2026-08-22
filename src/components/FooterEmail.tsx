@@ -13,8 +13,8 @@ const PHASE2_TRANSITION = {
 
 const EMAIL = 'minjoo.kim.kor@gmail.com'
 
-/** Prior Framer portfolio — linked from home inline footer. */
-const PORTFOLIO_2025_URL = 'https://frequent-quicker-863716.framer.app'
+/** Prior Framer portfolio — linked from home inline footer and under-construction modal. */
+export const PORTFOLIO_2025_URL = 'https://frequent-quicker-863716.framer.app'
 
 /** Canonical copy — keep in sync with `DESIGN_SYSTEM.md` §5. */
 const FOOTER_ATTRIBUTION = 'Designed by me, Coded by Claude & Cursor'
@@ -117,7 +117,14 @@ export function FooterEmail({ variant = 'fixed' }: { variant?: FooterEmailVarian
   const [footerFadeDone, setFooterFadeDone] = useState(reduceMotion)
   const footerFadeCompleteRef = useRef(false)
 
-  const isHomeRoute = pathname === '/' || pathname === '' || pathname === '/test'
+  const isHomeRoute =
+    pathname === '/' ||
+    pathname === '' ||
+    pathname === '/test' ||
+    pathname === '/hovr' ||
+    pathname.startsWith('/hovr/') ||
+    pathname === '/piik-ai' ||
+    pathname.startsWith('/piik-ai/')
   const homeHovrAttributionReady = homeFooterAttribution?.homeHovrAttributionReady ?? false
   const attributionStart = footerFadeDone && (isHomeRoute ? homeHovrAttributionReady : true)
 

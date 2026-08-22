@@ -16,14 +16,16 @@
     "@react-three/fiber": "^9.5.0",
     "@types/three": "^0.183.1",
     "framer-motion": "^12.34.3",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.1",
+    "rehype-raw": "^7.0.0",
     "three": "^0.183.2"
   },
   "devDependencies": {
-    "agentation": "^2.3.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",

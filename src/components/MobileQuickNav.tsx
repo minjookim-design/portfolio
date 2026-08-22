@@ -32,7 +32,12 @@ export function MobileQuickNav() {
   const homeMobile = useHomeMobileProjectOptional()
   const [open, setOpen] = useState(false)
 
-  const isProjectDetail = /^\/projects\/(hovr|piik|jojo|ar-fitting-room|bmad)(\/.*)?$/.test(pathname)
+  const isProjectDetail =
+    /^\/projects\/(hovr|piik|jojo|ar-fitting-room|bmad)(\/.*)?$/.test(pathname) ||
+    pathname === '/hovr' ||
+    pathname.startsWith('/hovr/') ||
+    pathname === '/piik-ai' ||
+    pathname.startsWith('/piik-ai/')
   const onProjects = pathname === '/projects' || pathname === '/projects/'
   const onHome = pathname === '/' || pathname === ''
 

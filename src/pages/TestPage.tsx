@@ -1,11 +1,12 @@
 import { TestHomePage } from './TestHomePage'
 
 /**
- * Design test route (`/test`): home UI is `TestHomePageView` from `TestHomePage.tsx` (same as `/`, different config).
- * Production `/` uses the same view via `HomePage.tsx` (different config only).
+ * Design test route (`/test`): home UI is `TestHomePageView` from `TestHomePage.tsx`.
+ * Production `/` now uses the promoted shell in `HomePage.tsx` (former sandbox layout).
+ * Previous production home is preserved at `/test-home`.
  *
  * - Column widths: `sessionStorage` key `test-split-widths` (production uses `home-split-widths`).
- * - Split onboarding “seen”: `test-onboarding-v1` (production uses `portfolio-home-split-onboarding-v1`).
+ * - Split onboarding “seen”: `test-onboarding-v1` (production uses `home-onboarding-v1`).
  *
  * **Scoped CSS:** `TestHomePage` sets `data-design-test="1"` via `TEST_HOME_PAGE_CONFIG`. Add rules in the
  * `<style>` block below using `[data-design-test="1"] …` so production `/` is never targeted.

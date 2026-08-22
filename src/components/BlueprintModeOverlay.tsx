@@ -20,17 +20,23 @@ function readStoredOn(): boolean {
 export function BlueprintModeOverlay() {
   const { pathname } = useLocation()
   const [on, setOn] = useState(readStoredOn)
+  const hideOnStandaloneDeck =
+    pathname === '/hovr-deck' ||
+    pathname.startsWith('/hovr-deck/') ||
+    pathname === '/piik-deck' ||
+    pathname.startsWith('/piik-deck/')
 
   useEffect(() => {
     setOn(readStoredOn())
   }, [pathname])
 
   useEffect(() => {
-    document.documentElement.classList.toggle('blueprint-enabled', on)
+    const enabled = on && !hideOnStandaloneDeck
+    document.documentElement.classList.toggle('blueprint-enabled', enabled)
     return () => {
       document.documentElement.classList.remove('blueprint-enabled')
     }
-  }, [on])
+  }, [on, hideOnStandaloneDeck])
 
   const toggle = useCallback(() => {
     setOn((prev) => {
@@ -44,6 +50,8 @@ export function BlueprintModeOverlay() {
       return next
     })
   }, [])
+
+  if (hideOnStandaloneDeck) return null
 
   const gridLayer =
     on && typeof document !== 'undefined'

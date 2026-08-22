@@ -1,6 +1,7 @@
 /**
- * Home shell for `/` and `/test`: `HomePage` renders {@link TestHomePageView} with production
- * split keys; `TestHomePage` uses {@link TEST_HOME_PAGE_CONFIG} (e.g. `data-design-test`, separate widths).
+ * Home shell for `/test` and `/test-home` (backup of the previous production home).
+ * Production `/` uses {@link HomePage} in `HomePage.tsx`.
+ * `TestHomePage` uses {@link TEST_HOME_PAGE_CONFIG} (e.g. `data-design-test`, separate widths).
  */
 import React, { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
@@ -60,6 +61,7 @@ import {
   readBlueprintRevealSkipped,
 } from '../components/HomeBlueprintReveal'
 import type { BlueprintPhase } from '../components/HomeBlueprintReveal'
+import { consumeTestHomeLandingIntent } from '../testHomeLanding'
 
 const CAREER_JOBS = [
   { role: 'UX/UI Designer', company: 'BMAD • Montreal, QC • Remote', period: 'Jul 2025 – Present' },
@@ -1381,6 +1383,10 @@ export function TestHomePageView({ config }: { config: TestHomePageExperienceCon
 }
 
 function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfig }) {
+  const landingIntentRef = useRef(consumeTestHomeLandingIntent())
+  const skipLandingIntro = landingIntentRef.current?.skipIntro === true
+  const landingProjectId = landingIntentRef.current?.openProjectId ?? null
+
   const { isDark } = usePageTheme()
   const draftingRowCursor = useProjectRowDraftingCursor()
   const isMobile = useIsNarrow(768)
@@ -1390,7 +1396,12 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   mobileProjectDetailOpenRef.current = mobileProjectDetailOpen
   const isSplitDesktop = !useIsNarrow(767)
   const homeShellRef = useRef<HTMLDivElement>(null)
-  const [openProjectId, setOpenProjectId] = useState<string | null>(() => HOME_PROJECTS[0]?.id ?? null)
+  const [openProjectId, setOpenProjectId] = useState<string | null>(() => {
+    if (landingProjectId && HOME_PROJECTS.some((p) => p.id === landingProjectId)) {
+      return landingProjectId
+    }
+    return HOME_PROJECTS[0]?.id ?? null
+  })
   const openProjectIdRef = useRef(openProjectId)
   openProjectIdRef.current = openProjectId
   const [menuFolderHoverId, setMenuFolderHoverId] = useState<string | null>(null)
@@ -1421,6 +1432,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const reduceMotion = usePrefersReducedMotion()
   const projectListHover = useProjectListHoverPreviewOptional()
   const [introStage, setIntroStage] = useState<0 | 1 | 2 | 3>(() => {
+    if (skipLandingIntro) return 3
     if (typeof window === 'undefined') return 0
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 3 : 0
   })
@@ -1551,7 +1563,13 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   useEffect(() => {
     if (prevMobileRef.current === null) {
       prevMobileRef.current = isMobile
-      if (isMobile) setOpenProjectId(null)
+      if (isMobile) {
+        if (skipLandingIntro && landingProjectId) {
+          openMobileProjectSheet(landingProjectId)
+        } else {
+          setOpenProjectId(null)
+        }
+      }
       return
     }
     if (prevMobileRef.current === isMobile) return
@@ -1563,7 +1581,7 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
       setOpenProjectId((id) => id ?? HOME_PROJECTS[0]?.id ?? null)
       setMobileProjectDetailOpen(false)
     }
-  }, [isMobile, setMobileProjectDetailOpen])
+  }, [isMobile, setMobileProjectDetailOpen, skipLandingIntro, landingProjectId, openMobileProjectSheet])
 
   useEffect(() => {
     if (!isMobile || mobileProjectDetailOpen) return
@@ -1803,7 +1821,9 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const entranceV = useMemo(() => buildHomeEntranceVariants(reduceMotion), [reduceMotion])
   const postIntroInitial = reduceMotion ? false : 'hidden'
 
-  const [menuSeqPhase, setMenuSeqPhase] = useState<HomeMenuSeqPhase>('idle_before_intro')
+  const [menuSeqPhase, setMenuSeqPhase] = useState<HomeMenuSeqPhase>(() =>
+    skipLandingIntro ? 'done' : 'idle_before_intro',
+  )
   const menuSeqPhaseRef = useRef(menuSeqPhase)
   menuSeqPhaseRef.current = menuSeqPhase
 
@@ -1930,27 +1950,27 @@ function TestHomePageViewInner({ config }: { config: TestHomePageExperienceConfi
   const blueprintProjectRevealSkip = blueprintShellLinesSkip || !introDone
 
   const [introContentReady, setIntroContentReady] = useState(
-    () => reduceMotion || !blueprintRevealEligible,
+    () => reduceMotion || skipLandingIntro || !blueprintRevealEligible,
   )
 
   useEffect(() => {
-    if (!blueprintRevealEligible) return
+    if (!blueprintRevealEligible || skipLandingIntro) return
     const id = window.setTimeout(
       () => setIntroContentReady(true),
       BLUEPRINT_COLUMN_LINES_INTRO_DELAY_MS,
     )
     return () => clearTimeout(id)
-  }, [blueprintRevealEligible])
+  }, [blueprintRevealEligible, skipLandingIntro])
 
   const [bpPhase, setBpPhase] = useState<BlueprintPhase>('off')
 
   const blueprintMountKickRef = useRef(false)
   useLayoutEffect(() => {
-    if (!blueprintRevealEligible) return
+    if (!blueprintRevealEligible || skipLandingIntro) return
     if (blueprintMountKickRef.current) return
     blueprintMountKickRef.current = true
     setBpPhase('lines')
-  }, [blueprintRevealEligible])
+  }, [blueprintRevealEligible, skipLandingIntro])
 
   useEffect(() => {
     if (bpPhase !== 'lines') return

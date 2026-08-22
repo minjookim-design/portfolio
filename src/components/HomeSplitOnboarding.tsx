@@ -333,9 +333,7 @@ function SplitResizeGuideTooltip({
             duration: 0.32,
             ease: ONBOARD_EASE,
           }}
-          className={`max-w-[220px] rounded-none border-0 px-3 py-2 font-mono text-[11px] font-semibold leading-snug ${
-            isDark ? 'bg-white text-black' : 'bg-black text-white'
-          }`}
+          className={`max-w-[220px] rounded-none border-0 px-3 py-2 text-[11px] leading-snug font-mono font-semibold ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}
         >
           {TOOLTIP_TEXT}
         </motion.div>

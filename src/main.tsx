@@ -1,4 +1,4 @@
-import { StrictMode, type ComponentType } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
@@ -9,16 +9,12 @@ import { DraftingCursorProvider } from './context/DraftingCursorContext.tsx'
 import { PageThemeProvider } from './context/PageThemeContext.tsx'
 import { HomeFooterAttributionProvider } from './context/HomeFooterAttributionContext.tsx'
 import { BlueprintModeOverlay } from './components/BlueprintModeOverlay.tsx'
+import { TestProjectSheetChromeProvider } from './context/TestProjectSheetChromeContext.tsx'
 
-async function bootstrap() {
-  const DevOverlay: ComponentType | undefined = import.meta.env.DEV
-    ? (await import('./dev/AgentationOverlay.tsx')).default
-    : undefined
-
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <BrowserRouter>
-        {DevOverlay ? <DevOverlay /> : null}
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <TestProjectSheetChromeProvider>
         <BlueprintModeOverlay />
         <DraftingCursorProvider>
           <PageThemeProvider>
@@ -35,9 +31,7 @@ async function bootstrap() {
             </div>
           </PageThemeProvider>
         </DraftingCursorProvider>
-      </BrowserRouter>
-    </StrictMode>,
-  )
-}
-
-void bootstrap()
+      </TestProjectSheetChromeProvider>
+    </BrowserRouter>
+  </StrictMode>,
+)

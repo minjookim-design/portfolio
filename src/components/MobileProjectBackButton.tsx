@@ -3,7 +3,7 @@ import { usePageTheme } from '../context/PageThemeContext'
 import { useHomeMobileProjectOptional } from '../context/HomeMobileProjectContext'
 
 const PROJECT_DETAIL_RE =
-  /^\/projects\/(hovr|piik|jojo|ar-fitting-room|bmad)(\/.*)?$/
+  /^\/(projects\/(hovr|piik|jojo|ar-fitting-room|bmad)|hovr|piik-ai)(\/.*)?$/
 
 /**
  * Mobile-only fixed back: home project overlay closes to intro; case studies go to `/`.
@@ -16,6 +16,11 @@ export function MobileProjectBackButton() {
 
   const onHome = pathname === '/' || pathname === ''
   const homeProjectOverlay = onHome && homeMobile?.detailOpen
+  const onHomeCaseStudy =
+    pathname === '/hovr' ||
+    pathname.startsWith('/hovr/') ||
+    pathname === '/piik-ai' ||
+    pathname.startsWith('/piik-ai/')
 
   if (!homeProjectOverlay && !PROJECT_DETAIL_RE.test(pathname)) return null
 
@@ -28,6 +33,7 @@ export function MobileProjectBackButton() {
       aria-label={ariaLabel}
       onClick={() => {
         if (homeProjectOverlay) homeMobile?.closeDetail()
+        else if (onHomeCaseStudy) navigate('/')
         else navigate('/')
       }}
       className={`md:hidden fixed left-4 top-[max(1rem,env(safe-area-inset-top,0px))] z-[999] flex items-center gap-1.5 rounded-full border px-3 py-2 font-mono text-[12px] font-semibold backdrop-blur-xl ${
