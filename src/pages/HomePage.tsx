@@ -95,6 +95,7 @@ const HOME_INTRO_TYPEWRITER_MS = Math.max(
   Math.round((Math.round((3250 / 0.7) * (HOME_INTRO_BIO.length / 320)) - 400) / 1.3 / 1.3),
 )
 
+
 const SPLIT_DIVIDER_PX = 8
 
 /** Desktop home: hairline grid (column + row rules) — matches `--color-blueprint-hairline`. */
