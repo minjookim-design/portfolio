@@ -102,7 +102,7 @@ export function HomeIntroScrambleText({
 
   return (
     <Tag className={className} aria-hidden={!settled}>
-      {display.split('\n').map((line, i, lines) => (
+      {display.split('\n').map((line, i) => (
         <Fragment key={i}>
           {i > 0 ? <br /> : null}
           {line}
