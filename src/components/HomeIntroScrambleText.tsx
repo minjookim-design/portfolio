@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Fragment } from 'react'
 
 const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*'
 
@@ -102,7 +102,12 @@ export function HomeIntroScrambleText({
 
   return (
     <Tag className={className} aria-hidden={!settled}>
-      {display}
+      {display.split('\n').map((line, i, lines) => (
+        <Fragment key={i}>
+          {i > 0 ? <br /> : null}
+          {line}
+        </Fragment>
+      ))}
     </Tag>
   )
 }

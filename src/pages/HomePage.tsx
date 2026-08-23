@@ -77,8 +77,10 @@ const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2
 /** Intro greeting: Chosun, mixed case, normal tracking, tight leading, 22pt. */
 const HOME_INTRO_SERIF_TEST_HERO =
   "text-[22pt] font-['ChosunIlboMyungjo',serif] font-normal not-italic uppercase leading-[0.99] tracking-normal"
-const HOME_INTRO_GREETING =
-  'Minjoo Kim:\nCrafting UX solutions grounded in Data and communication'
+const HOME_INTRO_GREETING_LINE1 = 'Minjoo Kim:'
+const HOME_INTRO_GREETING_LINE2 =
+  'Crafting UX solutions grounded in Data and communication'
+const HOME_INTRO_GREETING = `${HOME_INTRO_GREETING_LINE1}\n${HOME_INTRO_GREETING_LINE2}`
 /** UI sans — SUIT Variable, 2pt under the prior mono sizes. */
 const HOME_SUIT =
   "font-['SUIT_Variable',sans-serif]"
@@ -1200,13 +1202,15 @@ function ClassicHomeFirstColumn({
           <div className={`flex w-full flex-col${introStage >= 3 ? ' gap-[100px]' : ''}`}>
             <div className="flex w-full flex-col gap-5">
               {introStage > 0 ? (
-                <p className={`shrink-0 whitespace-pre-line ${HOME_INTRO_SERIF_TEST_HERO}`}>
-                  {HOME_INTRO_GREETING}
+                <p className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}>
+                  {HOME_INTRO_GREETING_LINE1}
+                  <br />
+                  {HOME_INTRO_GREETING_LINE2}
                 </p>
               ) : (
                 <HomeIntroScrambleText
                   as="p"
-                  className={`shrink-0 whitespace-pre-line ${HOME_INTRO_SERIF_TEST_HERO}`}
+                  className={`shrink-0 ${HOME_INTRO_SERIF_TEST_HERO}`}
                   text={HOME_INTRO_GREETING}
                   durationMs={1300}
                   onComplete={() => setIntroStage(1)}
