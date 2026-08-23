@@ -14,7 +14,7 @@ import { ArFittingProjectPage } from './pages/ArFittingProjectPage'
 import { ProjectBmadPage } from './pages/ProjectBmadPage'
 import { Deck } from './pages/Deck'
 import { FooterEmail } from './components/FooterEmail'
-import { TestHovr } from './TestHovr'
+
 import { TestPiik } from './TestPiik'
 import { TestHome } from './TestHome'
 import { HovrDeck } from './HovrDeck'
@@ -58,7 +58,6 @@ function AppShell() {
         {!isHomeShellRoute && <FooterEmail variant="fixed" />}
         <Routes>
           <Route path="/" element={<HomePage />}>
-            <Route path="hovr" element={<TestHovr />} />
             <Route path="piik-ai" element={<TestPiik />} />
           </Route>
           <Route path="test" element={<TestPage />} />
