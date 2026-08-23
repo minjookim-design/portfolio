@@ -17,6 +17,7 @@ import { FooterEmail } from './components/FooterEmail'
 
 import { TestPiik } from './TestPiik'
 import { TestHome } from './TestHome'
+import { Hovr } from './pages/Hovr'
 import { HovrDeck } from './HovrDeck'
 import { PiikDeck } from './PiikDeck'
 
@@ -58,6 +59,7 @@ function AppShell() {
         {!isHomeShellRoute && <FooterEmail variant="fixed" />}
         <Routes>
           <Route path="/" element={<HomePage />}>
+            <Route path="hovr" element={<Hovr />} />
             <Route path="piik-ai" element={<TestPiik />} />
           </Route>
           <Route path="test" element={<TestPage />} />
