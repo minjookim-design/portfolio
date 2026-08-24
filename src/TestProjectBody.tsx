@@ -1298,7 +1298,7 @@ type TestProjectBodyProps = {
   featureMediaBySection?: Record<string, Array<string | undefined | null>>
   /**
    * Optional override for the first yellow feature number in a section
-   * (e.g. Solution 02 → 3, Solution 03 → 5).
+   * (e.g. Solution 02 → 3, Solution 03 → 4).
    */
   featureStartIndexBySection?: Record<string, number>
   /**

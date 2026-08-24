@@ -43,6 +43,11 @@ const DECK_HEADER_TYPE =
   "font-['SUIT_Variable',sans-serif] text-[clamp(0.4rem,0.85vw,0.54rem)] font-normal uppercase leading-snug tracking-[0.06em] text-black/45 dark:text-white/50"
 const CHROME_BTN =
   'rounded-none border px-[clamp(0.5rem,1.2vw,0.75rem)] py-[clamp(0.3rem,0.7vw,0.45rem)]'
+/** Phase rail — 70% of META_SUIT + CHROME_BTN. */
+const PHASE_NAV_TYPE =
+  "font-['SUIT_Variable',sans-serif] text-[clamp(0.39375rem,0.84vw,0.525rem)] font-bold not-italic uppercase leading-[1.2] tracking-[-0.02em]"
+const PHASE_NAV_BTN =
+  'rounded-none border px-[clamp(0.35rem,0.84vw,0.525rem)] py-[clamp(0.21rem,0.49vw,0.315rem)]'
 const MEDIA_FILL =
   'block h-full w-full max-h-full max-w-full object-contain object-center'
 
@@ -249,13 +254,13 @@ function PhaseNav({
 }) {
   const phases = ['1. Impact', '2. Challenge', '3. Solutions'] as const
   return (
-    <div className="flex w-max flex-col items-stretch gap-[clamp(0.2rem,0.5vw,0.3rem)]">
+    <div className="flex w-max flex-col items-stretch gap-[clamp(0.14rem,0.35vw,0.21rem)]">
       {phases.map((label, i) => {
         const on = i === active
         return (
           <span
             key={label}
-            className={`${META_SUIT} ${CHROME_BTN} w-full text-left ${
+            className={`${PHASE_NAV_TYPE} ${PHASE_NAV_BTN} w-full text-left ${
               on
                 ? onDark
                   ? 'border-white bg-white text-black'
@@ -428,8 +433,7 @@ function Slide05Problem02() {
             <div className="self-center">
               <p className={FEATURE_TITLE}>02 · Narrow canvas</p>
               <p className={`${PROSE} mt-3 m-0`}>
-                While the industry standard is ~700px, the MVP editor was only 660px. On mobile,
-                double padding further crushed the writing surface.
+                While the industry standard is ~700px, the MVP editor was only 660px.
               </p>
             </div>
           </FadeUp>
@@ -594,7 +598,7 @@ function Slide07Solution01() {
               The “More is More” Editor Architecture
             </h2>
             <p className={`${PROSE} mt-4 max-w-3xl text-white/80`}>
-              To align with the local mental model, I abandoned the restrictive Western-style
+              To align with the local mental model, I abandoned the restrictive North-American style
               minimalism and architected a comprehensive, professional-grade toolkit.
             </p>
           </FadeUp>
@@ -658,11 +662,6 @@ function Slide08Solution02() {
       description:
         'The original text area was confined to a narrow 660px (below the 700px industry standard). I expanded the maximum width to 1080px, providing a scalable and comfortable reading/writing layout.',
     },
-    {
-      title: 'Mobile Optimization',
-      description:
-        'Removed unnecessary double padding on mobile screens, reclaiming critical screen real estate for an uncompromised mobile writing experience.',
-    },
   ] as const
 
   return (
@@ -673,8 +672,8 @@ function Slide08Solution02() {
             <p className={`${OVERLINE} text-yellow-300`}>Unpacking the Solution 02</p>
             <h2 className={`${TITLE} mt-3 text-white`}>Expanding to a 1080px Canvas</h2>
             <p className={`${PROSE} mt-4 max-w-3xl text-white/80`}>
-              Knowledge sharing shouldn&apos;t feel claustrophobic. When creators explain complex AI
-              concepts, they need spatial freedom.
+              Knowledge sharing shouldn&apos;t feel claustrophobic. When creators write an article,
+              they need spatial freedom.
             </p>
           </FadeUp>
 
@@ -752,7 +751,7 @@ function Slide09Solution03() {
                     i > 0 ? 'mt-[clamp(0.15rem,0.4vw,0.25rem)]' : ''
                   }`}
                 >
-                  <span className={`${FEATURE_NUM} text-yellow-300`}>{5 + i}</span>
+                  <span className={`${FEATURE_NUM} text-yellow-300`}>{4 + i}</span>
                   <span className="min-w-0">
                     <strong className="block font-bold uppercase tracking-[-0.02em] text-white opacity-90">
                       {feature.title}

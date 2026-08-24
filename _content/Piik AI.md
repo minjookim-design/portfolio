@@ -30,16 +30,15 @@ These insights shifted my objective from a simple UI tweak to building a **high-
 
 ### Unpacking the Solution 01
 #### The “More is More” Editor Architecture
-To align with the local mental model, I abandoned the restrictive Western-style minimalism and architected a comprehensive, professional-grade toolkit.
+To align with the local mental model, I abandoned the restrictive North American Style minimalism and architected a comprehensive, professional-grade toolkit.
 *   **High-Density Formatting:** Introduced robust text formatting options, font size adjustments, and precise styling controls to give creators immediate, high-precision control over their narratives.
 *   **Rich Media Integration:** Integrated specialized blocks specifically designed for technical creators, including Code Block support, Media Captioning, and Interactive Polling features.
 
 ### Unpacking the Solution 02
 #### Expanding to a 1080px Canvas
-Knowledge sharing shouldn't feel claustrophobic. When creators explain complex AI concepts, they need spatial freedom.
+Knowledge sharing shouldn't feel claustrophobic. When creators write an article, they need spatial freedom.
 <video src="/piikai/max-width-faster.mp4" autoplay loop muted playsinline></video>
 *   **Breaking the MVP Constraints:** The original text area was confined to a narrow 660px (below the 700px industry standard). I expanded the maximum width to **1080px**, providing a scalable and comfortable reading/writing layout.
-*   **Mobile Optimization:** Removed unnecessary double padding on mobile screens, reclaiming critical screen real estate for an uncompromised mobile writing experience.
 
 ### Unpacking the Solution 03
 #### Fail-Safe Draft System

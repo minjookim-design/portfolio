@@ -42,6 +42,11 @@ const DECK_HEADER_TYPE =
   "font-['SUIT_Variable',sans-serif] text-[clamp(0.4rem,0.85vw,0.54rem)] font-normal uppercase leading-snug tracking-[0.06em] text-black/45 dark:text-white/50"
 const CHROME_BTN =
   'rounded-none border px-[clamp(0.5rem,1.2vw,0.75rem)] py-[clamp(0.3rem,0.7vw,0.45rem)]'
+/** Phase rail — 70% of META_SUIT + CHROME_BTN. */
+const PHASE_NAV_TYPE =
+  "font-['SUIT_Variable',sans-serif] text-[clamp(0.39375rem,0.84vw,0.525rem)] font-bold not-italic uppercase leading-[1.2] tracking-[-0.02em]"
+const PHASE_NAV_BTN =
+  'rounded-none border px-[clamp(0.35rem,0.84vw,0.525rem)] py-[clamp(0.21rem,0.49vw,0.315rem)]'
 /** Intrinsic-size hug removed — media always fills its frame. */
 const MEDIA_FILL =
   'block h-full w-full max-h-full max-w-full object-contain object-center'
@@ -173,13 +178,13 @@ function ImagePlaceholder({
 
 function UxPhaseNav({ active }: { active: UxPhaseIndex }) {
   return (
-    <div className="flex w-max flex-col items-stretch gap-[clamp(0.2rem,0.5vw,0.3rem)]">
+    <div className="flex w-max flex-col items-stretch gap-[clamp(0.14rem,0.35vw,0.21rem)]">
       {UX_PHASES.map((label, i) => {
         const on = i === active
         return (
           <span
             key={label}
-            className={`${META_SUIT} ${CHROME_BTN} w-full text-left ${
+            className={`${PHASE_NAV_TYPE} ${PHASE_NAV_BTN} w-full text-left ${
               on
                 ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
                 : 'border-[#c0bcb0] bg-transparent text-black/70 dark:border-white/25 dark:text-white/65'
@@ -202,19 +207,6 @@ function InsightBadge({ children }: { children: ReactNode }) {
     </span>
   )
 }
-
-function ArrowCallout({ children }: { children: ReactNode }) {
-  return (
-    <p className={`${SUBHEAD} mt-4 flex gap-2`}>
-      <span className="shrink-0 text-blue-600 dark:text-blue-400" aria-hidden>
-        →
-      </span>
-      <span>{children}</span>
-    </p>
-  )
-}
-
-/* ─── Slides (PDF order 1–22) ─────────────────────────────────────────────── */
 
 function Slide01Title() {
   const { isDark } = usePageTheme()
@@ -418,29 +410,39 @@ function Slide07LookAtProduct() {
 function Slide08DriverApprovalPage() {
   return (
     <SlideShell tone="white">
-      <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="flex min-h-0 flex-col gap-6">
+      <div className="grid h-full min-h-0 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="flex min-h-0 min-w-0 flex-col gap-6">
           <FadeUp>
             <h2 className={TITLE}>Driver approval page</h2>
-            <p className={`${PROSE} mt-4 max-w-2xl`}>
-              The support team currently has to click the &quot;Click to View&quot; button to access
-              each driver&apos;s document image, requiring them to repeat this process for all nine
-              documents per driver. This results in significant time loss when reviewing multiple
-              drivers.
-            </p>
-            <p className={`${PROSE} mt-4 max-w-2xl`}>
-              Clicking the &quot;View&quot; button opens a popup displaying the document information,
-              where the support person decides whether to approve or reject it. This process requires
-              three clicks per document.
-            </p>
-            <ArrowCallout>
-              To speed up the approval process, document images should be visible without requiring
-              a click. If the document image is directly visible on the detail page instead of in a
-              popup, the extra step becomes unnecessary — reducing the approval process by one click
-              per document.
-            </ArrowCallout>
           </FadeUp>
-          <FadeUp delay={0.12} className="min-h-0 flex-1">
+
+          <div className="grid w-full auto-rows-fr grid-cols-1 items-stretch gap-6 md:grid-cols-3">
+            <CatalystQuoteCard index={1} title="Click-to-View Friction" delay={0.04}>
+              <p className="m-0">
+                The support team currently has to click the &quot;Click to View&quot; button to access
+                each driver&apos;s document image, requiring them to repeat this process for all nine
+                documents per driver. This results in significant time loss when reviewing multiple
+                drivers.
+              </p>
+            </CatalystQuoteCard>
+            <CatalystQuoteCard index={2} title="Popup Approval Flow" delay={0.1}>
+              <p className="m-0">
+                Clicking the &quot;View&quot; button opens a popup displaying the document information,
+                where the support person decides whether to approve or reject it. This process
+                requires three clicks per document.
+              </p>
+            </CatalystQuoteCard>
+            <CatalystQuoteCard index={3} title="Opportunity: Zero-Click Preview" delay={0.16}>
+              <p className="m-0">
+                To speed up the approval process, document images should be visible without requiring
+                a click. If the document image is directly visible on the detail page instead of in a
+                popup, the extra step becomes unnecessary — reducing the approval process by one click
+                per document.
+              </p>
+            </CatalystQuoteCard>
+          </div>
+
+          <FadeUp delay={0.2} className="min-h-0 flex-1">
             <figure className="m-0 flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-none border border-[#c0bcb0] dark:border-white/15">
               <div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-black/5 dark:bg-black/40">
                 <video
@@ -450,6 +452,7 @@ function Slide08DriverApprovalPage() {
                   loop
                   muted
                   playsInline
+                  controls
                 />
               </div>
             </figure>

@@ -961,7 +961,7 @@ export function TestPiik() {
           ]}
           featureStartIndexBySection={{
             'Unpacking the Solution 02': 3,
-            'Unpacking the Solution 03': 5,
+            'Unpacking the Solution 03': 4,
           }}
           heroLayout="aside"
           hero={
