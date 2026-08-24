@@ -428,47 +428,16 @@ function Slide08DriverApprovalPage() {
               documents per driver. This results in significant time loss when reviewing multiple
               drivers.
             </p>
-            <ArrowCallout>
-              To speed up the approval process, document images should be visible without requiring
-              a click, allowing for quicker verification.
-            </ArrowCallout>
-          </FadeUp>
-          <FadeUp delay={0.12} className="min-h-0 flex-1">
-            <figure className="m-0 flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-none border border-[#c0bcb0] dark:border-white/15">
-              <div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-black/5 dark:bg-black/40">
-                <img
-                  src="/hovr/driver-approval-flow.jpg"
-                  alt="Self-Enrolled Drivers list with click callout into document Click to view detail"
-                  className={MEDIA_FILL}
-                />
-              </div>
-            </figure>
-          </FadeUp>
-        </div>
-        <FadeUp delay={0.1} className="sticky top-0 self-start justify-self-end">
-          <UxPhaseNav active={0} />
-        </FadeUp>
-      </div>
-    </SlideShell>
-  )
-}
-
-function Slide09DriverApprovalProcess() {
-  return (
-    <SlideShell tone="white">
-      <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="flex min-h-0 flex-col gap-6">
-          <FadeUp>
-            <h2 className={TITLE}>Driver approval process</h2>
             <p className={`${PROSE} mt-4 max-w-2xl`}>
               Clicking the &quot;View&quot; button opens a popup displaying the document information,
               where the support person decides whether to approve or reject it. This process requires
               three clicks per document.
             </p>
             <ArrowCallout>
-              If the document image is directly visible on the detail page instead of in a popup, the
-              extra step becomes unnecessary, reducing the approval process by one click per
-              document.
+              To speed up the approval process, document images should be visible without requiring
+              a click. If the document image is directly visible on the detail page instead of in a
+              popup, the extra step becomes unnecessary — reducing the approval process by one click
+              per document.
             </ArrowCallout>
           </FadeUp>
           <FadeUp delay={0.12} className="min-h-0 flex-1">
@@ -785,11 +754,6 @@ const SLIDES: SlideDef[] = [
   { id: '04-ux', label: 'UX', render: () => <Slide04UxIndex /> },
   { id: '07-product', label: 'Product', render: () => <Slide07LookAtProduct /> },
   { id: '08-approval-page', label: 'Approval page', render: () => <Slide08DriverApprovalPage /> },
-  {
-    id: '09-approval-process',
-    label: 'Approval process',
-    render: () => <Slide09DriverApprovalProcess />,
-  },
   { id: '10-interview', label: 'User Interview', render: () => <Slide10UserInterview /> },
   { id: '16-final', label: 'Final Solution', render: () => <Slide16FinalSolution /> },
   {
