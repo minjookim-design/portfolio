@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   motion,
   useMotionValue,
@@ -9,6 +10,7 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
+import { PortfolioPopupTitleBar } from './components/PortfolioPopupShell'
 import { useTestProjectSheetChrome } from './context/TestProjectSheetChromeContext'
 import {
   MD_DETAIL_SHEET,
@@ -25,6 +27,9 @@ const FULL_PAGE_THRESHOLD = 0.85
 
 /** Match SYSTEM_CORE chrome: hairline border + invert on hover. */
 const BACK_CONTROL = 'pointer-events-auto system-core-button'
+
+const PORTFOLIO_POPUP_SHEET_BORDER =
+  'border-[0.5px] border-[color:var(--color-blueprint-hairline)]'
 
 function CloseGlyph() {
   return (
@@ -55,6 +60,14 @@ type TestProjectDetailShellProps = {
   sheetClassName?: string
   /** Inline styles on the expanding sheet (e.g. `--active-section-bg`). */
   sheetStyle?: CSSProperties
+  /** Win95 title bar + popup shell chrome (About Me style). */
+  popupChrome?: 'portfolio'
+  /** Title for portfolio popup chrome. */
+  popupTitle?: string
+  /** Override portfolio title bar surface (e.g. project brand color). */
+  popupTitleBarClassName?: string
+  /** Override portfolio title bar label color. */
+  popupTitleBarTitleClassName?: string
 }
 
 /**
@@ -68,12 +81,19 @@ export function TestProjectDetailShell({
   backTo = '/',
   sheetClassName,
   sheetStyle,
+  popupChrome,
+  popupTitle,
+  popupTitleBarClassName,
+  popupTitleBarTitleClassName,
 }: TestProjectDetailShellProps) {
+  const navigate = useNavigate()
   const localScrollRef = useRef<HTMLDivElement>(null)
   const scrollRef = scrollRefProp ?? localScrollRef
   const reduceMotion = useReducedMotion()
   const sheetChrome = useTestProjectSheetChrome()
   const setSheetFullPage = sheetChrome?.setSheetFullPage
+  const portfolioPopup = popupChrome === 'portfolio'
+  const [showPopupTitleBar, setShowPopupTitleBar] = useState(true)
 
   const expandRaw = useMotionValue(0)
   const expand = useSpring(expandRaw, { stiffness: 140, damping: 28, mass: 0.85 })
@@ -87,6 +107,7 @@ export function TestProjectDetailShell({
   useEffect(() => {
     expandRaw.set(0)
     setSheetFullPage?.(false)
+    setShowPopupTitleBar(true)
     return () => {
       setSheetFullPage?.(null)
     }
@@ -96,14 +117,26 @@ export function TestProjectDetailShell({
     if (!reduceMotion) return
     expandRaw.set(1)
     setSheetFullPage?.(true)
+    setShowPopupTitleBar(false)
   }, [reduceMotion, expandRaw, setSheetFullPage])
 
   useMotionValueEvent(expand, 'change', (value) => {
     setSheetFullPage?.(value >= FULL_PAGE_THRESHOLD)
+    setShowPopupTitleBar(value < FULL_PAGE_THRESHOLD)
   })
 
-  return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-transparent text-white">
+  const handleClose = () => {
+    navigate(backTo)
+  }
+
+  const shell = (
+    <div
+      className={
+        portfolioPopup
+          ? 'fixed inset-0 z-[var(--portfolio-popup-z)] flex flex-col bg-transparent text-white'
+          : 'fixed inset-0 z-[100] flex flex-col bg-transparent text-white'
+      }
+    >
       {/* Soft scrim over the live homepage; clears as the sheet expands to full page. */}
       <motion.div
         className="pointer-events-none absolute inset-0 bg-black/45"
@@ -111,18 +144,21 @@ export function TestProjectDetailShell({
         aria-hidden
       />
 
-      <div
-        className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center ${MD_TOP_APP_BAR}`}
-      >
-        <Link to={backTo} className={BACK_CONTROL} aria-label={backLabel}>
-          <CloseGlyph />
-        </Link>
-      </div>
+      {!portfolioPopup ? (
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center ${MD_TOP_APP_BAR}`}
+        >
+          <Link to={backTo} className={BACK_CONTROL} aria-label={backLabel}>
+            <CloseGlyph />
+          </Link>
+        </div>
+      ) : null}
 
       <motion.div
+        {...(portfolioPopup ? { 'data-portfolio-popup': true } : {})}
         className={`theme-surface-transition relative flex min-h-0 flex-1 flex-col overflow-hidden @container/project-popup ${MD_INK} ${
-          sheetClassName ?? MD_DETAIL_SHEET
-        }`}
+          portfolioPopup ? PORTFOLIO_POPUP_SHEET_BORDER : ''
+        } ${sheetClassName ?? MD_DETAIL_SHEET}`}
         style={{
           marginLeft: marginX,
           marginRight: marginX,
@@ -133,6 +169,14 @@ export function TestProjectDetailShell({
         }}
         transition={{ duration: 0.45, ease: EASE }}
       >
+        {portfolioPopup && popupTitle && showPopupTitleBar ? (
+          <PortfolioPopupTitleBar
+            title={popupTitle}
+            onClose={handleClose}
+            className={popupTitleBarClassName}
+            titleClassName={popupTitleBarTitleClassName}
+          />
+        ) : null}
         <div
           ref={scrollRef}
           className="min-h-0 flex-1 overflow-y-auto scroll-smooth"
@@ -148,4 +192,10 @@ export function TestProjectDetailShell({
       </motion.div>
     </div>
   )
+
+  if (portfolioPopup && typeof document !== 'undefined') {
+    return createPortal(shell, document.body)
+  }
+
+  return shell
 }

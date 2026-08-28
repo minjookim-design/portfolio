@@ -82,7 +82,7 @@ type CenterKey = 'default' | 'zoom' | 'resize' | 'view'
 const CAD_LINE_STYLE: CSSProperties = {
   position: 'fixed',
   pointerEvents: 'none',
-  zIndex: 99999,
+  zIndex: 1,
   boxSizing: 'border-box',
   flexShrink: 0,
 }
@@ -202,7 +202,7 @@ export function DraftingCursor() {
       ) : null}
       {centerKey !== 'default' ? (
         <motion.div
-          className="pointer-events-none fixed left-0 top-0 z-[100000] size-0 overflow-visible rounded-none will-change-transform"
+          className="pointer-events-none fixed left-0 top-0 z-[2] size-0 overflow-visible rounded-none will-change-transform"
           /* Raw motion values: hub must sit on the real pointer (springs on `sx`/`sy` lag — obvious on resize drags). */
           style={{ x, y }}
         >

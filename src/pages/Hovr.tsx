@@ -615,7 +615,13 @@ export function HovrSolutionOneSection({ section }: { section: TestProjectSectio
   )
 }
 
-export function Hovr() {
+export function Hovr({
+  backTo = '/',
+  backLabel = 'Back to home',
+}: {
+  backTo?: string
+  backLabel?: string
+} = {}) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(HOVR_BG_HERO)
@@ -640,7 +646,12 @@ export function Hovr() {
     return (
       <TestProjectDetailShell
         scrollRef={scrollRef}
-        backTo="/"
+        backTo={backTo}
+        backLabel={backLabel}
+        popupChrome="portfolio"
+        popupTitle={vault.title}
+        popupTitleBarClassName="bg-[#2b3531] dark:bg-[#2b3531]"
+        popupTitleBarTitleClassName="text-[#f2f2f2]"
         sheetClassName={`rounded-none bg-[var(--active-section-bg)] transition-colors duration-500 ease-in-out will-change-colors ${
           surfaceDark ? 'dark' : ''
         }`}

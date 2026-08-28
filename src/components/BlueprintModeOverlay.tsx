@@ -1,6 +1,6 @@
 /**
  * Blueprint layout mode: grid overlay + `html.blueprint-enabled` outlines.
- * Fixed SYSTEM_CORE toggle matches home (`PillNav` / theme rail offset) on every route including `/deck`.
+ * Fixed SYSTEM GRID toggle — bottom-right on every route including `/deck`.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -58,17 +58,17 @@ export function BlueprintModeOverlay() {
       ? createPortal(<div className="blueprint-grid-overlay" aria-hidden />, document.body)
       : null
 
-  /** Aligned with `ThemeToggle` (`PillNav`): same `top` / safe-area `right`; offset = 2×29px rail + frame + gap. */
+  /** Bottom-right corner; inset matches page margin (`--portfolio-chrome-top` on `/test-home-3`). */
   const toggleButton =
     typeof document !== 'undefined'
       ? createPortal(
           <button
             type="button"
-            className="blueprint-mode-toggle fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-[calc(max(1rem,env(safe-area-inset-right,0px))+61px+0.5rem)] z-[99999]"
+            className="blueprint-mode-toggle fixed bottom-[max(var(--portfolio-chrome-top,1rem),env(safe-area-inset-bottom,0px))] right-[max(var(--portfolio-chrome-top,1rem),env(safe-area-inset-right,0px))] z-[99999]"
             onClick={toggle}
             aria-pressed={on}
           >
-            {on ? '[ SYSTEM_CORE: ON ]' : '[ SYSTEM_CORE: OFF ]'}
+            {on ? '[ SYSTEM GRID: ON ]' : '[ SYSTEM GRID: OFF ]'}
           </button>,
           document.body,
         )

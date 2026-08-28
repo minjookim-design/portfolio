@@ -103,12 +103,26 @@ function mediaSrc(node: ReactNode): string {
 /** Original (left) starts this many ms before New Solution (right). */
 const SYNCED_PAIR_LEFT_LEAD_MS = 1000
 
-function SyncedBeforeAfterPair({
+export function SyncedBeforeAfterPair({
   left,
   right,
+  playbackSpeed = 1,
+  loopPauseMs = 2000,
+  leftStartOffset = 0,
+  rightStartOffset = 0,
+  captionClassName,
 }: {
   left: { src: string; label: string }
   right: { src: string; label: string }
+  /** Multiplier on default left (0.5×) / right (1×) rates and lead delay. */
+  playbackSpeed?: number
+  /** Hold on last frame before restart; `0` loops immediately. */
+  loopPauseMs?: number
+  /** Seconds to skip from the start of each clip (applied on every loop). */
+  leftStartOffset?: number
+  rightStartOffset?: number
+  /** Override figcaption typography (e.g. gallery embed inherits scaled SUIT). */
+  captionClassName?: string
 }) {
   const leftRef = useRef<HTMLVideoElement>(null)
   const rightRef = useRef<HTMLVideoElement>(null)
@@ -121,8 +135,8 @@ function SyncedBeforeAfterPair({
     const a = leftRef.current
     const b = rightRef.current
     if (!a || !b) return
-    a.playbackRate = 0.5
-    b.playbackRate = 1
+    a.playbackRate = 0.5 * playbackSpeed
+    b.playbackRate = 1 * playbackSpeed
     if (rightDelayTimerRef.current) {
       clearTimeout(rightDelayTimerRef.current)
       rightDelayTimerRef.current = null
@@ -133,9 +147,9 @@ function SyncedBeforeAfterPair({
       rightDelayTimerRef.current = setTimeout(() => {
         rightDelayTimerRef.current = null
         void b.play().catch(() => {})
-      }, SYNCED_PAIR_LEFT_LEAD_MS)
+      }, SYNCED_PAIR_LEFT_LEAD_MS / playbackSpeed)
     })
-  }, [])
+  }, [playbackSpeed])
 
   const seekBothToStart = useCallback(() => {
     const a = leftRef.current
@@ -149,10 +163,10 @@ function SyncedBeforeAfterPair({
       rightDelayTimerRef.current = null
     }
 
-    const seekToZero = (video: HTMLVideoElement) =>
+    const seekToStart = (video: HTMLVideoElement, start: number) =>
       new Promise<void>((resolve) => {
-        if (video.currentTime < 0.05) {
-          video.currentTime = 0
+        if (Math.abs(video.currentTime - start) < 0.05) {
+          video.currentTime = start
           resolve()
           return
         }
@@ -164,15 +178,17 @@ function SyncedBeforeAfterPair({
           resolve()
         }
         video.addEventListener('seeked', done)
-        video.currentTime = 0
+        video.currentTime = start
         window.setTimeout(done, 250)
       })
 
-    void Promise.all([seekToZero(a), seekToZero(b)]).then(() => {
-      seekingRef.current = false
-      playBothNow()
-    })
-  }, [playBothNow])
+    void Promise.all([seekToStart(a, leftStartOffset), seekToStart(b, rightStartOffset)]).then(
+      () => {
+        seekingRef.current = false
+        playBothNow()
+      },
+    )
+  }, [leftStartOffset, playBothNow, rightStartOffset])
 
   const tryStart = useCallback(() => {
     const a = leftRef.current
@@ -207,10 +223,14 @@ function SyncedBeforeAfterPair({
         b.currentTime = Math.max(0, b.duration - 0.05)
       }
       if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
-      pauseTimerRef.current = setTimeout(() => {
-        pauseTimerRef.current = null
+      if (loopPauseMs <= 0) {
         seekBothToStart()
-      }, 2000)
+      } else {
+        pauseTimerRef.current = setTimeout(() => {
+          pauseTimerRef.current = null
+          seekBothToStart()
+        }, loopPauseMs)
+      }
     }
     const onRightEnded = () => {
       const r = rightRef.current
@@ -246,12 +266,16 @@ function SyncedBeforeAfterPair({
         rightDelayTimerRef.current = null
       }
     }
-  }, [left.src, right.src, seekBothToStart, tryStart])
+  }, [left.src, right.src, leftStartOffset, rightStartOffset, loopPauseMs, seekBothToStart, tryStart])
 
   const items = [
-    { ref: leftRef, ...left, rate: 0.5 },
-    { ref: rightRef, ...right, rate: 1 },
+    { ref: leftRef, ...left, rate: 0.5 * playbackSpeed },
+    { ref: rightRef, ...right, rate: 1 * playbackSpeed },
   ] as const
+
+  const figcaptionClass =
+    captionClassName ??
+    "flex flex-row items-start gap-3 font-['SUIT_Variable',sans-serif] text-[11pt] font-bold leading-[1.2] tracking-[-0.02em] text-[color:var(--color-muted,#666666)] dark:text-white/75"
 
   return (
     <div className="my-8 grid grid-cols-1 items-start gap-[4px] md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-start">
@@ -275,7 +299,7 @@ function SyncedBeforeAfterPair({
             />
           </div>
           {item.label ? (
-            <figcaption className="flex flex-row items-start gap-3 font-['SUIT_Variable',sans-serif] text-[11pt] font-bold leading-[1.2] tracking-[-0.02em] text-[color:var(--color-muted,#666666)] dark:text-white/75">
+            <figcaption className={figcaptionClass}>
               <span className="w-6 shrink-0 opacity-60 tabular-nums">{i + 1}</span>
               <span className="min-w-0 uppercase tracking-[-0.02em] text-black opacity-90 dark:text-[#f2f2f2]">
                 {item.label}

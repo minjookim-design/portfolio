@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { motion, useReducedMotion, type TargetAndTransition, type Transition } from 'framer-motion'
 import piikMarkdown from '../_content/Piik AI.md?raw'
 import {
   enrichVaultBody,
@@ -88,6 +88,89 @@ const PIIK_SECTION_THEME: Record<string, 'light' | 'dark'> = {
 }
 
 const IMPACT_VIEWPORT = { once: true, margin: '-100px' } as const
+
+type ImpactRevealTransition = Transition
+type ImpactRevealTarget = TargetAndTransition
+
+/** Off-scroll embeds (gallery hover) — use `animate` on mount instead of `whileInView`. */
+function impactRevealProps(
+  animateOnMount: boolean,
+  reduceMotion: boolean | null,
+  viewport: typeof IMPACT_VIEWPORT,
+  visible: ImpactRevealTarget,
+  hidden: ImpactRevealTarget = { opacity: 0 },
+  transition?: ImpactRevealTransition,
+) {
+  if (reduceMotion) return { initial: false as const }
+  if (animateOnMount) return { initial: hidden, animate: visible, transition }
+  return { initial: hidden, whileInView: visible, viewport, transition }
+}
+
+/** Scale full graph to fit a narrow column (gallery preview). */
+function FitToWidthShell({
+  children,
+  onLayoutChange,
+}: {
+  children: ReactNode
+  onLayoutChange?: () => void
+}) {
+  const shellRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [layout, setLayout] = useState({ scale: 1, height: 0 })
+
+  useLayoutEffect(() => {
+    const shell = shellRef.current
+    const content = contentRef.current
+    if (!shell || !content) return
+
+    const update = () => {
+      const available = shell.clientWidth
+      const naturalW = content.offsetWidth
+      const naturalH = content.offsetHeight
+      const scale = naturalW > 0 ? Math.min(1, available / naturalW) : 1
+      setLayout({ scale, height: naturalH * scale })
+    }
+
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(shell)
+    ro.observe(content)
+    return () => ro.disconnect()
+  }, [])
+
+  useLayoutEffect(() => {
+    onLayoutChange?.()
+  }, [layout.scale, layout.height, onLayoutChange])
+
+  return (
+    <div
+      ref={shellRef}
+      className="w-full max-w-full overflow-hidden"
+      style={layout.height > 0 ? { height: layout.height } : undefined}
+    >
+      <div
+        ref={contentRef}
+        className="inline-block w-max max-w-none origin-top-left"
+        style={{ transform: `scale(${layout.scale})` }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Map a marker's visual center into `root`'s local SVG coordinate space. */
+function markerPointInRoot(marker: HTMLElement, root: HTMLElement) {
+  const markerRect = marker.getBoundingClientRect()
+  const rootRect = root.getBoundingClientRect()
+  const scaleX = root.offsetWidth > 0 ? rootRect.width / root.offsetWidth : 1
+  const scaleY = root.offsetHeight > 0 ? rootRect.height / root.offsetHeight : 1
+  return {
+    x: (markerRect.left + markerRect.width / 2 - rootRect.left) / scaleX,
+    y: (markerRect.top + markerRect.height / 2 - rootRect.top) / scaleY,
+  }
+}
+
 /** Strongest ease-in-out (expo) for graph storytelling motion. */
 const GRAPH_EASE = [0.87, 0, 0.13, 1] as const
 
@@ -420,7 +503,14 @@ function PiikSolution01FeatureMedia({
 }
 
 /** Impact graph: 16 tickets → pains → 4 tickets → solutions → line → −75%. */
-export function PiikImpactStoryGraph() {
+export function PiikImpactStoryGraph({
+  hideCaption = false,
+  embed = false,
+}: {
+  hideCaption?: boolean
+  /** Gallery column embed: same graph as the Piik page, animate on mount, scale to fit width. */
+  embed?: boolean
+} = {}) {
   const reduceMotion = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const beforeBarRef = useRef<HTMLSpanElement>(null)
@@ -434,14 +524,13 @@ export function PiikImpactStoryGraph() {
     const before = beforeBarRef.current
     const after = afterBarRef.current
     if (!root || !before || !after) return
-    const rootBox = root.getBoundingClientRect()
-    const beforeBox = before.getBoundingClientRect()
-    const afterBox = after.getBoundingClientRect()
+    const start = markerPointInRoot(before, root)
+    const end = markerPointInRoot(after, root)
     setLine({
-      x1: beforeBox.left + beforeBox.width / 2 - rootBox.left,
-      y1: beforeBox.top + beforeBox.height / 2 - rootBox.top,
-      x2: afterBox.left + afterBox.width / 2 - rootBox.left,
-      y2: afterBox.top + afterBox.height / 2 - rootBox.top,
+      x1: start.x,
+      y1: start.y,
+      x2: end.x,
+      y2: end.y,
     })
   }, [])
 
@@ -489,9 +578,13 @@ export function PiikImpactStoryGraph() {
     ]
     const timers = msMarks.map((ms) => window.setTimeout(updateConnector, ms))
     window.addEventListener('resize', updateConnector)
+    const rootEl = rootRef.current
+    const ro = rootEl ? new ResizeObserver(updateConnector) : null
+    if (rootEl && ro) ro.observe(rootEl)
     return () => {
       timers.forEach((id) => window.clearTimeout(id))
       window.removeEventListener('resize', updateConnector)
+      ro?.disconnect()
     }
   }, [
     afterBarDelay,
@@ -528,73 +621,95 @@ export function PiikImpactStoryGraph() {
     ? { left: (line.x1 + line.x2) / 2, top: (line.y1 + line.y2) / 2 }
     : null
 
-  return (
+  const reveal = (
+    visible: ImpactRevealTarget,
+    hidden?: ImpactRevealTarget,
+    transition?: ImpactRevealTransition,
+  ) => impactRevealProps(embed, reduceMotion, IMPACT_VIEWPORT, visible, hidden, transition)
+
+  const painColClass = 'flex w-[190px] flex-col gap-2 md:w-[220px]'
+  const graphRootClass =
+    'relative mx-auto flex h-[400px] w-full max-w-5xl items-end justify-center gap-10 overflow-visible md:gap-16'
+  const graphGroupClass = 'relative z-10 flex items-end gap-4'
+  const labelType =
+    "font-['IBM_Plex_Mono',monospace] text-[9px] uppercase tracking-[0.08em]"
+  const bodyType =
+    "font-['SUIT_Variable',sans-serif] text-[11pt] font-medium tracking-tight"
+  const solutionBodyType =
+    "font-['SUIT_Variable',sans-serif] text-[11pt] font-semibold tracking-tight"
+  const beforeBarClass =
+    'relative flex h-[320px] w-12 origin-bottom flex-col items-center bg-zinc-800 pt-2 dark:bg-zinc-200'
+  const afterBarClass =
+    'relative flex h-[80px] w-12 origin-bottom flex-col items-center bg-blue-600 pt-1.5'
+  const barLabelClass =
+    "pointer-events-none absolute top-2 left-1/2 z-[1] w-[4.5rem] -translate-x-1/2 text-center font-['SUIT_Variable',sans-serif] text-[10px] font-bold leading-tight tracking-tight"
+  const axisLabelClass =
+    "absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap font-['IBM_Plex_Mono',monospace] text-[10px] uppercase tracking-[0.08em]"
+
+  const graph = (
     <div className="w-full">
-      <div
-        ref={rootRef}
-        className="relative mx-auto flex h-[400px] w-full max-w-5xl items-end justify-center gap-10 overflow-visible md:gap-16"
-      >
+      <div ref={rootRef} className={graphRootClass}>
         <motion.div
-          className="relative z-10 flex items-end gap-4"
-          initial={reduceMotion ? false : { opacity: 0, x: '40%' }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, x: '0%' }}
-          transition={{
-            opacity: { duration: fadeDuration, delay: beforeBarDelay, ease: GRAPH_EASE },
-            x: { duration: beforeSlideDuration, delay: beforeSlideDelay, ease: GRAPH_EASE },
-          }}
-          viewport={IMPACT_VIEWPORT}
+          className={graphGroupClass}
+          {...reveal(
+            { opacity: 1, x: '0%' },
+            { opacity: 0, x: '40%' },
+            {
+              opacity: { duration: fadeDuration, delay: beforeBarDelay, ease: GRAPH_EASE },
+              x: { duration: beforeSlideDuration, delay: beforeSlideDelay, ease: GRAPH_EASE },
+            },
+          )}
         >
-          <div className="flex w-[190px] flex-col gap-2 md:w-[220px]">
+          <div className={painColClass}>
             {IMPACT_MAPPINGS.map((item, index) => (
               <motion.div
                 key={item.pain}
                 className="rounded-none border border-black/10 bg-zinc-100 px-3 py-2.5 dark:border-white/15 dark:bg-zinc-800"
-                initial={reduceMotion ? false : { opacity: 0, x: 28 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-                transition={{
-                  delay: painDelay + index * painStagger,
-                  duration: painDuration,
-                  ease: GRAPH_EASE,
-                }}
-                viewport={IMPACT_VIEWPORT}
+                {...reveal(
+                  { opacity: 1, x: 0 },
+                  { opacity: 0, x: 28 },
+                  {
+                    delay: painDelay + index * painStagger,
+                    duration: painDuration,
+                    ease: GRAPH_EASE,
+                  },
+                )}
               >
-                <p className="font-['IBM_Plex_Mono',monospace] text-[9px] uppercase tracking-[0.08em] text-black/45 dark:text-white/45">
+                <p className={`${labelType} text-black/45 dark:text-white/45`}>
                   Pain point {index + 1}
                 </p>
-                <p className="mt-0.5 font-['SUIT_Variable',sans-serif] text-[11pt] font-medium tracking-tight text-black dark:text-[#f2f2f2]">
+                <p className={`mt-0.5 ${bodyType} text-black dark:text-[#f2f2f2]`}>
                   {item.pain}
                 </p>
               </motion.div>
             ))}
           </div>
-          <div className="relative">
+          <div className="relative shrink-0">
             <motion.span
-              className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap font-['IBM_Plex_Mono',monospace] text-[10px] uppercase tracking-[0.08em] text-black/50 dark:text-white/50"
-              initial={reduceMotion ? false : { opacity: 0 }}
-              whileInView={reduceMotion ? undefined : { opacity: 1 }}
-              transition={{ delay: beforeBarDelay + t(0.15), duration: fadeDuration, ease: GRAPH_EASE }}
-              viewport={IMPACT_VIEWPORT}
+              className={`${axisLabelClass} text-black/50 dark:text-white/50`}
+              {...reveal({ opacity: 1 }, { opacity: 0 }, {
+                delay: beforeBarDelay + t(0.15),
+                duration: fadeDuration,
+                ease: GRAPH_EASE,
+              })}
             >
               Before · 100%
             </motion.span>
             <div className="relative">
               <motion.div
-                className="relative flex h-[320px] w-12 origin-bottom flex-col items-center bg-zinc-800 pt-2 dark:bg-zinc-200"
-                initial={reduceMotion ? false : { scaleY: 0 }}
-                whileInView={reduceMotion ? undefined : { scaleY: 1 }}
-                transition={{
-                  duration: beforeBarDuration,
-                  ease: GRAPH_EASE,
-                  delay: beforeBarDelay,
-                }}
-                viewport={IMPACT_VIEWPORT}
+                className={beforeBarClass}
+                {...reveal(
+                  { scaleY: 1 },
+                  { scaleY: 0 },
+                  { duration: beforeBarDuration, ease: GRAPH_EASE, delay: beforeBarDelay },
+                )}
               >
                 <span
                   ref={beforeBarRef}
                   className="pointer-events-none absolute top-0 left-1/2 size-0 -translate-x-1/2"
                   aria-hidden
                 />
-                <span className="pointer-events-none absolute top-2 left-1/2 z-[1] w-[4.5rem] -translate-x-1/2 text-center font-['SUIT_Variable',sans-serif] text-[10px] font-bold leading-tight tracking-tight text-white dark:text-zinc-900">
+                <span className={`${barLabelClass} text-white dark:text-zinc-900`}>
                   16 Tickets
                 </span>
               </motion.div>
@@ -614,42 +729,41 @@ export function PiikImpactStoryGraph() {
               strokeWidth="1.33"
               strokeLinecap="round"
               strokeDasharray="5 5"
-              initial={{ pathLength: reduceMotion ? 1 : 0 }}
-              whileInView={{ pathLength: 1 }}
-              transition={
-                reduceMotion
-                  ? { duration: 0 }
-                  : { delay: lineDelay, duration: lineDuration, ease: GRAPH_EASE }
-              }
-              viewport={IMPACT_VIEWPORT}
+              {...(reduceMotion
+                ? { initial: { pathLength: 1 }, transition: { duration: 0 } }
+                : {
+                    ...reveal(
+                      { pathLength: 1 },
+                      { pathLength: 0 },
+                      { delay: lineDelay, duration: lineDuration, ease: GRAPH_EASE },
+                    ),
+                  })}
             />
             <motion.circle
               cx={line.x1}
               cy={line.y1}
               r="5"
               fill="#EF4444"
-              initial={{ opacity: reduceMotion ? 1 : 0, scale: reduceMotion ? 1 : 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={
+              {...reveal(
+                { opacity: 1, scale: 1 },
+                { opacity: 0, scale: 0 },
                 reduceMotion
                   ? { duration: 0 }
-                  : { delay: lineDelay, duration: fadeDuration, ease: GRAPH_EASE }
-              }
-              viewport={IMPACT_VIEWPORT}
+                  : { delay: lineDelay, duration: fadeDuration, ease: GRAPH_EASE },
+              )}
             />
             <motion.circle
               cx={line.x2}
               cy={line.y2}
               r="5"
               fill="#EF4444"
-              initial={{ opacity: reduceMotion ? 1 : 0, scale: reduceMotion ? 1 : 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={
+              {...reveal(
+                { opacity: 1, scale: 1 },
+                { opacity: 0, scale: 0 },
                 reduceMotion
                   ? { duration: 0 }
-                  : { delay: endDotDelay, duration: fadeDuration, ease: GRAPH_EASE }
-              }
-              viewport={IMPACT_VIEWPORT}
+                  : { delay: endDotDelay, duration: fadeDuration, ease: GRAPH_EASE },
+              )}
             />
           </svg>
         ) : null}
@@ -658,107 +772,105 @@ export function PiikImpactStoryGraph() {
           <motion.div
             className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-none border border-[#EF4444]/25 bg-white px-3 py-2 dark:border-[#EF4444]/35 dark:bg-zinc-900"
             style={{ left: badgeMid.left - 10, top: badgeMid.top }}
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={
+            {...reveal(
+              { opacity: 1, y: 0 },
+              { opacity: 0, y: 16 },
               reduceMotion
                 ? { duration: 0 }
-                : { delay: badgeDelay, duration: badgeDuration, ease: GRAPH_EASE }
-            }
-            viewport={IMPACT_VIEWPORT}
+                : { delay: badgeDelay, duration: badgeDuration, ease: GRAPH_EASE },
+            )}
           >
-            <p className="font-['IBM_Plex_Mono',monospace] text-[9px] uppercase tracking-[0.08em] text-[#EF4444]/70">
-              Impact
-            </p>
-            <p className="mt-0.5 font-['SUIT_Variable',sans-serif] text-[11pt] font-semibold tracking-tight text-[#EF4444]">
-              −75% Reduced
-            </p>
+            <p className={`${labelType} text-[#EF4444]/70`}>Impact</p>
+            <p className={`mt-0.5 ${solutionBodyType} text-[#EF4444]`}>−75% Reduced</p>
           </motion.div>
         ) : null}
 
         <motion.div
-          className="relative z-10 flex items-end gap-4"
-          initial={reduceMotion ? false : { opacity: 0, x: 20 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-          transition={{
-            opacity: { delay: afterBarDelay, duration: fadeDuration, ease: GRAPH_EASE },
-            x: { delay: afterBarDelay, duration: afterGroupDuration, ease: GRAPH_EASE },
-          }}
-          viewport={IMPACT_VIEWPORT}
+          className={graphGroupClass}
+          {...reveal(
+            { opacity: 1, x: 0 },
+            { opacity: 0, x: 20 },
+            {
+              opacity: { delay: afterBarDelay, duration: fadeDuration, ease: GRAPH_EASE },
+              x: { delay: afterBarDelay, duration: afterGroupDuration, ease: GRAPH_EASE },
+            },
+          )}
         >
-          <div className="relative">
+          <div className="relative shrink-0">
             <motion.span
-              className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap font-['IBM_Plex_Mono',monospace] text-[10px] uppercase tracking-[0.08em] text-blue-600 dark:text-blue-400"
-              initial={reduceMotion ? false : { opacity: 0 }}
-              whileInView={reduceMotion ? undefined : { opacity: 1 }}
-              transition={{ delay: afterBarDelay + t(0.1), duration: fadeDuration, ease: GRAPH_EASE }}
-              viewport={IMPACT_VIEWPORT}
+              className={`${axisLabelClass} text-blue-600 dark:text-blue-400`}
+              {...reveal({ opacity: 1 }, { opacity: 0 }, {
+                delay: afterBarDelay + t(0.1),
+                duration: fadeDuration,
+                ease: GRAPH_EASE,
+              })}
             >
               After · 25%
             </motion.span>
             <div className="relative">
               <motion.div
-                className="relative flex h-[80px] w-12 origin-bottom flex-col items-center bg-blue-600 pt-1.5"
-                initial={reduceMotion ? false : { scaleY: 0 }}
-                whileInView={reduceMotion ? undefined : { scaleY: 1 }}
-                transition={{
-                  delay: afterBarDelay,
-                  duration: afterBarDuration,
-                  ease: GRAPH_EASE,
-                }}
-                viewport={IMPACT_VIEWPORT}
+                className={afterBarClass}
+                {...reveal(
+                  { scaleY: 1 },
+                  { scaleY: 0 },
+                  { delay: afterBarDelay, duration: afterBarDuration, ease: GRAPH_EASE },
+                )}
               >
                 <span
                   ref={afterBarRef}
                   className="pointer-events-none absolute top-0 left-1/2 size-0 -translate-x-1/2"
                   aria-hidden
                 />
-                <span className="pointer-events-none absolute top-1.5 left-1/2 z-[1] w-[4.5rem] -translate-x-1/2 text-center font-['SUIT_Variable',sans-serif] text-[10px] font-bold leading-tight tracking-tight text-white">
-                  4 Tickets
-                </span>
+                <span className={`${barLabelClass} text-white`}>4 Tickets</span>
               </motion.div>
             </div>
           </div>
-          <div className="flex w-[190px] flex-col gap-2 md:w-[220px]">
+          <div className={painColClass}>
             {IMPACT_MAPPINGS.map((item, index) => (
               <motion.div
                 key={item.solution}
                 className="rounded-none bg-blue-600 px-3 py-2.5 text-white"
-                initial={reduceMotion ? false : { opacity: 0, x: -28 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-                transition={{
-                  delay: solutionDelay + index * solutionStagger,
-                  duration: solutionDuration,
-                  ease: GRAPH_EASE,
-                }}
-                viewport={IMPACT_VIEWPORT}
+                {...reveal(
+                  { opacity: 1, x: 0 },
+                  { opacity: 0, x: -28 },
+                  {
+                    delay: solutionDelay + index * solutionStagger,
+                    duration: solutionDuration,
+                    ease: GRAPH_EASE,
+                  },
+                )}
               >
-                <p className="font-['IBM_Plex_Mono',monospace] text-[9px] uppercase tracking-[0.08em] text-white/70">
-                  Solution {index + 1}
-                </p>
-                <p className="mt-0.5 font-['SUIT_Variable',sans-serif] text-[11pt] font-semibold tracking-tight">
-                  {item.solution}
-                </p>
+                <p className={`${labelType} text-white/70`}>Solution {index + 1}</p>
+                <p className={`mt-0.5 ${solutionBodyType}`}>{item.solution}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </div>
 
+      {!hideCaption ? (
       <div className={`mt-6 ${MD_COLS} ${MD_GUTTER}`}>
         <motion.p
           className={`${MD_ARTICLE} font-['SUIT_Variable',sans-serif] text-[10pt] font-normal leading-snug tracking-tight text-zinc-500 dark:text-zinc-400`}
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ delay: captionDelay, duration: afterGroupDuration, ease: GRAPH_EASE }}
-          viewport={IMPACT_VIEWPORT}
+          {...reveal(
+            { opacity: 1, y: 0 },
+            { opacity: 0, y: 8 },
+            { delay: captionDelay, duration: afterGroupDuration, ease: GRAPH_EASE },
+          )}
         >
           The remaining 4 complaint tickets were related to internal policy constraints that could
           not be resolved immediately. Effectively, 100% of the user complaints directly related to
           the Editor Tool&apos;s UX/UI design were resolved through this update.
         </motion.p>
       </div>
+      ) : null}
     </div>
+  )
+
+  return embed ? (
+    <FitToWidthShell onLayoutChange={updateConnector}>{graph}</FitToWidthShell>
+  ) : (
+    graph
   )
 }
 
@@ -901,6 +1013,10 @@ export function TestPiik() {
       <TestProjectDetailShell
         scrollRef={scrollRef}
         backTo="/"
+        popupChrome="portfolio"
+        popupTitle={vault.title}
+        popupTitleBarClassName="bg-[#24324A] dark:bg-[#24324A]"
+        popupTitleBarTitleClassName="text-[#f2f2f2]"
         sheetClassName={`rounded-none bg-[var(--active-section-bg)] transition-colors duration-500 ease-in-out will-change-colors ${
           surfaceDark ? 'dark' : ''
         }`}

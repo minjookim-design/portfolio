@@ -5,6 +5,8 @@ import { MobileQuickNav } from './components/MobileQuickNav'
 import { HomeMobileProjectProvider } from './context/HomeMobileProjectContext'
 import { useRedirectHomeWhenDesktop } from './hooks/useRedirectHomeWhenDesktop'
 import { HomePage } from './pages/HomePage'
+import { HomePageClassic } from './pages/HomePageClassic'
+import { TestHomePage3 } from './pages/TestHomePage3'
 import { TestPage } from './pages/TestPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { HovrProjectPage } from './pages/HovrProjectPage'
@@ -12,6 +14,7 @@ import { JojoProjectPage } from './pages/JojoProjectPage'
 import { PiikProjectPage } from './pages/PiikProjectPage'
 import { ArFittingProjectPage } from './pages/ArFittingProjectPage'
 import { ProjectBmadPage } from './pages/ProjectBmadPage'
+import { AboutPage } from './pages/AboutPage'
 import { Deck } from './pages/Deck'
 import { FooterEmail } from './components/FooterEmail'
 
@@ -45,6 +48,10 @@ function AppShell() {
     pathname === '/test' ||
     pathname === '/test-home' ||
     pathname.startsWith('/test-home/') ||
+    pathname === '/test-home-3' ||
+    pathname.startsWith('/test-home-3/') ||
+    pathname === '/test-home-classic' ||
+    pathname.startsWith('/test-home-classic/') ||
     pathname === '/deck' ||
     isStandaloneDeck
 
@@ -64,12 +71,20 @@ function AppShell() {
           </Route>
           <Route path="test" element={<TestPage />} />
           <Route path="test-home" element={<TestHome />} />
+          <Route path="test-home-classic" element={<HomePageClassic />}>
+            <Route path="hovr" element={<Hovr backTo="/test-home-classic" backLabel="Back to home" />} />
+            <Route path="piik-ai" element={<TestPiik />} />
+          </Route>
+          <Route path="test-home-3" element={<TestHomePage3 />}>
+            <Route path="hovr" element={<Hovr backTo="/test-home-3" backLabel="Back to test home" />} />
+          </Route>
           {/* Legacy sandbox URLs → promoted home */}
           <Route path="test-home-2" element={<Navigate to="/" replace />} />
           <Route path="test-home-2/hovr" element={<Navigate to="/hovr" replace />} />
           <Route path="test-home-2/piik-ai" element={<Navigate to="/piik-ai" replace />} />
           <Route path="test-hovr" element={<Navigate to="/hovr" replace />} />
           <Route path="test-piik-ai" element={<Navigate to="/piik-ai" replace />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="deck" element={<Deck />} />
           <Route path="hovr-deck" element={<HovrDeck />} />
           <Route path="piik-deck" element={<PiikDeck />} />

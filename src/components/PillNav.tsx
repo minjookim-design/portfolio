@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useIsNarrow } from '../hooks/useIsNarrow'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { usePageTheme } from '../context/PageThemeContext'
+import { AboutMePopupPanel } from './AboutMePopup'
 
 type LucideIcon = React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>
 
@@ -203,7 +205,7 @@ const THEME_MOON_PATH_FILLED =
 
 /** Sun: outline when off; filled when on or on hover/press while off. Block SVG + wrapper avoids baseline offset inside the segment. */
 function ThemeLightAppearanceGlyphs({ selected }: { selected: boolean }) {
-  const svgClass = 'block h-[18px] w-[18px] shrink-0'
+  const svgClass = 'block h-[15.84px] w-[15.84px] shrink-0'
   const core = selected ? (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" className={svgClass}>
       <path d={THEME_SUN_PATH_FILLED} fill="currentColor" />
@@ -228,7 +230,7 @@ function ThemeLightAppearanceGlyphs({ selected }: { selected: boolean }) {
 }
 
 /** Moon slot: outline + filled share the same 20×22px box so hover/active doesn’t resize; scale + parent `place-items` keeps it button-centered. */
-const THEME_MOON_SLOT_CLASS = 'relative block h-[22px] w-5 shrink-0'
+const THEME_MOON_SLOT_CLASS = 'relative block h-[19.36px] w-[17.6px] shrink-0'
 
 function ThemeDarkAppearanceGlyphs({ selected }: { selected: boolean }) {
   const moonSvgClass = 'absolute inset-0 block h-full w-full'
@@ -270,44 +272,249 @@ const themeSegOff =
 const themeSegOn =
   'bg-black text-white dark:bg-white dark:text-black'
 
+const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true'
+const RESUME_URL =
+  'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
+
+const CHROME_INSET_TOP = 'max(var(--portfolio-chrome-top,1rem),env(safe-area-inset-top,0px))'
+const CHROME_INSET_RIGHT = 'max(var(--portfolio-chrome-top,1rem),env(safe-area-inset-right,0px))'
+/** Sit link stack directly above the fixed SYSTEM GRID control. */
+const CHROME_LINKS_BOTTOM =
+  'calc(max(var(--portfolio-chrome-top,1rem),env(safe-area-inset-bottom,0px)) + var(--portfolio-chrome-control-size) + 0.5rem)'
+const CHROME_POPUP_ABOVE_STACK_GAP_PX = 4
+const CHROME_PROFILE_LINK_WIDTH_PX = 100
+const CHROME_PROFILE_LINK_CLASS =
+  'blueprint-mode-toggle box-border grid h-[var(--portfolio-chrome-control-size)] min-h-[var(--portfolio-chrome-control-size)] max-h-[var(--portfolio-chrome-control-size)] w-[100px] min-w-[100px] max-w-[100px] shrink-0 grow-0 grid-cols-[1.15em_minmax(0,1fr)] items-center gap-x-[0.35em] overflow-hidden text-left font-[inherit]'
+
+function ChromeLinkIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex size-[1.15em] items-center justify-center [&>svg]:block">{children}</span>
+  )
+}
+
+/** “I like” fold glyph — used for About me chrome link. */
+function ChromeAboutIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="block shrink-0"
+      style={{ width: '1.15em', height: '1.15em' }}
+    >
+      <path
+        d="M22 20V19H21V18H20V17H19V16H17V15H18V13H19V7H18V5H17V4H16V3H15V2H13V1H7V2H5V3H4V4H3V5H2V7H1V13H2V15H3V16H4V17H5V18H7V19H13V18H15V17H16V19H17V20H18V21H19V22H20V23H22V22H23V20H22ZM12 15V16H8V15H6V14H5V12H4V8H5V6H6V5H8V4H12V5H14V6H15V8H16V12H15V14H14V15H12Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function ChromeLinkedInIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 19 19"
+      fill="none"
+      aria-hidden
+      className="block shrink-0"
+      style={{ width: '1.15em', height: '1.15em' }}
+    >
+      <path
+        d="M17.5 0.833333V0H0.833333V0.833333H0V17.5H0.833333V18.3333H17.5V17.5H18.3333V0.833333H17.5ZM10 9.16667V15.8333H7.5V6.66667H10V7.5H10.8333V6.66667H14.1667V7.5H15V15.8333H12.5V9.16667H10ZM2.5 5.83333V3.33333H5V5.83333H2.5ZM5 6.66667V15.8333H2.5V6.66667H5Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function ChromeResumeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 22 22"
+      fill="none"
+      aria-hidden
+      className="block shrink-0"
+      style={{ width: '1.15em', height: '1.15em' }}
+    >
+      <path
+        d="M19.25 3.6665V8.24984H18.3334V9.1665H17.4167V10.0832H16.5V10.9998H15.5834V11.9165H14.6667V12.8332H13.75V13.7498H12.8334V14.6665H11.9167V15.5832H11V16.4998H10.0834V17.4165H7.33337V16.4998H6.41671V15.5832H5.50004V12.8332H6.41671V11.9165H7.33337V10.9998H8.25004V10.0832H9.16671V9.1665H10.0834V8.24984H11V7.33317H11.9167V6.4165H12.8334V5.49984H13.75V4.58317H14.6667V5.49984H15.5834V7.33317H14.6667V8.24984H13.75V9.1665H12.8334V10.0832H11.9167V10.9998H11V11.9165H10.0834V12.8332H9.16671V13.7498H8.25004V14.6665H10.0834V13.7498H11V12.8332H11.9167V11.9165H12.8334V10.9998H13.75V10.0832H14.6667V9.1665H15.5834V8.24984H16.5V4.58317H15.5834V3.6665H12.8334V4.58317H11.9167V5.49984H11V6.4165H10.0834V7.33317H9.16671V8.24984H8.25004V9.1665H7.33337V10.0832H6.41671V10.9998H5.50004V11.9165H4.58337V16.4998H5.50004V17.4165H6.41671V18.3332H11V17.4165H11.9167V16.4998H12.8334V15.5832H13.75V14.6665H14.6667V13.7498H15.5834V12.8332H16.5V11.9165H17.4167V10.9998H18.3334V11.9165H19.25V13.7498H18.3334V14.6665H17.4167V15.5832H16.5V16.4998H15.5834V17.4165H14.6667V18.3332H13.75V19.2498H12.8334V20.1665H11.9167V21.0832H6.41671V20.1665H4.58337V19.2498H3.66671V18.3332H2.75004V16.4998H1.83337V10.9998H2.75004V10.0832H3.66671V9.1665H4.58337V8.24984H5.50004V7.33317H6.41671V6.4165H7.33337V5.49984H8.25004V4.58317H9.16671V3.6665H10.0834V2.74984H11V1.83317H12.8334V0.916504H16.5V1.83317H17.4167V2.74984H18.3334V3.6665H19.25Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 /** Two-segment radiogroup: light | dark — inverted “on” side reads as power / selection. */
 export function ThemeToggle() {
   const { isDark, setThemePersisted } = usePageTheme()
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const [aboutPopupPosition, setAboutPopupPosition] = useState<{ right: number; bottom: number } | null>(
+    null,
+  )
+  const chromeLinksRef = useRef<HTMLDivElement>(null)
+  const chromeLinkStackRef = useRef<HTMLDivElement>(null)
+  const aboutPopupRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (!aboutOpen) {
+      setAboutPopupPosition(null)
+      return
+    }
+
+    const stack = chromeLinkStackRef.current
+    if (!stack) return
+
+    const updatePosition = () => {
+      const el = chromeLinkStackRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      setAboutPopupPosition({
+        right: Math.round(window.innerWidth - rect.right),
+        bottom: Math.round(window.innerHeight - rect.top + CHROME_POPUP_ABOVE_STACK_GAP_PX),
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    const ro = new ResizeObserver(updatePosition)
+    ro.observe(stack)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+      ro.disconnect()
+    }
+  }, [aboutOpen])
+
+  useEffect(() => {
+    if (!aboutOpen) return
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node
+      if (chromeLinksRef.current?.contains(target)) return
+      if (aboutPopupRef.current?.contains(target)) return
+      setAboutOpen(false)
+    }
+    window.addEventListener('pointerdown', onPointerDown)
+    return () => window.removeEventListener('pointerdown', onPointerDown)
+  }, [aboutOpen])
+
+  const aboutPopupPortal = useMemo(() => {
+    if (typeof document === 'undefined') return null
+    return createPortal(
+      <AnimatePresence>
+        {aboutOpen && aboutPopupPosition ? (
+          <AboutMePopupPanel
+            panelRef={aboutPopupRef}
+            className="z-[var(--portfolio-popup-z)]"
+            style={{
+              right: aboutPopupPosition.right,
+              bottom: aboutPopupPosition.bottom,
+            }}
+            onClose={() => setAboutOpen(false)}
+          />
+        ) : null}
+      </AnimatePresence>,
+      document.body,
+    )
+  }, [aboutOpen, aboutPopupPosition])
 
   return (
-    <motion.div
-      role="radiogroup"
-      aria-label="Color theme"
-      className="absolute z-[110] top-[max(1rem,env(safe-area-inset-top,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] flex h-[29px] min-h-[29px] shrink-0 overflow-hidden rounded-none border border-black/[0.18] font-mono dark:border-white/[0.14]"
-      initial={{ x: 12, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
-      <button
-        type="button"
-        role="radio"
-        aria-checked={!isDark}
-        title="Light appearance"
-        className={`group relative box-border grid min-h-[29px] min-w-[29px] flex-1 place-items-center border-r border-black/[0.18] p-[2px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:border-r-white/[0.14] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${!isDark ? themeSegOn : themeSegOff}`}
-        onClick={() => setThemePersisted(false)}
+    <>
+      <div
+        className="fixed z-[110] flex flex-col items-end"
+        style={{ top: CHROME_INSET_TOP, right: CHROME_INSET_RIGHT }}
       >
-        <span className="pointer-events-none leading-none" aria-hidden>
-          <ThemeLightAppearanceGlyphs selected={!isDark} />
-        </span>
-      </button>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={isDark}
-        title="Dark appearance"
-        className={`group relative box-border grid min-h-[29px] min-w-[29px] flex-1 place-items-center p-[2px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${isDark ? themeSegOn : themeSegOff}`}
-        onClick={() => setThemePersisted(true)}
+        <motion.div
+          role="radiogroup"
+          aria-label="Color theme"
+          className="flex h-[var(--portfolio-chrome-control-size)] min-h-[var(--portfolio-chrome-control-size)] shrink-0 overflow-hidden rounded-none border border-black/[0.18] font-mono dark:border-white/[0.14]"
+          initial={{ x: 12, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!isDark}
+            title="Light appearance"
+            className={`group relative box-border grid min-h-[var(--portfolio-chrome-control-size)] min-w-[var(--portfolio-chrome-control-size)] flex-1 place-items-center border-r border-black/[0.18] p-[1.65px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:border-r-white/[0.14] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${!isDark ? themeSegOn : themeSegOff}`}
+            onClick={() => setThemePersisted(false)}
+          >
+            <span className="pointer-events-none leading-none" aria-hidden>
+              <ThemeLightAppearanceGlyphs selected={!isDark} />
+            </span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={isDark}
+            title="Dark appearance"
+            className={`group relative box-border grid min-h-[var(--portfolio-chrome-control-size)] min-w-[var(--portfolio-chrome-control-size)] flex-1 place-items-center p-[1.65px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf7f0] dark:focus-visible:ring-white/40 dark:focus-visible:ring-offset-[#111111] ${isDark ? themeSegOn : themeSegOff}`}
+            onClick={() => setThemePersisted(true)}
+          >
+            <span className="pointer-events-none leading-none" aria-hidden>
+              <ThemeDarkAppearanceGlyphs selected={isDark} />
+            </span>
+          </button>
+        </motion.div>
+      </div>
+      {aboutPopupPortal}
+      <div
+        ref={chromeLinksRef}
+        className="fixed z-[99998]"
+        style={{
+          bottom: CHROME_LINKS_BOTTOM,
+          right: CHROME_INSET_RIGHT,
+          fontSize: 'var(--portfolio-chrome-label-size)',
+        }}
       >
-        <span className="pointer-events-none leading-none" aria-hidden>
-          <ThemeDarkAppearanceGlyphs selected={isDark} />
-        </span>
-      </button>
-    </motion.div>
+        <div
+          ref={chromeLinkStackRef}
+          className="relative inline-flex shrink-0 grow-0 flex-col items-stretch gap-[0.35em]"
+          style={{ width: CHROME_PROFILE_LINK_WIDTH_PX }}
+        >
+          <button
+            type="button"
+            className={`${CHROME_PROFILE_LINK_CLASS} appearance-none`}
+            aria-label="About me"
+            aria-expanded={aboutOpen}
+            onClick={() => setAboutOpen((open) => !open)}
+          >
+          <ChromeLinkIcon>
+            <ChromeAboutIcon />
+          </ChromeLinkIcon>
+          <span>[ ABOUT ME ]</span>
+        </button>
+        <a
+          href={LINKEDIN_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={CHROME_PROFILE_LINK_CLASS}
+          aria-label="LinkedIn profile"
+        >
+          <ChromeLinkIcon>
+            <ChromeLinkedInIcon />
+          </ChromeLinkIcon>
+          <span>[ LINKEDIN ]</span>
+        </a>
+        <a
+          href={RESUME_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={CHROME_PROFILE_LINK_CLASS}
+          aria-label="Resume (opens in Google Drive)"
+        >
+          <ChromeLinkIcon>
+            <ChromeResumeIcon />
+          </ChromeLinkIcon>
+          <span>[ RESUME ]</span>
+        </a>
+        </div>
+      </div>
+    </>
   )
 }
 
