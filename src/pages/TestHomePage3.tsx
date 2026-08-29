@@ -576,9 +576,9 @@ const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
 const TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT =
   'justify-self-end text-right whitespace-nowrap tabular-nums leading-tight opacity-90'
 
-/** Fun works row — single hit target, invert on hover like classic fold links. */
-const TEST_HOME_PAGE3_GALLERY_FUN_ROW =
-  `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} w-full cursor-pointer rounded-none text-left text-black no-underline text-inherit outline-none transition-colors hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white active:bg-black active:text-white dark:text-white dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black dark:active:bg-white dark:active:text-black`
+/** Fun works row — subgrid row link; hover invert like classic fold links. */
+const TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK =
+  `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} col-span-3 grid grid-cols-subgrid items-baseline gap-x-[0.75em] w-full cursor-pointer rounded-none text-left text-black no-underline text-inherit outline-none transition-colors hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white active:bg-black active:text-white dark:text-white dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black dark:active:bg-white dark:active:text-black`
 
 function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   return {
@@ -1069,7 +1069,7 @@ function GalleryFirstColumnPanels() {
               )}
             </p>
             {(done || stage === 'fun-rows') && (
-              <div className="flex w-full flex-col" style={labelStyle}>
+              <div className={`${tableClass} text-black dark:text-white`} style={labelStyle}>
                 {FUN_WORKS_LINKS.map((item, rowIndex) => {
                   const titleRevealed =
                     done ||
@@ -1097,7 +1097,7 @@ function GalleryFirstColumnPanels() {
                         onComplete={advanceFunCell}
                       />
                     ) : (
-                      cellText
+                      <span className={cellClass}>{cellText}</span>
                     )
 
                   return (
@@ -1106,7 +1106,7 @@ function GalleryFirstColumnPanels() {
                       href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={TEST_HOME_PAGE3_GALLERY_FUN_ROW}
+                      className={TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK}
                     >
                       {renderFunCell(
                         item.title,
