@@ -570,7 +570,11 @@ const TEST_HOME_PAGE3_GALLERY_REF_H = TEST_HOME_PAGE3_GALLERY_ROW_H * 3
 const TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO = 0.042
 const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium uppercase tracking-[-0.02em] leading-[1.15]`
 const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
-  'grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_4.0625rem] items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em] pr-[16%]'
+  'grid w-full grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)] items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em]'
+
+/** Third column — dates, platforms: flush to the column’s right edge. */
+const TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT =
+  'justify-self-end text-right whitespace-nowrap tabular-nums leading-tight opacity-90'
 
 /** Fun works row — single hit target, invert on hover like classic fold links. */
 const TEST_HOME_PAGE3_GALLERY_FUN_ROW =
@@ -1013,7 +1017,7 @@ function GalleryFirstColumnPanels() {
                       {cells.map((cellText, cellIndex) => {
                         const cellClass =
                           cellIndex === 2
-                            ? 'shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90'
+                            ? `shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`
                             : cellIndex === 1
                               ? 'min-w-0 justify-self-start leading-tight opacity-90'
                               : 'min-w-0 justify-self-start leading-tight'
@@ -1113,7 +1117,7 @@ function GalleryFirstColumnPanels() {
                       <span className="min-w-0 justify-self-start leading-tight opacity-90" aria-hidden />
                       {renderFunCell(
                         item.platform,
-                        'shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90',
+                        TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT,
                         platformRevealed,
                         platformActive,
                       )}
