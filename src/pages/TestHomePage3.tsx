@@ -572,6 +572,10 @@ const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium uppercase 
 const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
   'grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_4.0625rem] items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em] pr-[16%]'
 
+/** Fun works row — single hit target, invert on hover like classic fold links. */
+const TEST_HOME_PAGE3_GALLERY_FUN_ROW =
+  `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} w-full cursor-pointer rounded-none text-left text-black no-underline text-inherit outline-none transition-colors hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white active:bg-black active:text-white dark:text-white dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black dark:active:bg-white dark:active:text-black`
+
 function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   return {
     fontSize: `clamp(8px, calc(var(--gallery-cell-h, 10rem) * ${TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO}), 12px)`,
@@ -810,97 +814,318 @@ function GalleryImpactPreview({
   )
 }
 
-/** Intro block — column 1 top on `/test-home-3` gallery view. */
-function GalleryViewportIntroPanel() {
-  return (
-    <div className="min-h-0 w-full overflow-hidden">
-      <p
-        className={`${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`}
-        style={testHomePage3GalleryLabelStyle()}
-      >
-        {HOME_INTRO_GREETING_LINE1}
-      </p>
-      <p
-        className={`${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} leading-[1.2] text-black opacity-90 dark:text-white`}
-        style={testHomePage3GalleryLabelStyle()}
-      >
-        {HOME_INTRO_GREETING_LINE2}.
-        <br />
-        {HOME_INTRO_BIO}.
-      </p>
-    </div>
+/** Gallery first-column typewriter pacing — scaled to label size. */
+const GALLERY_TYPEWRITER_PACE = 1.5
+
+function galleryTypewriterMs(text: string, floor = 260) {
+  return Math.max(
+    Math.round(floor / GALLERY_TYPEWRITER_PACE),
+    Math.round((text.length * 16) / GALLERY_TYPEWRITER_PACE),
   )
 }
 
-/** Experience list — column 1 bottom on `/test-home-3`. */
-function GalleryViewportExperiencePanel() {
-  const labelStyle = testHomePage3GalleryLabelStyle()
+function galleryTypewriterGapMs(ms: number) {
+  return Math.round(ms / GALLERY_TYPEWRITER_PACE)
+}
+
+type GalleryColumnStage =
+  | 'name'
+  | 'bio'
+  | 'experience-heading'
+  | 'experience-rows'
+  | 'fun-heading'
+  | 'fun-rows'
+  | 'done'
+
+function GalleryTypingOrText({
+  text,
+  revealed,
+  active,
+  className,
+  durationMs,
+  onComplete,
+}: {
+  text: string
+  revealed: boolean
+  active: boolean
+  className?: string
+  durationMs?: number
+  onComplete?: () => void
+}) {
+  if (!revealed) {
+    return (
+      <span className={className} aria-hidden>
+        {'\u00a0'}
+      </span>
+    )
+  }
+  if (!active) {
+    return <span className={className}>{text}</span>
+  }
   return (
-    <div className="min-h-0 w-full overflow-hidden" aria-label="Experience">
-      <p
-        className={`${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`}
-        style={labelStyle}
-      >
-        Experience
-      </p>
-      <div
-        className={`${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`}
-        style={labelStyle}
-      >
-        {CAREER_JOBS.map((job) => (
-          <React.Fragment key={`${job.role}-${job.period}`}>
-            <span className="min-w-0 justify-self-start leading-tight">{job.role.toUpperCase()}</span>
-            <span className="min-w-0 justify-self-start leading-tight opacity-90">
-              {job.company.toUpperCase()}
-            </span>
-            <span className="shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90">
-              {job.period.toUpperCase()}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
+    <HomeIntroTypewriterText
+      as="span"
+      text={text}
+      className={className}
+      durationMs={durationMs ?? galleryTypewriterMs(text)}
+      postTypeCursorMs={0}
+      completeDelayMs={galleryTypewriterGapMs(60)}
+      onComplete={onComplete}
+    />
   )
 }
 
-/** Fun works links — column 1, under Experience on `/test-home-3`. */
-function GalleryViewportFunWorksPanel() {
+/** Column 1 — intro, experience, fun works with staged typewriter reveal. */
+function GalleryFirstColumnPanels() {
+  const reduceMotion = usePrefersReducedMotion()
+  const [stage, setStage] = useState<GalleryColumnStage>(() => (reduceMotion ? 'done' : 'name'))
+  const [jobRowIndex, setJobRowIndex] = useState(0)
+  const [jobCellIndex, setJobCellIndex] = useState(0)
+  const [funRowIndex, setFunRowIndex] = useState(0)
+  const [funCellIndex, setFunCellIndex] = useState(0)
+
+  useEffect(() => {
+    if (reduceMotion) setStage('done')
+  }, [reduceMotion])
+
   const labelStyle = testHomePage3GalleryLabelStyle()
+  const headingClass = `${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`
+  const bodyClass = `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} whitespace-pre-line leading-[1.2] text-black opacity-90 dark:text-white`
+  const tableClass = `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`
+  const done = stage === 'done'
+  const introBioText = `${HOME_INTRO_GREETING_LINE2}.\n${HOME_INTRO_BIO}.`
+
+  const experienceVisible = done || stage === 'experience-heading' || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows'
+  const funVisible = done || stage === 'fun-heading' || stage === 'fun-rows'
+
+  const advanceJobCell = () => {
+    const job = CAREER_JOBS[jobRowIndex]
+    if (!job) {
+      setStage('fun-heading')
+      return
+    }
+    if (jobCellIndex < 2) {
+      setJobCellIndex((c) => c + 1)
+      return
+    }
+    if (jobRowIndex < CAREER_JOBS.length - 1) {
+      setJobRowIndex((r) => r + 1)
+      setJobCellIndex(0)
+      return
+    }
+    setStage('fun-heading')
+  }
+
+  const advanceFunCell = () => {
+    const item = FUN_WORKS_LINKS[funRowIndex]
+    if (!item) {
+      setStage('done')
+      return
+    }
+    if (funCellIndex === 0) {
+      setFunCellIndex(1)
+      return
+    }
+    if (funRowIndex < FUN_WORKS_LINKS.length - 1) {
+      setFunRowIndex((r) => r + 1)
+      setFunCellIndex(0)
+      return
+    }
+    setStage('done')
+  }
+
   return (
-    <div className="min-h-0 w-full overflow-hidden" aria-label="Fun works I do">
-      <p
-        className={`${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`}
-        style={labelStyle}
-      >
-        Fun Works I do
-      </p>
-      <div
-        className={`${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`}
-        style={labelStyle}
-      >
-        {FUN_WORKS_LINKS.map((item) => (
-          <React.Fragment key={item.href}>
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="min-w-0 justify-self-start leading-tight no-underline text-inherit transition-opacity hover:opacity-70"
-            >
-              {item.title}
-            </a>
-            <span className="min-w-0 justify-self-start leading-tight opacity-90" aria-hidden />
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90 no-underline text-inherit transition-opacity hover:opacity-70"
-            >
-              {item.platform}
-            </a>
-          </React.Fragment>
-        ))}
+    <>
+      <div className="min-h-0 w-full overflow-hidden">
+        <p className={headingClass} style={labelStyle}>
+          {done ? (
+            HOME_INTRO_GREETING_LINE1
+          ) : stage === 'name' ? (
+            <HomeIntroTypewriterText
+              as="span"
+              text={HOME_INTRO_GREETING_LINE1}
+              durationMs={galleryTypewriterMs(HOME_INTRO_GREETING_LINE1, 220)}
+              postTypeCursorMs={0}
+              completeDelayMs={galleryTypewriterGapMs(80)}
+              onComplete={() => setStage('bio')}
+            />
+          ) : (
+            HOME_INTRO_GREETING_LINE1
+          )}
+        </p>
+        {(done || stage !== 'name') && (
+          <p className={bodyClass} style={labelStyle}>
+            {done ? (
+              <>
+                {HOME_INTRO_GREETING_LINE2}.
+                <br />
+                {HOME_INTRO_BIO}.
+              </>
+            ) : stage === 'bio' ? (
+              <HomeIntroTypewriterText
+                as="span"
+                text={introBioText}
+                className="whitespace-pre-line"
+                durationMs={galleryTypewriterMs(introBioText, 420)}
+                postTypeCursorMs={0}
+                completeDelayMs={galleryTypewriterGapMs(100)}
+                onComplete={() => setStage('experience-heading')}
+              />
+            ) : (
+              <>
+                {HOME_INTRO_GREETING_LINE2}.
+                <br />
+                {HOME_INTRO_BIO}.
+              </>
+            )}
+          </p>
+        )}
       </div>
-    </div>
+
+      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
+        {experienceVisible ? (
+          <div className="min-h-0 w-full overflow-hidden" aria-label="Experience">
+            <p className={headingClass} style={labelStyle}>
+              {done ? (
+                'Experience'
+              ) : stage === 'experience-heading' ? (
+                <HomeIntroTypewriterText
+                  as="span"
+                  text="Experience"
+                  durationMs={galleryTypewriterMs('Experience', 240)}
+                  postTypeCursorMs={0}
+                  completeDelayMs={galleryTypewriterGapMs(80)}
+                  onComplete={() => setStage('experience-rows')}
+                />
+              ) : (
+                'Experience'
+              )}
+            </p>
+            {(done || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows') && (
+              <div className={tableClass} style={labelStyle}>
+                {CAREER_JOBS.map((job, rowIndex) => {
+                  const role = job.role.toUpperCase()
+                  const company = job.company.toUpperCase()
+                  const period = job.period.toUpperCase()
+                  const cells = [role, company, period] as const
+                  return (
+                    <React.Fragment key={`${job.role}-${job.period}`}>
+                      {cells.map((cellText, cellIndex) => {
+                        const cellClass =
+                          cellIndex === 2
+                            ? 'shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90'
+                            : cellIndex === 1
+                              ? 'min-w-0 justify-self-start leading-tight opacity-90'
+                              : 'min-w-0 justify-self-start leading-tight'
+                        const revealed =
+                          done ||
+                          rowIndex < jobRowIndex ||
+                          (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
+                          stage === 'fun-heading' ||
+                          stage === 'fun-rows'
+                        const active =
+                          !done && stage === 'experience-rows' && rowIndex === jobRowIndex && cellIndex === jobCellIndex
+                        return (
+                          <GalleryTypingOrText
+                            key={`${job.role}-${cellIndex}`}
+                            text={cellText}
+                            revealed={revealed}
+                            active={active}
+                            className={cellClass}
+                            onComplete={advanceJobCell}
+                          />
+                        )
+                      })}
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-auto min-h-0 w-full shrink-0 overflow-hidden">
+        {funVisible ? (
+          <div className="min-h-0 w-full overflow-hidden" aria-label="Fun works I do">
+            <p className={headingClass} style={labelStyle}>
+              {done ? (
+                'Fun Works I do'
+              ) : stage === 'fun-heading' ? (
+                <HomeIntroTypewriterText
+                  as="span"
+                  text="Fun Works I do"
+                  durationMs={galleryTypewriterMs('Fun Works I do', 260)}
+                  postTypeCursorMs={0}
+                  completeDelayMs={galleryTypewriterGapMs(80)}
+                  onComplete={() => setStage('fun-rows')}
+                />
+              ) : (
+                'Fun Works I do'
+              )}
+            </p>
+            {(done || stage === 'fun-rows') && (
+              <div className="flex w-full flex-col" style={labelStyle}>
+                {FUN_WORKS_LINKS.map((item, rowIndex) => {
+                  const titleRevealed =
+                    done ||
+                    rowIndex < funRowIndex ||
+                    (rowIndex === funRowIndex && funCellIndex >= 0)
+                  const titleActive =
+                    !done && stage === 'fun-rows' && rowIndex === funRowIndex && funCellIndex === 0
+                  const platformRevealed =
+                    done || rowIndex < funRowIndex || (rowIndex === funRowIndex && funCellIndex >= 1)
+                  const platformActive =
+                    !done && stage === 'fun-rows' && rowIndex === funRowIndex && funCellIndex === 1
+
+                  const renderFunCell = (
+                    cellText: string,
+                    cellClass: string,
+                    revealed: boolean,
+                    active: boolean,
+                  ) =>
+                    active || !revealed ? (
+                      <GalleryTypingOrText
+                        text={cellText}
+                        revealed={revealed}
+                        active={active}
+                        className={cellClass}
+                        onComplete={advanceFunCell}
+                      />
+                    ) : (
+                      cellText
+                    )
+
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={TEST_HOME_PAGE3_GALLERY_FUN_ROW}
+                    >
+                      {renderFunCell(
+                        item.title,
+                        'min-w-0 justify-self-start leading-tight',
+                        titleRevealed,
+                        titleActive,
+                      )}
+                      <span className="min-w-0 justify-self-start leading-tight opacity-90" aria-hidden />
+                      {renderFunCell(
+                        item.platform,
+                        'shrink-0 justify-self-start whitespace-nowrap tabular-nums leading-tight opacity-90',
+                        platformRevealed,
+                        platformActive,
+                      )}
+                    </a>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </>
   )
 }
 
@@ -967,13 +1192,7 @@ function CenteredViewportThumbnailGallery({
       style={galleryLayoutStyle}
     >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
-        <GalleryViewportIntroPanel />
-        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
-          <GalleryViewportExperiencePanel />
-        </div>
-        <div className="mt-auto min-h-0 w-full shrink-0 overflow-hidden">
-          <GalleryViewportFunWorksPanel />
-        </div>
+        <GalleryFirstColumnPanels />
       </div>
 
       <div

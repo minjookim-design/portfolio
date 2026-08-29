@@ -117,6 +117,8 @@ type HomeIntroTypewriterTextProps = {
   className?: string
   as?: 'p' | 'span'
   durationMs?: number
+  /** Wait before typing begins. */
+  startDelayMs?: number
   /** Blinking cursor after full text, before `completeDelayMs` / `onComplete`. */
   postTypeCursorMs?: number
   /** Wait after post-cursor phase before calling `onComplete`. */
@@ -182,6 +184,7 @@ export function HomeIntroTypewriterText({
   className,
   as: Tag = 'span',
   durationMs = 2600,
+  startDelayMs = 0,
   postTypeCursorMs = 600,
   completeDelayMs = 0,
   onComplete,
@@ -260,23 +263,44 @@ export function HomeIntroTypewriterText({
       return cleanup
     }
 
-    const start = performance.now()
+    let start = 0
+    let delayTimer: ReturnType<typeof setTimeout> | null = null
 
-    const tick = (now: number) => {
-      const elapsed = now - start
-      if (elapsed >= durationMs) {
-        setVisibleLen(len)
-        afterTypingFinished()
-        return
+    const beginTyping = () => {
+      start = performance.now()
+
+      const tick = (now: number) => {
+        const elapsed = now - start
+        if (elapsed >= durationMs) {
+          setVisibleLen(len)
+          afterTypingFinished()
+          return
+        }
+        const next = visibleLengthAtElapsed(elapsed, text, durationMs)
+        setVisibleLen(next)
+        raf = requestAnimationFrame(tick)
       }
-      const next = visibleLengthAtElapsed(elapsed, text, durationMs)
-      setVisibleLen(next)
+
       raf = requestAnimationFrame(tick)
     }
 
-    raf = requestAnimationFrame(tick)
-    return cleanup
-  }, [text, durationMs, postTypeCursorMs, completeDelayMs, reduceMotion])
+    if (startDelayMs > 0) {
+      delayTimer = window.setTimeout(() => {
+        delayTimer = null
+        beginTyping()
+      }, startDelayMs)
+    } else {
+      beginTyping()
+    }
+
+    return () => {
+      cleanup()
+      if (delayTimer != null) {
+        clearTimeout(delayTimer)
+        delayTimer = null
+      }
+    }
+  }, [text, durationMs, startDelayMs, postTypeCursorMs, completeDelayMs, reduceMotion])
 
   const visible = text.slice(0, visibleLen)
 
