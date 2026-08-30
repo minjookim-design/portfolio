@@ -554,8 +554,6 @@ function isGalleryImpactPreviewProjectId(id: string): id is GalleryImpactPreview
   return id === 'hovr' || id === 'piikai'
 }
 
-const TEST_HOME_PAGE3_GALLERY_PREVIEW_HIDE_MS = 120
-
 /** Gallery home switches to scrollable mobile layout below this width (px). */
 const GALLERY_HOME_MOBILE_MAX_PX = 719
 
@@ -642,6 +640,10 @@ function detailsGalleryAnchorId(id: string) {
   return `home-gallery-${id}`
 }
 
+/** Hovered gallery thumb — above grid siblings, intro column, and impact preview (below site chrome). */
+const GALLERY_THUMB_CELL_HOVER =
+  'has-[.gallery-thumb-card:hover]:z-[500] has-[.gallery-thumb-card:focus-visible]:z-[500]'
+
 function DetailsGalleryCard({
   project,
   active,
@@ -664,12 +666,12 @@ function DetailsGalleryCard({
 }) {
   const isSquare = 'square' in project && project.square
   const thumbClass = preserveAspect
-    ? 'h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]'
+    ? 'h-full w-full object-cover object-center'
     : fillHeight
-      ? 'h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]'
+      ? 'h-full w-full object-cover'
       : isSquare
-        ? 'aspect-square w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]'
-        : 'block h-auto w-full max-w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]'
+        ? 'aspect-square w-full h-full object-cover'
+        : 'block h-auto w-full max-w-full object-cover'
 
   return (
     <button
@@ -681,7 +683,7 @@ function DetailsGalleryCard({
       onFocus={() => onHoverChange?.(true)}
       onBlur={() => onHoverChange?.(false)}
       aria-current={active ? 'true' : undefined}
-      className={`group relative block w-full cursor-pointer overflow-hidden rounded-none bg-transparent p-0 text-left outline-none leading-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-black/40 dark:focus-visible:ring-white/40 ${
+      className={`gallery-thumb-card group relative z-0 block w-full cursor-pointer overflow-visible rounded-none bg-transparent p-0 text-left outline-none leading-none transition-[transform,box-shadow] duration-500 ease-out will-change-transform hover:z-[500] hover:scale-[1.1] hover:-translate-y-1 hover:shadow-[0_18px_36px_-10px_rgba(0,0,0,0.38)] focus-visible:z-[500] focus-visible:scale-[1.1] focus-visible:-translate-y-1 focus-visible:shadow-[0_18px_36px_-10px_rgba(0,0,0,0.38)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-black/40 dark:hover:shadow-[0_22px_44px_-10px_rgba(0,0,0,0.72)] dark:focus-visible:shadow-[0_22px_44px_-10px_rgba(0,0,0,0.72)] dark:focus-visible:ring-white/40 ${
         fillHeight ? 'h-full min-h-0' : ''
       }`}
       style={{ borderRadius: 0 }}
@@ -760,7 +762,7 @@ function DetailsThumbnailGallery({
         {galleryThumbs.map((project) => (
           <div
             key={project.id}
-            className={project.span === 'full' ? 'col-span-1 md:col-span-2' : 'col-span-1'}
+            className={`relative z-0 ${GALLERY_THUMB_CELL_HOVER} ${project.span === 'full' ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}
           >
             <DetailsGalleryCard
               project={project}
@@ -802,7 +804,7 @@ function GalleryImpactPreview({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 8 }}
           transition={{ duration: 0.28, ease: [0.76, 0, 0.24, 1] }}
-          className="min-h-0 w-full overflow-y-auto overflow-x-visible"
+          className="gallery-impact-preview ml-auto min-h-0 w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto"
           style={{
             ...labelStyle,
             ...(topOffset ? { paddingTop: topOffset } : null),
@@ -1260,30 +1262,14 @@ function CenteredViewportThumbnailGallery({
   const galleryLayoutStyle = testHomePage3GalleryLayoutStyle(isMobileGallery)
   const [galleryImpactPreviewId, setGalleryImpactPreviewId] =
     useState<GalleryImpactPreviewProjectId | null>(null)
-  const galleryPreviewHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const hideGalleryImpactPreview = useCallback(() => {
+    setGalleryImpactPreviewId(null)
+  }, [])
 
   const showGalleryImpactPreview = useCallback((id: GalleryImpactPreviewProjectId) => {
-    if (galleryPreviewHideTimerRef.current != null) {
-      clearTimeout(galleryPreviewHideTimerRef.current)
-      galleryPreviewHideTimerRef.current = null
-    }
     setGalleryImpactPreviewId(id)
   }, [])
-
-  const scheduleHideGalleryImpactPreview = useCallback(() => {
-    if (galleryPreviewHideTimerRef.current != null) clearTimeout(galleryPreviewHideTimerRef.current)
-    galleryPreviewHideTimerRef.current = setTimeout(() => {
-      galleryPreviewHideTimerRef.current = null
-      setGalleryImpactPreviewId(null)
-    }, TEST_HOME_PAGE3_GALLERY_PREVIEW_HIDE_MS)
-  }, [])
-
-  useEffect(
-    () => () => {
-      if (galleryPreviewHideTimerRef.current != null) clearTimeout(galleryPreviewHideTimerRef.current)
-    },
-    [],
-  )
 
   useEffect(() => {
     const root = document.documentElement
@@ -1321,7 +1307,7 @@ function CenteredViewportThumbnailGallery({
             {galleryThumbs.map((project) => (
               <div
                 key={project.id}
-                className="min-h-0 w-full shrink-0"
+                className={`relative z-0 min-h-0 w-full shrink-0 ${GALLERY_THUMB_CELL_HOVER}`}
                 style={{ height: 'var(--gallery-row-1)' }}
               >
                 <DetailsGalleryCard
@@ -1349,11 +1335,11 @@ function CenteredViewportThumbnailGallery({
       </div>
 
       <div
-        className="flex h-full min-h-0 shrink-0 flex-col overflow-hidden"
+        className="relative z-0 flex h-full min-h-0 shrink-0 flex-col overflow-visible"
         style={{ width: 'var(--gallery-w)', maxWidth: '100%' }}
       >
         <div
-          className="box-border grid h-[var(--gallery-h)] w-[var(--gallery-w)] min-h-0 min-w-0 shrink-0 grid-cols-2"
+          className="box-border grid h-[var(--gallery-h)] w-[var(--gallery-w)] min-h-0 min-w-0 shrink-0 grid-cols-2 overflow-visible"
           style={{
             ...galleryLayoutStyle,
             gap: 'var(--gallery-gap)',
@@ -1365,7 +1351,7 @@ function CenteredViewportThumbnailGallery({
             return (
             <div
               key={project.id}
-              className={`min-h-0 min-w-0 ${
+              className={`relative z-0 min-h-0 min-w-0 ${GALLERY_THUMB_CELL_HOVER} ${
                 project.span === 'full' ? 'col-span-2' : 'col-span-1'
               }`}
             >
@@ -1380,7 +1366,7 @@ function CenteredViewportThumbnailGallery({
                   impactPreviewId
                     ? (hovered) => {
                         if (hovered) showGalleryImpactPreview(impactPreviewId)
-                        else scheduleHideGalleryImpactPreview()
+                        else hideGalleryImpactPreview()
                       }
                     : undefined
                 }
@@ -1392,12 +1378,8 @@ function CenteredViewportThumbnailGallery({
       </div>
 
       <div
-        className="flex h-[var(--gallery-h)] min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3"
+        className="relative z-[510] flex h-[var(--gallery-h)] min-h-0 min-w-0 flex-1 flex-col items-end overflow-hidden pl-[calc(var(--gallery-w)*0.06)] pr-3 pointer-events-none"
         style={galleryLayoutStyle}
-        onPointerEnter={() => {
-          if (galleryImpactPreviewId) showGalleryImpactPreview(galleryImpactPreviewId)
-        }}
-        onPointerLeave={scheduleHideGalleryImpactPreview}
       >
         <GalleryImpactPreview
           projectId={galleryImpactPreviewId}
