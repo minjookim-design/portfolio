@@ -14,18 +14,24 @@ import { usePageTheme } from './context/PageThemeContext'
 
 const PIIK_BG_HERO = 'bg-[#E6EEFF]'
 const PIIK_BG_LIGHT = 'bg-[#F7F9FF]'
+/** Soft violet — scroll bg for “Listening to Our Users” only. */
+const PIIK_BG_LISTENING = 'bg-[#EDE7F6]'
 const PIIK_BG_CATALYST = 'bg-[#24324A]'
 const PIIK_BG_SOLUTION_1 = 'bg-[#121A2A]'
 const PIIK_BG_SOLUTION_2 = 'bg-[#18243A]'
 const PIIK_BG_SOLUTION_3 = 'bg-[#22314D]'
+/** Deep brown — scroll bg for “Why Do Our Users Want More Features?” only. */
+const PIIK_BG_RESEARCH = 'bg-[#2E2118]'
 
 const piikLightModeColors = [
   '#E6EEFF',
   '#F7F9FF',
+  '#EDE7F6',
   '#24324A',
   '#121A2A',
   '#18243A',
   '#22314D',
+  '#2E2118',
 ] as const
 
 function invertLightnessToDark(hex: string): string {
@@ -63,15 +69,18 @@ const piikHeroDarkColor = invertLightnessToDark('#24324A')
 const PIIK_BG_COLOR_INDEX: Record<string, number> = {
   [PIIK_BG_HERO]: 0,
   [PIIK_BG_LIGHT]: 1,
-  [PIIK_BG_CATALYST]: 2,
-  [PIIK_BG_SOLUTION_1]: 3,
-  [PIIK_BG_SOLUTION_2]: 4,
-  [PIIK_BG_SOLUTION_3]: 5,
+  [PIIK_BG_LISTENING]: 2,
+  [PIIK_BG_CATALYST]: 3,
+  [PIIK_BG_SOLUTION_1]: 4,
+  [PIIK_BG_SOLUTION_2]: 5,
+  [PIIK_BG_SOLUTION_3]: 6,
+  [PIIK_BG_RESEARCH]: 7,
 }
 
 const PIIK_SECTION_BG: Record<string, string> = {
+  'Listening to Our Users': PIIK_BG_LISTENING,
   'The Catalyst': PIIK_BG_CATALYST,
-  'Why Do Our Users Want More Features?': PIIK_BG_LIGHT,
+  'Why Do Our Users Want More Features?': PIIK_BG_RESEARCH,
   'Unpacking the Solution 01': PIIK_BG_SOLUTION_1,
   'Unpacking the Solution 02': PIIK_BG_SOLUTION_2,
   'Unpacking the Solution 03': PIIK_BG_SOLUTION_3,
@@ -79,8 +88,9 @@ const PIIK_SECTION_BG: Record<string, string> = {
 }
 
 const PIIK_SECTION_THEME: Record<string, 'light' | 'dark'> = {
+  'Listening to Our Users': 'light',
   'The Catalyst': 'dark',
-  'Why Do Our Users Want More Features?': 'light',
+  'Why Do Our Users Want More Features?': 'dark',
   'Unpacking the Solution 01': 'dark',
   'Unpacking the Solution 02': 'dark',
   'Unpacking the Solution 03': 'dark',

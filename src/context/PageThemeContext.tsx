@@ -9,20 +9,38 @@ import {
 /** Keep in sync with the inline script in `index.html`. */
 export const THEME_STORAGE_KEY = 'portfolio-theme'
 
-/** Dark unless the user explicitly saved `light` in storage. */
-export function readStoredThemePrefersDark(): boolean {
+export const SYSTEM_DARK_QUERY = '(prefers-color-scheme: dark)'
+
+function readStoredThemeOverride(): 'light' | 'dark' | null {
   try {
     const raw = localStorage.getItem(THEME_STORAGE_KEY)
-    if (raw === 'light') return false
-    return true
+    if (raw === 'light' || raw === 'dark') return raw
+    return null
   } catch {
-    return true
+    return null
   }
 }
 
+export function readSystemPrefersDark(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia(SYSTEM_DARK_QUERY).matches
+}
+
+/** Saved override wins; otherwise follow OS light/dark preference. */
+export function resolveThemeIsDark(): boolean {
+  const override = readStoredThemeOverride()
+  if (override === 'light') return false
+  if (override === 'dark') return true
+  return readSystemPrefersDark()
+}
+
+/** @deprecated Prefer `resolveThemeIsDark` — kept for existing call sites. */
+export function readStoredThemePrefersDark(): boolean {
+  return resolveThemeIsDark()
+}
+
 function readInitialIsDark(): boolean {
-  if (typeof window === 'undefined') return true
-  return readStoredThemePrefersDark()
+  return resolveThemeIsDark()
 }
 
 export function applyDocumentTheme(isDark: boolean) {
@@ -47,7 +65,7 @@ interface PageThemeContextValue {
 }
 
 const PageThemeContext = createContext<PageThemeContextValue>({
-  isDark: true,
+  isDark: false,
   setIsDark: () => {},
   toggleTheme: () => {},
   setThemePersisted: () => {},
@@ -61,6 +79,18 @@ export function PageThemeProvider({ children }: { children: React.ReactNode }) {
   useLayoutEffect(() => {
     applyDocumentTheme(isDark)
   }, [isDark])
+
+  // When no saved override, track OS theme changes.
+  useLayoutEffect(() => {
+    const mq = window.matchMedia(SYSTEM_DARK_QUERY)
+    const syncWithSystem = () => {
+      if (readStoredThemeOverride() != null) return
+      setIsDarkState(mq.matches)
+    }
+    syncWithSystem()
+    mq.addEventListener('change', syncWithSystem)
+    return () => mq.removeEventListener('change', syncWithSystem)
+  }, [])
 
   const setIsDark = useCallback((v: boolean) => {
     setIsDarkState(v)
