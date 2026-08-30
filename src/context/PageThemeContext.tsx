@@ -9,27 +9,19 @@ import {
 /** Keep in sync with the inline script in `index.html`. */
 export const THEME_STORAGE_KEY = 'portfolio-theme'
 
-/** Matches `useIsNarrow(768)` / Tailwind `md` breakpoint (mobile = width ≤ 768px). */
-export const MOBILE_THEME_QUERY = '(max-width: 768px)'
-
-function isMobileViewport(): boolean {
-  if (typeof window === 'undefined') return false
-  return window.matchMedia(MOBILE_THEME_QUERY).matches
-}
-
-/** User explicitly chose dark in storage; otherwise light (no system preference). */
+/** Dark unless the user explicitly saved `light` in storage. */
 export function readStoredThemePrefersDark(): boolean {
   try {
-    return localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
+    const raw = localStorage.getItem(THEME_STORAGE_KEY)
+    if (raw === 'light') return false
+    return true
   } catch {
-    return false
+    return true
   }
 }
 
 function readInitialIsDark(): boolean {
-  if (typeof window === 'undefined') return false
-  // Mobile: always light on load (ignore saved dark).
-  if (isMobileViewport()) return false
+  if (typeof window === 'undefined') return true
   return readStoredThemePrefersDark()
 }
 
@@ -55,7 +47,7 @@ interface PageThemeContextValue {
 }
 
 const PageThemeContext = createContext<PageThemeContextValue>({
-  isDark: false,
+  isDark: true,
   setIsDark: () => {},
   toggleTheme: () => {},
   setThemePersisted: () => {},
@@ -69,21 +61,6 @@ export function PageThemeProvider({ children }: { children: React.ReactNode }) {
   useLayoutEffect(() => {
     applyDocumentTheme(isDark)
   }, [isDark])
-
-  // Keep mobile ≤768px in light mode; restore desktop preference when widening (storage only).
-  useLayoutEffect(() => {
-    const mq = window.matchMedia(MOBILE_THEME_QUERY)
-    const syncViewportTheme = () => {
-      if (mq.matches) {
-        setIsDarkState(false)
-      } else {
-        setIsDarkState(readStoredThemePrefersDark())
-      }
-    }
-    syncViewportTheme()
-    mq.addEventListener('change', syncViewportTheme)
-    return () => mq.removeEventListener('change', syncViewportTheme)
-  }, [])
 
   const setIsDark = useCallback((v: boolean) => {
     setIsDarkState(v)

@@ -1,7 +1,6 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { ThemeToggle } from './components/PillNav'
 import { MobileProjectBackButton } from './components/MobileProjectBackButton'
-import { MobileQuickNav } from './components/MobileQuickNav'
 import { HomeMobileProjectProvider } from './context/HomeMobileProjectContext'
 import { useRedirectHomeWhenDesktop } from './hooks/useRedirectHomeWhenDesktop'
 import { HomePage } from './pages/HomePage'
@@ -61,7 +60,6 @@ function AppShell() {
         className="theme-surface-transition relative h-screen min-h-[100dvh] w-full min-w-0 max-w-[100vw] overflow-x-hidden overflow-y-hidden bg-[var(--color-bg-base,#faf7f0)]"
       >
         <MobileProjectBackButton />
-        <MobileQuickNav />
         {!isStandaloneDeck && <ThemeToggle />}
         {!isHomeShellRoute && <FooterEmail variant="fixed" />}
         <Routes>

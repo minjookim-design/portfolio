@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#faf7f0" />
+    <meta name="theme-color" content="#111111" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,7 +19,7 @@
       rel="stylesheet"
     />
     <!--
-      Critical theme: parsed before first paint. Matches PageThemeContext (mobile ≤768px always light; desktop light unless storage is dark).
+      Critical theme: parsed before first paint. Matches PageThemeContext (dark default; light only when storage is `light`).
       next-themes equivalent: attribute="class" + enableSystem — class on <html> is immediate; no transition here.
     -->
     <style id="portfolio-theme-critical">
@@ -43,8 +43,7 @@
         try {
           var key = 'portfolio-theme'
           var raw = localStorage.getItem(key)
-          var mobile = window.matchMedia('(max-width: 768px)').matches
-          var dark = !mobile && raw === 'dark'
+          var dark = raw !== 'light'
           document.documentElement.classList.toggle('dark', dark)
           document.documentElement.dataset.theme = dark ? 'dark' : 'light'
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'

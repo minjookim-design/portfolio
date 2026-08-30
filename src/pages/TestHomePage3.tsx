@@ -556,6 +556,9 @@ function isGalleryImpactPreviewProjectId(id: string): id is GalleryImpactPreview
 
 const TEST_HOME_PAGE3_GALLERY_PREVIEW_HIDE_MS = 120
 
+/** Gallery home switches to scrollable mobile layout below this width (px). */
+const GALLERY_HOME_MOBILE_MAX_PX = 719
+
 /** Vertical padding around the gallery shell. */
 const TEST_HOME_PAGE3_GALLERY_V_PAD = '1.5rem' /* py-3 */
 /** Top inset for fixed chrome — matches column `py-3` edge on this layout. */
@@ -569,16 +572,18 @@ const TEST_HOME_PAGE3_GALLERY_REF_H = TEST_HOME_PAGE3_GALLERY_ROW_H * 3
 /** ~9pt label at reference row height; scales with `--gallery-cell-h` to keep ratio. */
 const TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO = 0.042
 const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium uppercase tracking-[-0.02em] leading-[1.15]`
+const TEST_HOME_PAGE3_GALLERY_TABLE_COLS =
+  'grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]'
 const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
-  'grid w-full grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)] items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em]'
+  `grid w-full ${TEST_HOME_PAGE3_GALLERY_TABLE_COLS} items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em]`
 
 /** Third column — dates, platforms: flush to the column’s right edge. */
 const TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT =
   'justify-self-end text-right whitespace-nowrap tabular-nums leading-tight opacity-90'
 
-/** Fun works row — subgrid row link; hover invert like classic fold links. */
+/** Fun works row — full-width link row; hover invert like classic fold links. */
 const TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK =
-  `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} col-span-3 grid grid-cols-subgrid items-baseline gap-x-[0.75em] w-full cursor-pointer rounded-none text-left text-black no-underline text-inherit outline-none transition-colors hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white active:bg-black active:text-white dark:text-white dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black dark:active:bg-white dark:active:text-black`
+  `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} grid ${TEST_HOME_PAGE3_GALLERY_TABLE_COLS} items-baseline gap-x-[0.75em] w-full cursor-pointer rounded-none text-left text-black no-underline text-inherit outline-none transition-colors hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white active:bg-black active:text-white dark:text-white dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black dark:active:bg-white dark:active:text-black`
 
 function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   return {
@@ -586,9 +591,22 @@ function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   }
 }
 
-function testHomePage3GalleryLayoutStyle(): React.CSSProperties {
+function testHomePage3GalleryLayoutStyle(mobile = false): React.CSSProperties {
   const rowH = TEST_HOME_PAGE3_GALLERY_ROW_H
   const refW = TEST_HOME_PAGE3_GALLERY_REF_W
+  if (mobile) {
+    const mobileW = 'calc(100vw - 1.5rem)'
+    const mobileRow = `calc(${mobileW} * ${rowH} / ${refW})`
+    return {
+      ['--gallery-gap' as string]: TEST_HOME_PAGE3_GALLERY_GAP,
+      ['--gallery-h' as string]: 'auto',
+      ['--gallery-w' as string]: mobileW,
+      ['--gallery-row-1' as string]: mobileRow,
+      ['--gallery-row-2' as string]: mobileRow,
+      ['--gallery-row-3' as string]: mobileRow,
+      ['--gallery-cell-h' as string]: mobileRow,
+    }
+  }
   return {
     ['--gallery-gap' as string]: TEST_HOME_PAGE3_GALLERY_GAP,
     ['--gallery-h' as string]: `calc(100dvh - ${TEST_HOME_PAGE3_GALLERY_V_PAD})`,
@@ -600,8 +618,8 @@ function testHomePage3GalleryLayoutStyle(): React.CSSProperties {
   }
 }
 
-function applyTestHomePage3DocumentChromeVars(root: HTMLElement) {
-  const layout = testHomePage3GalleryLayoutStyle()
+function applyTestHomePage3DocumentChromeVars(root: HTMLElement, mobile = false) {
+  const layout = testHomePage3GalleryLayoutStyle(mobile)
   for (const [key, value] of Object.entries(layout)) {
     if (key.startsWith('--') && value != null) {
       root.style.setProperty(key, String(value))
@@ -880,7 +898,8 @@ function GalleryTypingOrText({
 }
 
 /** Column 1 — intro, experience, fun works with staged typewriter reveal. */
-function GalleryFirstColumnPanels() {
+function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' | 'mobile' }) {
+  const isMobileLayout = layout === 'mobile'
   const reduceMotion = usePrefersReducedMotion()
   const [stage, setStage] = useState<GalleryColumnStage>(() => (reduceMotion ? 'done' : 'name'))
   const [jobRowIndex, setJobRowIndex] = useState(0)
@@ -895,7 +914,9 @@ function GalleryFirstColumnPanels() {
   const labelStyle = testHomePage3GalleryLabelStyle()
   const headingClass = `${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`
   const bodyClass = `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} whitespace-pre-line leading-[1.2] text-black opacity-90 dark:text-white`
-  const tableClass = `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`
+  const tableClass = isMobileLayout
+    ? `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} flex w-full flex-col gap-y-[0.5em] text-left text-black dark:text-white`
+    : `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`
   const done = stage === 'done'
   const introBioText = `${HOME_INTRO_GREETING_LINE2}.\n${HOME_INTRO_BIO}.`
 
@@ -940,7 +961,7 @@ function GalleryFirstColumnPanels() {
 
   return (
     <>
-      <div className="min-h-0 w-full overflow-hidden">
+      <div className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}>
         <p className={headingClass} style={labelStyle}>
           {done ? (
             HOME_INTRO_GREETING_LINE1
@@ -986,9 +1007,18 @@ function GalleryFirstColumnPanels() {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
+      <div
+        className={
+          isMobileLayout
+            ? 'w-full'
+            : 'flex min-h-0 flex-1 flex-col justify-center overflow-hidden'
+        }
+      >
         {experienceVisible ? (
-          <div className="min-h-0 w-full overflow-hidden" aria-label="Experience">
+          <div
+            className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}
+            aria-label="Experience"
+          >
             <p className={headingClass} style={labelStyle}>
               {done ? (
                 'Experience'
@@ -1005,53 +1035,136 @@ function GalleryFirstColumnPanels() {
                 'Experience'
               )}
             </p>
-            {(done || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows') && (
-              <div className={tableClass} style={labelStyle}>
-                {CAREER_JOBS.map((job, rowIndex) => {
-                  const role = job.role.toUpperCase()
-                  const company = job.company.toUpperCase()
-                  const period = job.period.toUpperCase()
-                  const cells = [role, company, period] as const
-                  return (
-                    <React.Fragment key={`${job.role}-${job.period}`}>
-                      {cells.map((cellText, cellIndex) => {
-                        const cellClass =
-                          cellIndex === 2
-                            ? `shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`
-                            : cellIndex === 1
-                              ? 'min-w-0 justify-self-start leading-tight opacity-90'
-                              : 'min-w-0 justify-self-start leading-tight'
-                        const revealed =
-                          done ||
-                          rowIndex < jobRowIndex ||
-                          (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
-                          stage === 'fun-heading' ||
-                          stage === 'fun-rows'
-                        const active =
-                          !done && stage === 'experience-rows' && rowIndex === jobRowIndex && cellIndex === jobCellIndex
-                        return (
-                          <GalleryTypingOrText
-                            key={`${job.role}-${cellIndex}`}
-                            text={cellText}
-                            revealed={revealed}
-                            active={active}
-                            className={cellClass}
-                            onComplete={advanceJobCell}
-                          />
-                        )
-                      })}
-                    </React.Fragment>
-                  )
-                })}
-              </div>
-            )}
+            {(done || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows') &&
+              (isMobileLayout ? (
+                <div className={tableClass} style={labelStyle}>
+                  {CAREER_JOBS.map((job, rowIndex) => {
+                    const role = job.role.toUpperCase()
+                    const company = job.company.toUpperCase()
+                    const period = job.period.toUpperCase()
+                    const cells = [role, company, period] as const
+                    const rowRevealed =
+                      done ||
+                      rowIndex < jobRowIndex ||
+                      (rowIndex === jobRowIndex && jobCellIndex >= 0) ||
+                      stage === 'fun-heading' ||
+                      stage === 'fun-rows'
+                    return (
+                      <div
+                        key={`${job.role}-${job.period}`}
+                        className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-[0.75em]"
+                      >
+                        <div className="min-w-0">
+                          {cells.slice(0, 2).map((cellText, cellIndex) => {
+                            const revealed =
+                              done ||
+                              rowIndex < jobRowIndex ||
+                              (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
+                              stage === 'fun-heading' ||
+                              stage === 'fun-rows'
+                            const active =
+                              !done &&
+                              stage === 'experience-rows' &&
+                              rowIndex === jobRowIndex &&
+                              cellIndex === jobCellIndex
+                            return (
+                              <GalleryTypingOrText
+                                key={`${job.role}-${cellIndex}`}
+                                text={cellText}
+                                revealed={revealed}
+                                active={active}
+                                className={
+                                  cellIndex === 1
+                                    ? 'min-w-0 leading-tight opacity-90'
+                                    : 'min-w-0 leading-tight'
+                                }
+                                onComplete={advanceJobCell}
+                              />
+                            )
+                          })}
+                        </div>
+                        <GalleryTypingOrText
+                          text={period}
+                          revealed={
+                            rowRevealed &&
+                            (done ||
+                              rowIndex < jobRowIndex ||
+                              (rowIndex === jobRowIndex && jobCellIndex >= 2) ||
+                              stage === 'fun-heading' ||
+                              stage === 'fun-rows')
+                          }
+                          active={
+                            !done &&
+                            stage === 'experience-rows' &&
+                            rowIndex === jobRowIndex &&
+                            jobCellIndex === 2
+                          }
+                          className={`shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`}
+                          onComplete={advanceJobCell}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className={tableClass} style={labelStyle}>
+                  {CAREER_JOBS.map((job, rowIndex) => {
+                    const role = job.role.toUpperCase()
+                    const company = job.company.toUpperCase()
+                    const period = job.period.toUpperCase()
+                    const cells = [role, company, period] as const
+                    return (
+                      <React.Fragment key={`${job.role}-${job.period}`}>
+                        {cells.map((cellText, cellIndex) => {
+                          const cellClass =
+                            cellIndex === 2
+                              ? `shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`
+                              : cellIndex === 1
+                                ? 'min-w-0 justify-self-start leading-tight opacity-90'
+                                : 'min-w-0 justify-self-start leading-tight'
+                          const revealed =
+                            done ||
+                            rowIndex < jobRowIndex ||
+                            (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
+                            stage === 'fun-heading' ||
+                            stage === 'fun-rows'
+                          const active =
+                            !done &&
+                            stage === 'experience-rows' &&
+                            rowIndex === jobRowIndex &&
+                            cellIndex === jobCellIndex
+                          return (
+                            <GalleryTypingOrText
+                              key={`${job.role}-${cellIndex}`}
+                              text={cellText}
+                              revealed={revealed}
+                              active={active}
+                              className={cellClass}
+                              onComplete={advanceJobCell}
+                            />
+                          )
+                        })}
+                      </React.Fragment>
+                    )
+                  })}
+                </div>
+              ))}
           </div>
         ) : null}
       </div>
 
-      <div className="mt-auto min-h-0 w-full shrink-0 overflow-hidden">
+      <div
+        className={
+          isMobileLayout
+            ? 'w-full'
+            : 'mt-auto min-h-0 w-full shrink-0 overflow-hidden'
+        }
+      >
         {funVisible ? (
-          <div className="min-h-0 w-full overflow-hidden" aria-label="Fun works I do">
+          <div
+            className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}
+            aria-label="Fun works I do"
+          >
             <p className={headingClass} style={labelStyle}>
               {done ? (
                 'Fun Works I do'
@@ -1069,7 +1182,7 @@ function GalleryFirstColumnPanels() {
               )}
             </p>
             {(done || stage === 'fun-rows') && (
-              <div className={`${tableClass} text-black dark:text-white`} style={labelStyle}>
+              <div className="flex w-full flex-col gap-y-[0.28em]" style={labelStyle}>
                 {FUN_WORKS_LINKS.map((item, rowIndex) => {
                   const titleRevealed =
                     done ||
@@ -1143,7 +1256,8 @@ function CenteredViewportThumbnailGallery({
   onSelectProject: (id: string) => void
   galleryThumbs: readonly DetailsGalleryThumb[]
 }) {
-  const galleryLayoutStyle = testHomePage3GalleryLayoutStyle()
+  const isMobileGallery = useIsNarrow(GALLERY_HOME_MOBILE_MAX_PX)
+  const galleryLayoutStyle = testHomePage3GalleryLayoutStyle(isMobileGallery)
   const [galleryImpactPreviewId, setGalleryImpactPreviewId] =
     useState<GalleryImpactPreviewProjectId | null>(null)
   const galleryPreviewHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1186,9 +1300,44 @@ function CenteredViewportThumbnailGallery({
     ]) {
       prev.set(key, root.style.getPropertyValue(key))
     }
-    applyTestHomePage3DocumentChromeVars(root)
+    applyTestHomePage3DocumentChromeVars(root, isMobileGallery)
     return () => clearTestHomePage3DocumentChromeVars(root, prev)
-  }, [])
+  }, [isMobileGallery])
+
+  if (isMobileGallery) {
+    return (
+      <div
+        className="h-full min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-y-contain py-3"
+        style={galleryLayoutStyle}
+      >
+        <div className="flex w-full flex-col gap-8 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-[max(0.75rem,env(safe-area-inset-top,0px))]">
+          <GalleryFirstColumnPanels layout="mobile" />
+
+          <div
+            className="flex w-full shrink-0 flex-col"
+            style={{ gap: 'var(--gallery-gap)' }}
+            aria-label="Projects"
+          >
+            {galleryThumbs.map((project) => (
+              <div
+                key={project.id}
+                className="min-h-0 w-full shrink-0"
+                style={{ height: 'var(--gallery-row-1)' }}
+              >
+                <DetailsGalleryCard
+                  project={project}
+                  active={activeProjectId === project.id}
+                  onSelect={() => onSelectProject(project.id)}
+                  fillHeight
+                  preserveAspect
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
