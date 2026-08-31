@@ -10,7 +10,11 @@ import {
   useSpring,
   useTransform,
 } from 'framer-motion'
-import { PortfolioPopupTitleBar } from './components/PortfolioPopupShell'
+import {
+  PortfolioPopupTitleBar,
+  POPUP_ENTER_SCALE,
+  POPUP_ENTER_TRANSITION,
+} from './components/PortfolioPopupShell'
 import { useTestProjectSheetChrome } from './context/TestProjectSheetChromeContext'
 import {
   MD_DETAIL_SHEET,
@@ -157,8 +161,12 @@ export function TestProjectDetailShell({
       <motion.div
         {...(portfolioPopup ? { 'data-portfolio-popup': true } : {})}
         className={`theme-surface-transition relative flex min-h-0 flex-1 flex-col overflow-hidden @container/project-popup ${MD_INK} ${
-          portfolioPopup ? PORTFOLIO_POPUP_SHEET_BORDER : ''
+          portfolioPopup ? `${PORTFOLIO_POPUP_SHEET_BORDER} origin-bottom-right` : ''
         } ${sheetClassName ?? MD_DETAIL_SHEET}`}
+        initial={
+          portfolioPopup && !reduceMotion ? { scale: POPUP_ENTER_SCALE, opacity: 0 } : false
+        }
+        animate={{ scale: 1, opacity: 1 }}
         style={{
           marginLeft: marginX,
           marginRight: marginX,
@@ -167,7 +175,11 @@ export function TestProjectDetailShell({
           borderRadius: radius,
           ...sheetStyle,
         }}
-        transition={{ duration: 0.45, ease: EASE }}
+        transition={
+          portfolioPopup && !reduceMotion
+            ? POPUP_ENTER_TRANSITION
+            : { duration: 0.45, ease: EASE }
+        }
       >
         {portfolioPopup && popupTitle && showPopupTitleBar ? (
           <PortfolioPopupTitleBar

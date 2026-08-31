@@ -2,19 +2,41 @@ import { useEffect, useState, type CSSProperties, type ReactNode, type Ref } fro
 import { motion, useReducedMotion, type Transition } from 'framer-motion'
 import { MD_INK } from '../testMd3Layout'
 
-export const CRT_GLITCH_MS = 280
+export const CRT_GLITCH_MS = 140
 
-export const CRT_OPEN_TRANSITION: Transition = {
-  scaleY: { type: 'spring', stiffness: 620, damping: 30, mass: 0.52 },
-  scaleX: { duration: 0.34, ease: [0.16, 1, 0.28, 1] },
-  opacity: { duration: 0.14, ease: 'easeOut' },
-  filter: { duration: 0.26, ease: 'easeOut' },
+/** Strong initial punch — snaps from here into place. */
+export const POPUP_ENTER_SCALE = 0.7
+
+/** Magnetic snap — high stiffness, tight chewy bounce, zero lag. */
+export const POPUP_ENTER_TRANSITION: Transition = {
+  scale: {
+    type: 'spring',
+    stiffness: 750,
+    damping: 35,
+    mass: 0.75,
+    velocity: 8,
+  },
+  opacity: {
+    duration: 0.09,
+    ease: [0.65, 0, 0.35, 1],
+  },
 }
 
-export const CRT_CLOSE_TRANSITION: Transition = {
-  duration: 0.16,
-  ease: [0.4, 0, 1, 1],
+export const POPUP_EXIT_TRANSITION: Transition = {
+  scale: {
+    type: 'spring',
+    stiffness: 820,
+    damping: 38,
+    mass: 0.7,
+  },
+  opacity: { duration: 0.08, ease: [0.4, 0, 1, 1] },
 }
+
+/** @deprecated Use POPUP_ENTER_TRANSITION */
+export const CRT_OPEN_TRANSITION: Transition = POPUP_ENTER_TRANSITION
+
+/** @deprecated Use POPUP_EXIT_TRANSITION */
+export const CRT_CLOSE_TRANSITION: Transition = POPUP_EXIT_TRANSITION
 
 export const PORTFOLIO_POPUP_SHELL_CLASS = `relative flex flex-col box-border shrink-0 overflow-hidden rounded-none border-[0.5px] border-[color:var(--color-blueprint-hairline)] bg-[var(--color-bg-base,#faf7f0)] ${MD_INK}`
 
@@ -99,19 +121,17 @@ function usePortfolioPopupCrtMotion() {
   }, [reduceMotion])
 
   const crtInitial = reduceMotion
-    ? { scaleX: 1, scaleY: 1, opacity: 1, filter: 'brightness(1) contrast(1)' }
-    : { scaleX: 0.8, scaleY: 0.02, opacity: 0.88, filter: 'brightness(2.6) contrast(1.08)' }
+    ? { scale: 1, opacity: 1 }
+    : { scale: POPUP_ENTER_SCALE, opacity: 0 }
 
-  const crtAnimate = { scaleX: 1, scaleY: 1, opacity: 1, filter: 'brightness(1) contrast(1)' }
+  const crtAnimate = { scale: 1, opacity: 1 }
 
   const crtExit = reduceMotion
-    ? { scaleX: 1, scaleY: 1, opacity: 0, filter: 'brightness(1) contrast(1)', transition: { duration: 0.12 } }
+    ? { scale: 1, opacity: 0, transition: { duration: 0.12 } }
     : {
-        scaleX: 0.85,
-        scaleY: 0.03,
+        scale: 0.9,
         opacity: 0,
-        filter: 'brightness(2.1) contrast(1.05)',
-        transition: CRT_CLOSE_TRANSITION,
+        transition: POPUP_EXIT_TRANSITION,
       }
 
   return {
@@ -120,7 +140,7 @@ function usePortfolioPopupCrtMotion() {
     crtInitial,
     crtAnimate,
     crtExit,
-    transition: reduceMotion ? ({ duration: 0.12 } as const) : CRT_OPEN_TRANSITION,
+    transition: reduceMotion ? ({ duration: 0.12 } as const) : POPUP_ENTER_TRANSITION,
   }
 }
 

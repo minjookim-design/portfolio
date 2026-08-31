@@ -575,8 +575,6 @@ const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium tracking-[
 const TEST_HOME_PAGE3_GALLERY_THUMB_LABEL_CLASS = `${HOME_SUIT} font-semibold tracking-[-0.02em] leading-[1.15]`
 const TEST_HOME_PAGE3_GALLERY_TABLE_COLS =
   'grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]'
-const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
-  `grid w-full ${TEST_HOME_PAGE3_GALLERY_TABLE_COLS} items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em]`
 
 /** Third column — dates, platforms: flush to the column’s right edge. */
 const TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT =
@@ -654,6 +652,16 @@ function detailsGalleryAnchorId(id: string) {
 const GALLERY_THUMB_CELL_HOVER =
   'has-[.gallery-thumb-card:hover]:z-[500] has-[.gallery-thumb-card:focus-visible]:z-[500]'
 
+const GALLERY_APPLE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
+
+const galleryThumbImageVariants: Variants = {
+  hidden: { scale: 1.05 },
+  visible: {
+    scale: 1,
+    transition: { duration: 1.2, ease: GALLERY_APPLE_EASE },
+  },
+}
+
 function DetailsGalleryCard({
   project,
   active,
@@ -661,6 +669,7 @@ function DetailsGalleryCard({
   fillHeight = false,
   revealInfoOnHover = false,
   preserveAspect = false,
+  cinematicEnter = false,
   onHoverChange,
 }: {
   project: DetailsGalleryThumb
@@ -672,8 +681,11 @@ function DetailsGalleryCard({
   revealInfoOnHover?: boolean
   /** Keep thumbnail aspect ratio inside the cell (`object-contain`). */
   preserveAspect?: boolean
+  /** Cinematic entrance — image scales from 1.05 → 1 inside a motion variant tree. */
+  cinematicEnter?: boolean
   onHoverChange?: (hovered: boolean) => void
 }) {
+  const reduceMotion = usePrefersReducedMotion()
   const isSquare = 'square' in project && project.square
   const thumbClass = preserveAspect
     ? 'h-full w-full object-cover object-center'
@@ -682,6 +694,11 @@ function DetailsGalleryCard({
       : isSquare
         ? 'aspect-square w-full h-full object-cover'
         : 'block h-auto w-full max-w-full object-cover'
+  const useCinematicImage = cinematicEnter && !reduceMotion
+  const ImageFrame = useCinematicImage ? motion.div : 'div'
+  const imageFrameProps = useCinematicImage
+    ? { variants: galleryThumbImageVariants, className: 'h-full w-full' }
+    : {}
 
   return (
     <button
@@ -704,19 +721,21 @@ function DetailsGalleryCard({
         }`}
         style={{ borderRadius: 0 }}
       >
-        <img
-          src={project.thumbnail_light}
-          alt={project.title}
-          className={`dark:hidden ${thumbClass}`}
-          draggable={false}
-        />
-        <img
-          src={project.thumbnail_dark}
-          alt=""
-          className={`hidden dark:block ${thumbClass}`}
-          aria-hidden
-          draggable={false}
-        />
+        <ImageFrame {...imageFrameProps}>
+          <img
+            src={project.thumbnail_light}
+            alt={project.title}
+            className={`dark:hidden ${thumbClass}`}
+            draggable={false}
+          />
+          <img
+            src={project.thumbnail_dark}
+            alt=""
+            className={`hidden dark:block ${thumbClass}`}
+            aria-hidden
+            draggable={false}
+          />
+        </ImageFrame>
       </div>
       <div
         className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/55 via-black/25 to-transparent transition-[transform,opacity] duration-300 ease-out ${
@@ -849,418 +868,257 @@ function GalleryImpactPreview({
   )
 }
 
-/** Gallery first-column typewriter pacing — scaled to label size. */
-const GALLERY_TYPEWRITER_PACE = 1.5
+/** Apple-like gallery entrance — single ease curve, cinematic durations, no springs. */
+const GALLERY_APPLE_DURATION_S = 1
+const GALLERY_APPLE_SLIDE_DURATION_S = 0.9
+const GALLERY_INTRO_DELAY_S = 0.1
+const GALLERY_EXPERIENCE_DELAY_S = 0.4
+const GALLERY_FUN_DELAY_S = 0.6
+const GALLERY_THUMB_DELAY_S = 0.8
+const GALLERY_LIST_STAGGER_S = 0.08
+const GALLERY_THUMB_STAGGER_S = 0.2
 
-function galleryTypewriterMs(text: string, floor = 260) {
-  return Math.max(
-    Math.round(floor / GALLERY_TYPEWRITER_PACE),
-    Math.round((text.length * 16) / GALLERY_TYPEWRITER_PACE),
-  )
+const galleryMaskedLineVariants: Variants = {
+  hidden: { y: '100%', opacity: 0 },
+  visible: {
+    y: '0%',
+    opacity: 1,
+    transition: { duration: GALLERY_APPLE_DURATION_S, ease: GALLERY_APPLE_EASE },
+  },
 }
 
-function galleryTypewriterGapMs(ms: number) {
-  return Math.round(ms / GALLERY_TYPEWRITER_PACE)
+const galleryMaskedLineInstantVariants: Variants = {
+  hidden: { y: '0%', opacity: 1 },
+  visible: { y: '0%', opacity: 1, transition: { duration: 0 } },
 }
 
-type GalleryColumnStage =
-  | 'name'
-  | 'bio'
-  | 'experience-heading'
-  | 'experience-rows'
-  | 'fun-heading'
-  | 'fun-rows'
-  | 'done'
+const gallerySlideUpLineVariants: Variants = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: GALLERY_APPLE_SLIDE_DURATION_S, ease: GALLERY_APPLE_EASE },
+  },
+}
 
-function GalleryTypingOrText({
-  text,
-  revealed,
-  active,
-  className,
-  durationMs,
-  onComplete,
+const gallerySlideUpLineInstantVariants: Variants = {
+  hidden: { y: 0, opacity: 1 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0 } },
+}
+
+const galleryIntroSectionVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: GALLERY_INTRO_DELAY_S,
+      staggerChildren: GALLERY_LIST_STAGGER_S,
+    },
+  },
+}
+
+const galleryExperienceSectionVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: GALLERY_EXPERIENCE_DELAY_S,
+      staggerChildren: GALLERY_LIST_STAGGER_S,
+    },
+  },
+}
+
+const galleryFunSectionVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: GALLERY_FUN_DELAY_S,
+      staggerChildren: GALLERY_LIST_STAGGER_S,
+    },
+  },
+}
+
+const galleryThumbGridVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: GALLERY_THUMB_DELAY_S,
+      staggerChildren: GALLERY_THUMB_STAGGER_S,
+    },
+  },
+}
+
+const galleryThumbContainerVariants: Variants = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: GALLERY_APPLE_SLIDE_DURATION_S, ease: GALLERY_APPLE_EASE },
+  },
+}
+
+function GalleryMaskedLine({
+  children,
+  className = '',
 }: {
-  text: string
-  revealed: boolean
-  active: boolean
+  children: React.ReactNode
   className?: string
-  durationMs?: number
-  onComplete?: () => void
 }) {
-  if (!revealed) {
-    return (
-      <span className={className} aria-hidden>
-        {'\u00a0'}
-      </span>
-    )
-  }
-  if (!active) {
-    return <span className={className}>{text}</span>
-  }
+  const reduceMotion = usePrefersReducedMotion()
   return (
-    <HomeIntroTypewriterText
-      as="span"
-      text={text}
-      className={className}
-      durationMs={durationMs ?? galleryTypewriterMs(text)}
-      postTypeCursorMs={0}
-      completeDelayMs={galleryTypewriterGapMs(60)}
-      onComplete={onComplete}
-    />
+    <div className={['overflow-hidden', className].filter(Boolean).join(' ')}>
+      <motion.div
+        variants={reduceMotion ? galleryMaskedLineInstantVariants : galleryMaskedLineVariants}
+      >
+        {children}
+      </motion.div>
+    </div>
   )
 }
 
-/** Column 1 — intro, experience, fun works with staged typewriter reveal. */
+function GallerySlideUpLine({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  const reduceMotion = usePrefersReducedMotion()
+  return (
+    <motion.div
+      className={className}
+      variants={reduceMotion ? gallerySlideUpLineInstantVariants : gallerySlideUpLineVariants}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+/** Column 1 — masked intro, experience, and fun works reveals. */
 function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' | 'mobile' }) {
   const isMobileLayout = layout === 'mobile'
-  const reduceMotion = usePrefersReducedMotion()
-  const [stage, setStage] = useState<GalleryColumnStage>(() => (reduceMotion ? 'done' : 'name'))
-  const [jobRowIndex, setJobRowIndex] = useState(0)
-  const [jobCellIndex, setJobCellIndex] = useState(0)
-  const [funRowIndex, setFunRowIndex] = useState(0)
-  const [funCellIndex, setFunCellIndex] = useState(0)
-
-  useEffect(() => {
-    if (reduceMotion) setStage('done')
-  }, [reduceMotion])
 
   const labelStyle = testHomePage3GalleryLabelStyle()
   const bodyLabelStyle = testHomePage3GalleryBodyLabelStyle()
   const headingClass = `${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`
   const bodyClass = `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} whitespace-pre-line leading-[1.2] text-black opacity-90 dark:text-white`
-  const tableClass = isMobileLayout
-    ? `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} flex w-full flex-col gap-y-[0.5em] text-left text-black dark:text-white`
-    : `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`
-  const done = stage === 'done'
-  const introBioText = `${HOME_INTRO_LOCATION}.\n${HOME_INTRO_GREETING_LINE2}.\n${HOME_INTRO_BIO}.`
-
-  const experienceVisible = done || stage === 'experience-heading' || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows'
-  const funVisible = done || stage === 'fun-heading' || stage === 'fun-rows'
-
-  const advanceJobCell = () => {
-    const job = CAREER_JOBS[jobRowIndex]
-    if (!job) {
-      setStage('fun-heading')
-      return
-    }
-    if (jobCellIndex < 2) {
-      setJobCellIndex((c) => c + 1)
-      return
-    }
-    if (jobRowIndex < CAREER_JOBS.length - 1) {
-      setJobRowIndex((r) => r + 1)
-      setJobCellIndex(0)
-      return
-    }
-    setStage('fun-heading')
-  }
-
-  const advanceFunCell = () => {
-    const item = FUN_WORKS_LINKS[funRowIndex]
-    if (!item) {
-      setStage('done')
-      return
-    }
-    if (funCellIndex === 0) {
-      setFunCellIndex(1)
-      return
-    }
-    if (funRowIndex < FUN_WORKS_LINKS.length - 1) {
-      setFunRowIndex((r) => r + 1)
-      setFunCellIndex(0)
-      return
-    }
-    setStage('done')
-  }
+  const tableClass = `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} flex w-full flex-col gap-y-[0.28em] text-left text-black dark:text-white`
 
   return (
-    <>
-      <div className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}>
-        <p className={headingClass} style={labelStyle}>
-          {done ? (
-            HOME_INTRO_GREETING_LINE1
-          ) : stage === 'name' ? (
-            <HomeIntroTypewriterText
-              as="span"
-              text={HOME_INTRO_GREETING_LINE1}
-              durationMs={galleryTypewriterMs(HOME_INTRO_GREETING_LINE1, 220)}
-              postTypeCursorMs={0}
-              completeDelayMs={galleryTypewriterGapMs(80)}
-              onComplete={() => setStage('bio')}
-            />
-          ) : (
-            HOME_INTRO_GREETING_LINE1
-          )}
-        </p>
-        {(done || stage !== 'name') && (
-          <p className={bodyClass} style={bodyLabelStyle}>
-            {done ? (
-              <>
-                {HOME_INTRO_LOCATION}.
-                <br />
-                {HOME_INTRO_GREETING_LINE2}.
-                <br />
-                {HOME_INTRO_BIO}.
-              </>
-            ) : stage === 'bio' ? (
-              <HomeIntroTypewriterText
-                as="span"
-                text={introBioText}
-                className="whitespace-pre-line"
-                durationMs={galleryTypewriterMs(introBioText, 420)}
-                postTypeCursorMs={0}
-                completeDelayMs={galleryTypewriterGapMs(100)}
-                onComplete={() => setStage('experience-heading')}
-              />
-            ) : (
-              <>
-                {HOME_INTRO_LOCATION}.
-                <br />
-                {HOME_INTRO_GREETING_LINE2}.
-                <br />
-                {HOME_INTRO_BIO}.
-              </>
-            )}
+    <div
+      id="gallery-first-column"
+      className={
+        isMobileLayout
+          ? 'w-full'
+          : 'flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden'
+      }
+    >
+      <motion.div
+        variants={galleryIntroSectionVariants}
+        initial="hidden"
+        animate="visible"
+        className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}
+      >
+        <GalleryMaskedLine>
+          <p className={headingClass} style={labelStyle}>
+            {HOME_INTRO_GREETING_LINE1}
           </p>
-        )}
-      </div>
+        </GalleryMaskedLine>
+        <GalleryMaskedLine>
+          <p className={bodyClass} style={bodyLabelStyle}>
+            {HOME_INTRO_LOCATION}.
+            <br />
+            {HOME_INTRO_GREETING_LINE2}.
+            <br />
+            {HOME_INTRO_BIO}.
+          </p>
+        </GalleryMaskedLine>
+      </motion.div>
 
-      <div
+      <motion.div
+        variants={galleryExperienceSectionVariants}
+        initial="hidden"
+        animate="visible"
         className={
           isMobileLayout
             ? 'w-full'
             : 'flex min-h-0 flex-1 flex-col justify-center overflow-hidden'
         }
+        aria-label="Experience"
       >
-        {experienceVisible ? (
-          <div
-            className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}
-            aria-label="Experience"
-          >
-            <p className={headingClass} style={labelStyle}>
-              {done ? (
-                'Experience'
-              ) : stage === 'experience-heading' ? (
-                <HomeIntroTypewriterText
-                  as="span"
-                  text="Experience"
-                  durationMs={galleryTypewriterMs('Experience', 240)}
-                  postTypeCursorMs={0}
-                  completeDelayMs={galleryTypewriterGapMs(80)}
-                  onComplete={() => setStage('experience-rows')}
-                />
-              ) : (
-                'Experience'
-              )}
-            </p>
-            {(done || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows') &&
-              (isMobileLayout ? (
-                <div className={tableClass} style={bodyLabelStyle}>
-                  {CAREER_JOBS.map((job, rowIndex) => {
-                    const role = job.role
-                    const company = job.company
-                    const period = job.period
-                    const cells = [role, company, period] as const
-                    const rowRevealed =
-                      done ||
-                      rowIndex < jobRowIndex ||
-                      (rowIndex === jobRowIndex && jobCellIndex >= 0) ||
-                      stage === 'fun-heading' ||
-                      stage === 'fun-rows'
-                    return (
-                      <div
-                        key={`${job.role}-${job.period}`}
-                        className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-[0.75em]"
-                      >
-                        <div className="min-w-0">
-                          {cells.slice(0, 2).map((cellText, cellIndex) => {
-                            const revealed =
-                              done ||
-                              rowIndex < jobRowIndex ||
-                              (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
-                              stage === 'fun-heading' ||
-                              stage === 'fun-rows'
-                            const active =
-                              !done &&
-                              stage === 'experience-rows' &&
-                              rowIndex === jobRowIndex &&
-                              cellIndex === jobCellIndex
-                            return (
-                              <GalleryTypingOrText
-                                key={`${job.role}-${cellIndex}`}
-                                text={cellText}
-                                revealed={revealed}
-                                active={active}
-                                className={
-                                  cellIndex === 1
-                                    ? 'min-w-0 leading-tight opacity-90'
-                                    : 'min-w-0 leading-tight'
-                                }
-                                onComplete={advanceJobCell}
-                              />
-                            )
-                          })}
-                        </div>
-                        <GalleryTypingOrText
-                          text={period}
-                          revealed={
-                            rowRevealed &&
-                            (done ||
-                              rowIndex < jobRowIndex ||
-                              (rowIndex === jobRowIndex && jobCellIndex >= 2) ||
-                              stage === 'fun-heading' ||
-                              stage === 'fun-rows')
-                          }
-                          active={
-                            !done &&
-                            stage === 'experience-rows' &&
-                            rowIndex === jobRowIndex &&
-                            jobCellIndex === 2
-                          }
-                          className={`shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`}
-                          onComplete={advanceJobCell}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className={tableClass} style={bodyLabelStyle}>
-                  {CAREER_JOBS.map((job, rowIndex) => {
-                    const role = job.role
-                    const company = job.company
-                    const period = job.period
-                    const cells = [role, company, period] as const
-                    return (
-                      <React.Fragment key={`${job.role}-${job.period}`}>
-                        {cells.map((cellText, cellIndex) => {
-                          const cellClass =
-                            cellIndex === 2
-                              ? `shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`
-                              : cellIndex === 1
-                                ? 'min-w-0 justify-self-start leading-tight opacity-90'
-                                : 'min-w-0 justify-self-start leading-tight'
-                          const revealed =
-                            done ||
-                            rowIndex < jobRowIndex ||
-                            (rowIndex === jobRowIndex && cellIndex <= jobCellIndex) ||
-                            stage === 'fun-heading' ||
-                            stage === 'fun-rows'
-                          const active =
-                            !done &&
-                            stage === 'experience-rows' &&
-                            rowIndex === jobRowIndex &&
-                            cellIndex === jobCellIndex
-                          return (
-                            <GalleryTypingOrText
-                              key={`${job.role}-${cellIndex}`}
-                              text={cellText}
-                              revealed={revealed}
-                              active={active}
-                              className={cellClass}
-                              onComplete={advanceJobCell}
-                            />
-                          )
-                        })}
-                      </React.Fragment>
-                    )
-                  })}
-                </div>
-              ))}
-          </div>
-        ) : null}
-      </div>
+        <GalleryMaskedLine>
+          <p className={headingClass} style={labelStyle}>
+            Experience
+          </p>
+        </GalleryMaskedLine>
+        <div className={tableClass} style={bodyLabelStyle}>
+          {CAREER_JOBS.map((job) => {
+            const role = job.role
+            const company = job.company
+            const period = job.period
+            return (
+              <GallerySlideUpLine key={`${job.role}-${job.period}`}>
+                {isMobileLayout ? (
+                  <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-[0.75em]">
+                    <div className="min-w-0">
+                      <div className="min-w-0 leading-tight">{role}</div>
+                      <div className="min-w-0 leading-tight opacity-90">{company}</div>
+                    </div>
+                    <div className={`shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`}>
+                      {period}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={`grid w-full ${TEST_HOME_PAGE3_GALLERY_TABLE_COLS} items-baseline justify-items-start gap-x-[0.75em] gap-y-[0.28em]`}
+                  >
+                    <span className="min-w-0 justify-self-start leading-tight">{role}</span>
+                    <span className="min-w-0 justify-self-start leading-tight opacity-90">
+                      {company}
+                    </span>
+                    <span className={`shrink-0 ${TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}`}>
+                      {period}
+                    </span>
+                  </div>
+                )}
+              </GallerySlideUpLine>
+            )
+          })}
+        </div>
+      </motion.div>
 
-      <div
+      <motion.div
+        variants={galleryFunSectionVariants}
+        initial="hidden"
+        animate="visible"
         className={
           isMobileLayout
             ? 'w-full'
             : 'mt-auto min-h-0 w-full shrink-0 overflow-hidden'
         }
+        aria-label="Fun works I do"
       >
-        {funVisible ? (
-          <div
-            className={isMobileLayout ? 'w-full' : 'min-h-0 w-full overflow-hidden'}
-            aria-label="Fun works I do"
-          >
-            <p className={headingClass} style={labelStyle}>
-              {done ? (
-                'Fun Works I do'
-              ) : stage === 'fun-heading' ? (
-                <HomeIntroTypewriterText
-                  as="span"
-                  text="Fun Works I do"
-                  durationMs={galleryTypewriterMs('Fun Works I do', 260)}
-                  postTypeCursorMs={0}
-                  completeDelayMs={galleryTypewriterGapMs(80)}
-                  onComplete={() => setStage('fun-rows')}
-                />
-              ) : (
-                'Fun Works I do'
-              )}
-            </p>
-            {(done || stage === 'fun-rows') && (
-              <div className="flex w-full flex-col gap-y-[0.28em]" style={bodyLabelStyle}>
-                {FUN_WORKS_LINKS.map((item, rowIndex) => {
-                  const titleRevealed =
-                    done ||
-                    rowIndex < funRowIndex ||
-                    (rowIndex === funRowIndex && funCellIndex >= 0)
-                  const titleActive =
-                    !done && stage === 'fun-rows' && rowIndex === funRowIndex && funCellIndex === 0
-                  const platformRevealed =
-                    done || rowIndex < funRowIndex || (rowIndex === funRowIndex && funCellIndex >= 1)
-                  const platformActive =
-                    !done && stage === 'fun-rows' && rowIndex === funRowIndex && funCellIndex === 1
-
-                  const renderFunCell = (
-                    cellText: string,
-                    cellClass: string,
-                    revealed: boolean,
-                    active: boolean,
-                  ) =>
-                    active || !revealed ? (
-                      <GalleryTypingOrText
-                        text={cellText}
-                        revealed={revealed}
-                        active={active}
-                        className={cellClass}
-                        onComplete={advanceFunCell}
-                      />
-                    ) : (
-                      <span className={cellClass}>{cellText}</span>
-                    )
-
-                  return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK}
-                    >
-                      {renderFunCell(
-                        item.title,
-                        'min-w-0 justify-self-start leading-tight',
-                        titleRevealed,
-                        titleActive,
-                      )}
-                      <span className="min-w-0 justify-self-start leading-tight opacity-90" aria-hidden />
-                      {renderFunCell(
-                        item.platform,
-                        TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT,
-                        platformRevealed,
-                        platformActive,
-                      )}
-                    </a>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ) : null}
-      </div>
-    </>
+        <GalleryMaskedLine>
+          <p className={headingClass} style={labelStyle}>
+            Fun Works I do
+          </p>
+        </GalleryMaskedLine>
+        <div className="flex w-full flex-col gap-y-[0.28em]" style={bodyLabelStyle}>
+          {FUN_WORKS_LINKS.map((item) => (
+            <GallerySlideUpLine key={item.href}>
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK}
+              >
+                <span className="min-w-0 justify-self-start leading-tight">{item.title}</span>
+                <span className="min-w-0 justify-self-start leading-tight opacity-90" aria-hidden />
+                <span className={TEST_HOME_PAGE3_GALLERY_TABLE_COL_RIGHT}>{item.platform}</span>
+              </a>
+            </GallerySlideUpLine>
+          ))}
+        </div>
+      </motion.div>
+    </div>
   )
 }
 
@@ -1275,7 +1133,9 @@ function CenteredViewportThumbnailGallery({
   galleryThumbs: readonly DetailsGalleryThumb[]
 }) {
   const isMobileGallery = useIsNarrow(GALLERY_HOME_MOBILE_MAX_PX)
+  const reduceMotion = usePrefersReducedMotion()
   const galleryLayoutStyle = testHomePage3GalleryLayoutStyle(isMobileGallery)
+  const thumbAnimateState = 'visible'
   const [galleryImpactPreviewId, setGalleryImpactPreviewId] =
     useState<GalleryImpactPreviewProjectId | null>(null)
 
@@ -1315,14 +1175,18 @@ function CenteredViewportThumbnailGallery({
         <div className="flex w-full flex-col gap-8 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-[max(0.75rem,env(safe-area-inset-top,0px))]">
           <GalleryFirstColumnPanels layout="mobile" />
 
-          <div
+          <motion.div
             className="flex w-full shrink-0 flex-col"
             style={{ gap: 'var(--gallery-gap)' }}
             aria-label="Projects"
+            variants={galleryThumbGridVariants}
+            initial="hidden"
+            animate={thumbAnimateState}
           >
             {galleryThumbs.map((project) => (
-              <div
+              <motion.div
                 key={project.id}
+                variants={reduceMotion ? gallerySlideUpLineInstantVariants : galleryThumbContainerVariants}
                 className={`relative z-0 min-h-0 w-full shrink-0 ${GALLERY_THUMB_CELL_HOVER}`}
                 style={{ height: 'var(--gallery-row-1)' }}
               >
@@ -1332,10 +1196,11 @@ function CenteredViewportThumbnailGallery({
                   onSelect={() => onSelectProject(project.id)}
                   fillHeight
                   preserveAspect
+                  cinematicEnter
                 />
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     )
@@ -1354,20 +1219,24 @@ function CenteredViewportThumbnailGallery({
         className="relative z-0 flex h-full min-h-0 shrink-0 flex-col overflow-visible"
         style={{ width: 'var(--gallery-w)', maxWidth: '100%' }}
       >
-        <div
+        <motion.div
           className="box-border grid h-[var(--gallery-h)] w-[var(--gallery-w)] min-h-0 min-w-0 shrink-0 grid-cols-2 overflow-visible"
           style={{
             ...galleryLayoutStyle,
             gap: 'var(--gallery-gap)',
             gridTemplateRows: 'var(--gallery-row-1) var(--gallery-row-2) var(--gallery-row-3)',
           }}
+          variants={galleryThumbGridVariants}
+          initial="hidden"
+          animate={thumbAnimateState}
         >
           {galleryThumbs.map((project) => {
             const impactPreviewId = isGalleryImpactPreviewProjectId(project.id) ? project.id : null
             return (
-            <div
+            <motion.div
               key={project.id}
-              className={`relative z-0 min-h-0 min-w-0 ${GALLERY_THUMB_CELL_HOVER} ${
+              variants={reduceMotion ? gallerySlideUpLineInstantVariants : galleryThumbContainerVariants}
+              className={`relative z-0 min-h-0 min-w-0 h-full ${GALLERY_THUMB_CELL_HOVER} ${
                 project.span === 'full' ? 'col-span-2' : 'col-span-1'
               }`}
             >
@@ -1378,6 +1247,7 @@ function CenteredViewportThumbnailGallery({
                 fillHeight
                 revealInfoOnHover
                 preserveAspect
+                cinematicEnter
                 onHoverChange={
                   impactPreviewId
                     ? (hovered) => {
@@ -1387,10 +1257,10 @@ function CenteredViewportThumbnailGallery({
                     : undefined
                 }
               />
-            </div>
+            </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       </div>
 
       <div
