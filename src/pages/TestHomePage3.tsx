@@ -75,13 +75,13 @@ const CAREER_JOBS = [
 const FUN_WORKS_LINKS = [
   {
     href: 'https://www.framer.com/@minjoo-kim-j8bshr/',
-    title: 'LOOK WHAT I MADE',
-    platform: 'FRAMER',
+    title: 'Look what I made',
+    platform: 'Framer',
   },
   {
     href: 'https://www.linkedin.com/posts/minjoo-kim-kor_i-finally-updated-my-2026-portfolio-website-ugcPost-7455011472398643200-_IrA/?utm_source=share&utm_medium=member_desktop&rcm=ACoAACuQrmEB-KQotLOdxG6k1S-x8alPd5kMiCs',
-    title: 'READ HOW I MADE THIS WEBSITE',
-    platform: 'LINKEDIN',
+    title: 'Read how I made this website',
+    platform: 'LinkedIn',
   },
 ] as const
 
@@ -93,6 +93,7 @@ const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2
 const HOME_INTRO_SERIF_TEST_HERO =
   "text-[22pt] font-['ChosunIlboMyungjo',serif] font-normal not-italic uppercase leading-[0.99] tracking-normal"
 const HOME_INTRO_GREETING_LINE1 = 'Minjoo Kim:'
+const HOME_INTRO_LOCATION = 'Based in Toronto, Canada'
 const HOME_INTRO_GREETING_LINE2 =
   'Crafting UX solutions grounded in Data and communication'
 const HOME_INTRO_GREETING = `${HOME_INTRO_GREETING_LINE1}\n${HOME_INTRO_GREETING_LINE2}`
@@ -569,7 +570,9 @@ const TEST_HOME_PAGE3_GALLERY_REF_W = 3345
 const TEST_HOME_PAGE3_GALLERY_REF_H = TEST_HOME_PAGE3_GALLERY_ROW_H * 3
 /** ~9pt label at reference row height; scales with `--gallery-cell-h` to keep ratio. */
 const TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO = 0.042
-const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium uppercase tracking-[-0.02em] leading-[1.15]`
+const TEST_HOME_PAGE3_GALLERY_LABEL_CLASS = `${HOME_SUIT} font-medium tracking-[-0.02em] leading-[1.15]`
+/** Medium-weight thumbnail overlay labels — natural case. */
+const TEST_HOME_PAGE3_GALLERY_THUMB_LABEL_CLASS = `${HOME_SUIT} font-semibold tracking-[-0.02em] leading-[1.15]`
 const TEST_HOME_PAGE3_GALLERY_TABLE_COLS =
   'grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]'
 const TEST_HOME_PAGE3_GALLERY_TABLE_GRID =
@@ -586,6 +589,13 @@ const TEST_HOME_PAGE3_GALLERY_FUN_ROW_LINK =
 function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   return {
     fontSize: `clamp(8px, calc(var(--gallery-cell-h, 10rem) * ${TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO}), 12px)`,
+  }
+}
+
+/** Uncapitalized gallery body copy — one weight heavier, +1pt vs heading labels. */
+function testHomePage3GalleryBodyLabelStyle(): React.CSSProperties {
+  return {
+    fontSize: `clamp(calc(8px + 1pt), calc(var(--gallery-cell-h, 10rem) * ${TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO} + 1pt), calc(12px + 1pt))`,
   }
 }
 
@@ -716,7 +726,7 @@ function DetailsGalleryCard({
         }`}
       >
         <div
-          className={`grid max-w-full grid-cols-2 ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-white ${
+          className={`grid max-w-full grid-cols-2 ${TEST_HOME_PAGE3_GALLERY_THUMB_LABEL_CLASS} text-white ${
             revealInfoOnHover ? '' : 'text-[12pt] leading-4'
           }`}
           style={revealInfoOnHover ? testHomePage3GalleryLabelStyle() : undefined}
@@ -785,6 +795,7 @@ function GalleryImpactPreview({
   visible: boolean
 }) {
   const labelStyle = testHomePage3GalleryLabelStyle()
+  const bodyLabelStyle = testHomePage3GalleryBodyLabelStyle()
   const topOffset =
     projectId === 'piikai' ? 'calc(var(--gallery-row-1) + var(--gallery-gap))' : undefined
 
@@ -806,7 +817,7 @@ function GalleryImpactPreview({
           transition={{ duration: 0.28, ease: [0.76, 0, 0.24, 1] }}
           className="gallery-impact-preview ml-auto min-h-0 w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto"
           style={{
-            ...labelStyle,
+            ...bodyLabelStyle,
             ...(topOffset ? { paddingTop: topOffset } : null),
           }}
           aria-label={`${projectId === 'hovr' ? 'HOVR' : 'Piik AI'} case study preview`}
@@ -914,13 +925,14 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
   }, [reduceMotion])
 
   const labelStyle = testHomePage3GalleryLabelStyle()
+  const bodyLabelStyle = testHomePage3GalleryBodyLabelStyle()
   const headingClass = `${HOME_SUIT} mb-[0.35em] font-extrabold uppercase tracking-[-0.02em] leading-[1.15] text-black dark:text-white`
   const bodyClass = `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} whitespace-pre-line leading-[1.2] text-black opacity-90 dark:text-white`
   const tableClass = isMobileLayout
     ? `${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} flex w-full flex-col gap-y-[0.5em] text-left text-black dark:text-white`
     : `${TEST_HOME_PAGE3_GALLERY_TABLE_GRID} ${TEST_HOME_PAGE3_GALLERY_LABEL_CLASS} text-left text-black dark:text-white`
   const done = stage === 'done'
-  const introBioText = `${HOME_INTRO_GREETING_LINE2}.\n${HOME_INTRO_BIO}.`
+  const introBioText = `${HOME_INTRO_LOCATION}.\n${HOME_INTRO_GREETING_LINE2}.\n${HOME_INTRO_BIO}.`
 
   const experienceVisible = done || stage === 'experience-heading' || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows'
   const funVisible = done || stage === 'fun-heading' || stage === 'fun-rows'
@@ -981,9 +993,11 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
           )}
         </p>
         {(done || stage !== 'name') && (
-          <p className={bodyClass} style={labelStyle}>
+          <p className={bodyClass} style={bodyLabelStyle}>
             {done ? (
               <>
+                {HOME_INTRO_LOCATION}.
+                <br />
                 {HOME_INTRO_GREETING_LINE2}.
                 <br />
                 {HOME_INTRO_BIO}.
@@ -1000,6 +1014,8 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
               />
             ) : (
               <>
+                {HOME_INTRO_LOCATION}.
+                <br />
                 {HOME_INTRO_GREETING_LINE2}.
                 <br />
                 {HOME_INTRO_BIO}.
@@ -1039,11 +1055,11 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
             </p>
             {(done || stage === 'experience-rows' || stage === 'fun-heading' || stage === 'fun-rows') &&
               (isMobileLayout ? (
-                <div className={tableClass} style={labelStyle}>
+                <div className={tableClass} style={bodyLabelStyle}>
                   {CAREER_JOBS.map((job, rowIndex) => {
-                    const role = job.role.toUpperCase()
-                    const company = job.company.toUpperCase()
-                    const period = job.period.toUpperCase()
+                    const role = job.role
+                    const company = job.company
+                    const period = job.period
                     const cells = [role, company, period] as const
                     const rowRevealed =
                       done ||
@@ -1109,11 +1125,11 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
                   })}
                 </div>
               ) : (
-                <div className={tableClass} style={labelStyle}>
+                <div className={tableClass} style={bodyLabelStyle}>
                   {CAREER_JOBS.map((job, rowIndex) => {
-                    const role = job.role.toUpperCase()
-                    const company = job.company.toUpperCase()
-                    const period = job.period.toUpperCase()
+                    const role = job.role
+                    const company = job.company
+                    const period = job.period
                     const cells = [role, company, period] as const
                     return (
                       <React.Fragment key={`${job.role}-${job.period}`}>
@@ -1184,7 +1200,7 @@ function GalleryFirstColumnPanels({ layout = 'desktop' }: { layout?: 'desktop' |
               )}
             </p>
             {(done || stage === 'fun-rows') && (
-              <div className="flex w-full flex-col gap-y-[0.28em]" style={labelStyle}>
+              <div className="flex w-full flex-col gap-y-[0.28em]" style={bodyLabelStyle}>
                 {FUN_WORKS_LINKS.map((item, rowIndex) => {
                   const titleRevealed =
                     done ||
