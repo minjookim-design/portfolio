@@ -592,10 +592,10 @@ function testHomePage3GalleryLabelStyle(): React.CSSProperties {
   }
 }
 
-/** Uncapitalized gallery body copy — one weight heavier, +1pt vs heading labels. */
+/** Uncapitalized gallery body copy — same scale as heading labels (−1pt vs prior body size). */
 function testHomePage3GalleryBodyLabelStyle(): React.CSSProperties {
   return {
-    fontSize: `clamp(calc(8px + 1pt), calc(var(--gallery-cell-h, 10rem) * ${TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO} + 1pt), calc(12px + 1pt))`,
+    fontSize: `clamp(8px, calc(var(--gallery-cell-h, 10rem) * ${TEST_HOME_PAGE3_GALLERY_LABEL_SIZE_RATIO}), 12px)`,
   }
 }
 
