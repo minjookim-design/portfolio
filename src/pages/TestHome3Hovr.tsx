@@ -616,7 +616,7 @@ export function TestHome3Hovr({
   backTo?: string
   backLabel?: string
 } = {}) {
-  const { homePath, projectPath } = useErdHomePaths()
+  const { homePath } = useErdHomePaths()
   const resolvedBackTo = backTo ?? homePath
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()

@@ -5,12 +5,11 @@ import { HomeMobileProjectProvider } from './context/HomeMobileProjectContext'
 import { useRedirectHomeWhenDesktop } from './hooks/useRedirectHomeWhenDesktop'
 import { HomePage } from './pages/HomePage'
 import { HomePageClassic } from './pages/HomePageClassic'
-import { TestHomePage3 } from './pages/TestHomePage3'
 import { TestHome3Hovr } from './pages/TestHome3Hovr'
 import { TestHome3Piik } from './pages/TestHome3Piik'
 import { TestHome3ArFitting } from './pages/TestHome3ArFitting'
 import { TestHome3About } from './pages/TestHome3About'
-import { ERD_SANDBOX_HOME, isErdHomePathname } from './pages/testHome3/erdHomePaths'
+import { isErdHomePathname } from './pages/testHome3/erdHomePaths'
 import { TestPage } from './pages/TestPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { HovrProjectPage } from './pages/HovrProjectPage'
@@ -80,12 +79,11 @@ function AppShell() {
             />
             <Route path="piik-ai" element={<TestPiik />} />
           </Route>
-          <Route path="test-home-3" element={<TestHomePage3 basePath={ERD_SANDBOX_HOME} />}>
-            <Route path="hovr" element={<TestHome3Hovr />} />
-            <Route path="piik-ai" element={<TestHome3Piik />} />
-            <Route path="ar-fitting-room" element={<TestHome3ArFitting />} />
-            <Route path="about" element={<TestHome3About />} />
-          </Route>
+          <Route path="test-home-3" element={<Navigate to="/" replace />} />
+          <Route path="test-home-3/hovr" element={<Navigate to="/hovr" replace />} />
+          <Route path="test-home-3/piik-ai" element={<Navigate to="/piik-ai" replace />} />
+          <Route path="test-home-3/ar-fitting-room" element={<Navigate to="/ar-fitting-room" replace />} />
+          <Route path="test-home-3/about" element={<Navigate to="/about" replace />} />
           <Route
             path="project/ar-fitting-room"
             element={<Navigate to="/ar-fitting-room" replace />}

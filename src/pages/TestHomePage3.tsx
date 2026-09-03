@@ -1,5 +1,5 @@
 /**
- * Recreation of the Enfants Riches Déprimés homepage at `/test-home-3`.
+ * ERD archive homepage — production at `/` with nested project overlays.
  * Reference: https://www.enfantsrichesdeprimes.com
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -9,7 +9,6 @@ import { usePageTheme } from '../context/PageThemeContext'
 import { ErdSiteNav } from './testHome3/ErdChrome'
 import {
   ERD_PRODUCTION_HOME,
-  ERD_SANDBOX_HOME,
   erdHomePath,
   erdHomeRoot,
 } from './testHome3/erdHomePaths'
@@ -429,7 +428,7 @@ export function TestHomePage3({
   }, [location.hash, projectOpen, reduceMotion])
 
       return (
-    <LayoutGroup id={`erd-home-${basePath === ERD_SANDBOX_HOME ? 'sandbox' : 'production'}`}>
+    <LayoutGroup id="erd-home-production">
     <div
       className={`erd-site erd-site--${isDark ? 'dark' : 'light'}${projectOpen ? ' erd-site--project-open' : ''} fixed inset-0 z-0 overflow-y-auto overflow-x-hidden`}
     >
