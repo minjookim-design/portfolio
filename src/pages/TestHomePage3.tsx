@@ -401,11 +401,7 @@ export function TestHomePage3({
   const entranceInitial = reduceMotion ? false : 'hidden'
 
   useEffect(() => {
-    const prevTitle = document.title
-    document.title = 'ENFANTS RICHES DÉPRIMÉS'
-    return () => {
-      document.title = prevTitle
-    }
+    document.title = "Minjoo's Portfolio"
   }, [])
 
   useEffect(() => {
@@ -442,7 +438,7 @@ export function TestHomePage3({
                   ) : null}
 
       <main className="erd-main min-h-screen" aria-hidden={projectOpen}>
-        <h1 className="sr-only">Enfants Riches Déprimés</h1>
+        <h1 className="sr-only">Minjoo's Portfolio</h1>
 
         <motion.section
           className="erd-shop-row"
