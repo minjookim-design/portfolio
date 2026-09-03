@@ -2,7 +2,7 @@
  * AR Fitting Room case study under `/test-home-3/ar-fitting-room`.
  * Clones HOVR ERD popup chrome / skin / scroll-spy. Published `/projects/ar-fitting-room` unchanged.
  */
-import { useCallback, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import arFittingMarkdown from '../../_content/AR Fitting Room.md?raw'
 import {
@@ -127,7 +127,10 @@ const AR_SECTION_THEME: Record<string, 'light' | 'dark'> = {
   'Key Takeaways': 'light',
 }
 
-const AR_HERO_IMAGE = '/arfittingroom/Thumbnail-light-sq.png'
+const AR_HERO_MEDIA = {
+  light: '/arfittingroom/Thumbnail-light-sq.mp4',
+  dark: '/arfittingroom/Thumbnail-dark-sq.mp4',
+} as const
 const AR_DISPLAY_NAME = 'AR Fitting Room'
 
 const ERD_HERO_EASE = [0.45, 0, 0.55, 1] as const
@@ -148,6 +151,18 @@ function ErdArFittingHero({
   categories?: string[]
 }) {
   const reduceMotion = useReducedMotion()
+  const { isDark } = usePageTheme()
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const heroVideo = AR_HERO_MEDIA[isDark ? 'dark' : 'light']
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    video.src = heroVideo
+    video.load()
+    video.playbackRate = 1.6
+    void video.play().catch(() => {})
+  }, [heroVideo])
 
   const tileInitial = reduceMotion ? false : { opacity: 0, y: 28, scale: 0.985 }
   const tileAnimate = { opacity: 1, y: 0, scale: 1 }
@@ -196,11 +211,16 @@ function ErdArFittingHero({
         transition={{ ...ERD_HERO_TILE_TRANSITION, delay: reduceMotion ? 0 : 0.34 }}
       >
         <div className="erd-shop-card-media">
-          <img
+          <video
+            ref={videoRef}
             className="erd-shop-card-video erd-hovr-hero-video"
-            src={AR_HERO_IMAGE}
-            alt={`${title} preview`}
-            decoding="async"
+            src={heroVideo}
+            muted
+            playsInline
+            loop
+            autoPlay
+            preload="auto"
+            aria-label={`${title} preview`}
           />
         </div>
       </motion.div>

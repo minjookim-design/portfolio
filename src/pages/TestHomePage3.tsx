@@ -182,6 +182,7 @@ const AR_FITTING_SHOP_CARD = {
 
 const SHOP_SQUARE_GREETING = {
   name: 'Minjoo Kim',
+  location: 'Based in Toronto, Canada.',
   line: 'Crafting UX solutions grounded in Data and communication',
 } as const
 
@@ -354,8 +355,9 @@ function ErdShopSquare() {
       >
         <motion.div className="erd-shop-square-intro" variants={erdShopSquareTextVariants}>
           <p className="erd-shop-square-name">{SHOP_SQUARE_GREETING.name}</p>
+          <p className="erd-shop-square-location">{SHOP_SQUARE_GREETING.location}</p>
           <p className="erd-shop-square-greeting">{SHOP_SQUARE_GREETING.line}</p>
-          </motion.div>
+        </motion.div>
         <motion.div className="erd-shop-square-experience" variants={erdShopSquareTextVariants}>
           <p className="erd-shop-square-experience-label">Experience</p>
           <ul className="erd-shop-square-experience-list">
@@ -463,7 +465,7 @@ export function TestHomePage3({
             label={AR_FITTING_SHOP_CARD.label}
             subtitle={AR_FITTING_SHOP_CARD.subtitle}
             hoverVideo={arFittingShopMedia.video}
-            videoPlaybackRate={1.2}
+            videoPlaybackRate={1.5}
           />
           <ShopVideoCard
             href={hovrHref}

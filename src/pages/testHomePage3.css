@@ -161,7 +161,7 @@
 }
 
 .erd-site .erd-nav-pill {
-  --erd-nav-scale: 0.8;
+  --erd-nav-scale: 0.832;
   --erd-nav-control-h: calc(clamp(1.625rem, 1.4rem + 0.55vw, 1.875rem) * var(--erd-nav-scale));
   align-items: center;
   backdrop-filter: blur(16px);
@@ -541,7 +541,7 @@
 }
 
 .erd-site .erd-shop-square-name {
-  font-size: clamp(0.6875rem, 0.55rem + 0.55vw, 0.875rem);
+  font-size: calc(clamp(0.6875rem, 0.55rem + 0.55vw, 0.875rem) - 2pt);
   letter-spacing: 0.06em;
   line-height: 1.2;
   margin: 0 0 0.4rem;
@@ -549,8 +549,20 @@
   text-transform: uppercase;
 }
 
+.erd-site .erd-shop-square-location {
+  font-size: calc(clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) - 2pt);
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  margin: 0 0 0.25rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-transform: none;
+  white-space: normal;
+  opacity: 0.65;
+}
+
 .erd-site .erd-shop-square-greeting {
-  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem);
+  font-size: calc(clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) - 2pt);
   letter-spacing: 0.01em;
   line-height: 1.35;
   margin: 0;
@@ -568,7 +580,7 @@
 }
 
 .erd-site .erd-shop-square-experience-label {
-  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem);
+  font-size: calc(clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) - 2pt);
   letter-spacing: 0.06em;
   line-height: 1.2;
   margin: 0 0 0.45rem;
@@ -592,7 +604,7 @@
 }
 
 .erd-site .erd-shop-square-experience-role {
-  font-size: clamp(0.5625rem, 0.45rem + 0.35vw, 0.6875rem);
+  font-size: calc(clamp(0.5625rem, 0.45rem + 0.35vw, 0.6875rem) - 2pt);
   letter-spacing: 0.04em;
   line-height: 1.25;
   text-transform: uppercase;
@@ -600,7 +612,7 @@
 }
 
 .erd-site .erd-shop-square-experience-meta {
-  font-size: clamp(0.5rem, 0.4rem + 0.3vw, 0.625rem);
+  font-size: calc(clamp(0.5rem, 0.4rem + 0.3vw, 0.625rem) - 2pt);
   letter-spacing: 0.02em;
   line-height: 1.25;
   opacity: 0.72;
