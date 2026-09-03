@@ -10,11 +10,12 @@ thumbnail_dark: /piikai/Thumbnail-dark.jpg
 For an AI knowledge-sharing platform, the creator's writing experience is the product's core engine. By completely reconstructing the restrictive MVP editor into a scalable, professional-grade workspace, A new solution reduced user complaints by 75%. This frictionless environment dramatically boosted platform adoption, acquiring over 50+ unique creators within just days of the launch.
 
 ---
-### Listening to Our Users
+### User Analysis
+#### Listening to Our Users
 We didn't just guess the pain points. We synthesized our problem statements directly from actual emails and feedback received from our creators.
 
-### The Core Challenge: Restrictive MVP
-#### Cross-Cultural UX Gaps & The “Lost Draft” Tragedy
+### The Core Challenge
+#### Restrictive MVP
 This transformation began by investigating critical user complaints regarding the MVP's article editor. Analyzing user feedback revealed deeper, more punishing issues: a paralyzing lack of editing tools and devastating data loss.
 The redesign was driven by three critical user pain points discovered during research:
 1.  **Lack of Editing Tools:** The editing tool only performed the bare minimum. Creators asked for dividers, font size, font selection, and styling — essentials they expected from a writing product.
@@ -23,7 +24,8 @@ The redesign was driven by three critical user pain points discovered during res
 
 These insights shifted my objective from a simple UI tweak to building a **high-density, fail-safe creative environment.**
 
-### Why Do Our Users Want More Features?
+### Cross-Cultural UX
+#### Why Do Our Users Want More Features?
 *   **Naver Blog analysis:** Studied Korea's dominant publishing platform — a visible, exhaustive editing suite that has shaped creator expectations for decades.
 *   **Minimalism ≠ power:** For Korean users, minimalism often reads as a lack of functionality. They expect a "versatile toolbox" with high-density, high-precision control.
 *   **Design objective:** Shifted from a simple UI tweak to building a **high-density, fail-safe creative environment.**

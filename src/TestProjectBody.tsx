@@ -9,6 +9,7 @@ import {
   isValidElement,
   type ReactNode,
   type RefObject,
+  type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
@@ -27,6 +28,7 @@ import {
   MD_PAGE_MARGIN,
   MD_PROJECT_PAGE_MAX,
 } from './testMd3Layout'
+import './pages/testHomePage3.css'
 import {
   BLUEPRINT_DURATION,
   BLUEPRINT_EASE,
@@ -494,6 +496,50 @@ function splitBlockquoteGroups(src: string): MarkdownSegment[] {
   return segments
 }
 
+type ProseChunk = { kind: 'prose' | 'media'; text: string }
+
+/** Standalone `![alt](src)` paragraph → full-width media row when `asGridChildren`. */
+function splitInlineMediaParagraphs(src: string): ProseChunk[] {
+  const mediaLineRe = /^\s*!\[[^\]]*\]\([^)]+\)\s*$/u
+  const parts = src.split(/\n\n/)
+  const chunks: ProseChunk[] = []
+  let proseBuf: string[] = []
+
+  const flushProse = () => {
+    const text = proseBuf.join('\n\n').trim()
+    if (text) chunks.push({ kind: 'prose', text })
+    proseBuf = []
+  }
+
+  for (const part of parts) {
+    if (mediaLineRe.test(part.trim())) {
+      flushProse()
+      chunks.push({ kind: 'media', text: part.trim() })
+    } else {
+      proseBuf.push(part)
+    }
+  }
+  flushProse()
+  return chunks.length > 0 ? chunks : [{ kind: 'prose', text: src }]
+}
+
+/** Split prose chunks into leading media, middle text, and trailing media (for beside layouts). */
+function splitProseMediaLayout(chunks: ProseChunk[]) {
+  let start = 0
+  const leading: ProseChunk[] = []
+  while (start < chunks.length && chunks[start]?.kind === 'media') {
+    leading.push(chunks[start]!)
+    start++
+  }
+  let end = chunks.length - 1
+  const trailing: ProseChunk[] = []
+  while (end >= start && chunks[end]?.kind === 'media') {
+    trailing.unshift(chunks[end]!)
+    end--
+  }
+  return { leading, middle: chunks.slice(start, end + 1), trailing }
+}
+
 function ProjectMarkdown({
   children,
   reduceMotion = false,
@@ -543,20 +589,39 @@ function ProjectMarkdown({
     <>
       {segments.map((segment, si) => {
         if (segment.kind === 'md') {
-          const md = (
-            <ReactMarkdown rehypePlugins={[rehypeRaw]} components={proseComponents}>
-              {segment.text}
-            </ReactMarkdown>
-          )
-          if (!asGridChildren) return <Fragment key={`md-${si}`}>{md}</Fragment>
-          return (
-            <motion.div
-              key={`md-${si}`}
-              className={`${TEXT_COL} ${proseClassName} ${PROSE_BLOCK}`}
-              {...(reveal ?? {})}
-            >
-              {md}
+          const renderMd = (text: string, key: string, className: string) => (
+            <motion.div key={key} className={className} {...(reveal ?? {})}>
+              <ReactMarkdown rehypePlugins={[rehypeRaw]} components={proseComponents}>
+                {text}
+              </ReactMarkdown>
             </motion.div>
+          )
+
+          if (!asGridChildren) {
+            return (
+              <Fragment key={`md-${si}`}>
+                <ReactMarkdown rehypePlugins={[rehypeRaw]} components={proseComponents}>
+                  {segment.text}
+                </ReactMarkdown>
+              </Fragment>
+            )
+          }
+
+          const proseClass = `${TEXT_COL} ${proseClassName} ${PROSE_BLOCK}`
+          return (
+            <Fragment key={`md-${si}`}>
+              {splitInlineMediaParagraphs(segment.text).map((chunk, ci) =>
+                chunk.kind === 'media' ? (
+                  renderMd(
+                    chunk.text,
+                    `md-${si}-media-${ci}`,
+                    `${MEDIA_FULL} mt-6 md:mt-8 [&_img]:mx-auto [&_img]:max-w-full`,
+                  )
+                ) : (
+                  renderMd(chunk.text, `md-${si}-prose-${ci}`, proseClass)
+                ),
+              )}
+            </Fragment>
           )
         }
 
@@ -630,23 +695,48 @@ function extractLeadFromProse(prose: string): { h4: string; lead: string; restPr
   return { h4: '', lead, restProse: rest }
 }
 
-/** Bottom-of-screen scroll spy — homepage spy invert aesthetic + 500ms transitions. */
+/** Bottom-left scroll spy — vertical theme-toggle pill. */
 const SPY_BAR =
-  'pointer-events-none fixed left-1/2 bottom-[30px] z-[99998] flex w-max max-w-[calc(100%-1rem)] -translate-x-1/2'
-/** Match HomePage `HOME_COL1_SUIT_TYPO` spy label type. */
-const SPY_TYPO =
-  "font-['SUIT_Variable',sans-serif] text-[9pt] font-normal uppercase leading-snug tracking-[0.06em]"
+  'pointer-events-none fixed bottom-[18px] left-[10px] z-[99998] flex max-h-[calc(100dvh-3rem)] sm:left-[14px]'
 
-function spyItemClass(active: boolean, surfaceDark: boolean) {
-  return `pointer-events-auto inline-flex h-auto min-h-0 w-auto shrink-0 items-center justify-center whitespace-nowrap rounded-none border-0 px-2 py-1.5 text-left outline-none transition-all duration-500 ease-in-out ${SPY_TYPO} ${
-    active
-      ? surfaceDark
-        ? 'bg-white text-black'
-        : 'bg-black text-white'
-      : surfaceDark
-        ? 'bg-transparent text-inherit hover:bg-white hover:text-black focus-visible:bg-white focus-visible:text-black'
-        : 'bg-transparent text-inherit hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white'
-  }`
+type SpyItem = { id: string; label: string }
+
+function ErdScrollSpyPill({
+  items,
+  activeId,
+  onSelect,
+  surfaceDark,
+}: {
+  items: SpyItem[]
+  activeId: string
+  onSelect: (id: string) => void
+  surfaceDark: boolean
+}) {
+  return (
+    <div
+      className={`erd-scroll-spy-stack${surfaceDark ? '' : ' is-light-surface'}`}
+      role="tablist"
+      aria-label="Section"
+    >
+      {items.map((item) => {
+        const active = item.id === activeId
+        return (
+          <div key={item.id} className={`erd-scroll-spy-item-pill${active ? ' is-active' : ''}`}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={active}
+              title={item.label}
+              className="erd-scroll-spy-item-pill-btn"
+              onClick={() => onSelect(item.id)}
+            >
+              <span className="break-words">{item.label.toUpperCase()}</span>
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 /** Index of a section whose vertical center is closest to the middle 20% band of `container`. */
@@ -694,6 +784,9 @@ type SectionImage = { src: string; alt: string }
 type SectionMedia =
   | { kind: 'image'; src: string; alt: string }
   | { kind: 'video'; src: string }
+
+/** Fractional crop (0–1) applied to lead/section media — e.g. `{ left: 0.3 }` hides the left 30%. */
+export type MediaCrop = { left?: number; right?: number }
 
 type ProjectSection = {
   title: string
@@ -880,18 +973,203 @@ function useReveal(scrollRoot?: RefObject<HTMLElement | null>, reduceMotion?: bo
   }, [scrollRoot, reduceMotion])
 }
 
+const SLIDE_TEXT_EASE = [0.22, 1, 0.36, 1] as const
+const SLIDE_APPEAR_STAGGER = 0.35
+const SLIDE_DELAYS = {
+  title: 0,
+  subhead: SLIDE_APPEAR_STAGGER,
+  media: SLIDE_APPEAR_STAGGER * 2,
+  prose: SLIDE_APPEAR_STAGGER * 3,
+} as const
+
+function makeSyncedSlideMotion(
+  isInView: boolean,
+  appearDelay: number,
+  reduceMotion?: boolean | null,
+  scrollRoot?: RefObject<HTMLElement | null>,
+) {
+  if (reduceMotion || !scrollRoot) return {}
+  return {
+    initial: { opacity: 0, y: 56, x: 0 },
+    animate: isInView
+      ? { opacity: 1, y: 0, x: 'var(--solution-text-x, 0px)' }
+      : { opacity: 0, y: 56, x: 0 },
+    transition: {
+      opacity: { delay: appearDelay, duration: 0.8, ease: SLIDE_TEXT_EASE },
+      y: { delay: appearDelay, duration: 0.8, ease: SLIDE_TEXT_EASE },
+      x: { delay: appearDelay + 0.9, duration: 0.65, ease: SLIDE_TEXT_EASE },
+    },
+  }
+}
+
+function makeSyncedFadeUpMotion(
+  isInView: boolean,
+  appearDelay: number,
+  reduceMotion?: boolean | null,
+  scrollRoot?: RefObject<HTMLElement | null>,
+) {
+  if (reduceMotion || !scrollRoot) return {}
+  return {
+    initial: { opacity: 0, y: 56 },
+    animate: isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 56 },
+    transition: {
+      opacity: { delay: appearDelay, duration: 0.8, ease: SLIDE_TEXT_EASE },
+      y: { delay: appearDelay, duration: 0.8, ease: SLIDE_TEXT_EASE },
+    },
+  }
+}
+
+/** Staggered slide-up block: h2 → h4 → media → prose on one scroll trigger. */
+function ProseMediaLeftSlideSection({
+  scrollRoot,
+  reduceMotion,
+  slideTextAlignmentClass,
+  sectionTitle,
+  solutionTitleMatch,
+  showSolutionTitleGlow,
+  subhead,
+  proseMediaLeft,
+  proseMediaLeftBody,
+  proseMediaLeftBelow,
+  fullBleed,
+  titleReveal,
+  subheadReveal,
+  mediaReveal,
+  proseReveal,
+  fallbackReveal,
+}: {
+  scrollRoot?: RefObject<HTMLElement | null>
+  reduceMotion?: boolean | null
+  slideTextAlignmentClass: string
+  sectionTitle: string
+  solutionTitleMatch: RegExpExecArray | null
+  showSolutionTitleGlow: boolean
+  subhead: string
+  proseMediaLeft: ReactNode
+  proseMediaLeftBody: string
+  proseMediaLeftBelow?: ReactNode
+  fullBleed: boolean
+  titleReveal: Record<string, unknown>
+  subheadReveal: Record<string, unknown>
+  mediaReveal: Record<string, unknown>
+  proseReveal: Record<string, unknown>
+  fallbackReveal: ReturnType<typeof useReveal>
+}) {
+  const triggerRef = useRef<HTMLHeadingElement>(null)
+  const isInView = useInView(triggerRef, {
+    root: scrollRoot ?? undefined,
+    once: true,
+    amount: 0.35,
+    margin: '0px 0px -10% 0px',
+  })
+  const slideEnabled = Boolean(scrollRoot && !reduceMotion)
+  const titleMotion = slideEnabled
+    ? makeSyncedSlideMotion(isInView, SLIDE_DELAYS.title, reduceMotion, scrollRoot)
+    : titleReveal
+  const subheadMotion = slideEnabled
+    ? makeSyncedSlideMotion(isInView, SLIDE_DELAYS.subhead, reduceMotion, scrollRoot)
+    : subheadReveal
+  const mediaMotion = slideEnabled
+    ? makeSyncedFadeUpMotion(isInView, SLIDE_DELAYS.media, reduceMotion, scrollRoot)
+    : mediaReveal
+  const proseMotion = slideEnabled
+    ? makeSyncedFadeUpMotion(isInView, SLIDE_DELAYS.prose, reduceMotion, scrollRoot)
+    : proseReveal
+
+  const rowShellClass = fullBleed
+    ? `${MEDIA_FULL} relative left-1/2 mt-6 w-[100dvw] max-w-none -translate-x-1/2 px-4 sm:px-6 md:mt-8`
+    : `${MEDIA_FULL} mt-6 md:mt-8`
+  const rowGridClass = fullBleed
+    ? 'mx-auto grid w-full max-w-[min(100%,76rem)] grid-cols-1 items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,min(100%,22rem))] md:items-center md:gap-5 lg:max-w-[min(100%,84rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]'
+    : 'grid w-full grid-cols-1 items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,min(100%,22rem))] md:items-center md:gap-4'
+
+  return (
+    <>
+      <motion.h2
+        ref={triggerRef}
+        className={`${TEXT_COL} mb-0 ${SECTION_H3} ${slideTextAlignmentClass}`}
+        {...titleMotion}
+      >
+        {solutionTitleMatch ? (
+          <>
+            {solutionTitleMatch[1]}
+            <span
+              className={`text-yellow-300 transition-[text-shadow] duration-300 ${
+                showSolutionTitleGlow
+                  ? '[text-shadow:0_0_12px_rgba(253,224,71,0.9)]'
+                  : '[text-shadow:none]'
+              }`}
+            >
+              {solutionTitleMatch[2]}
+            </span>
+          </>
+        ) : (
+          sectionTitle
+        )}
+      </motion.h2>
+
+      {subhead ? (
+        <motion.div
+          className={`${TEXT_COL} ${PROSE_BLOCK} -mt-[7px] ${slideTextAlignmentClass}`.trim()}
+          {...subheadMotion}
+        >
+          <h4>{subhead}</h4>
+        </motion.div>
+      ) : null}
+
+      <div className={rowShellClass}>
+        <div className={rowGridClass}>
+          <motion.div className="min-w-0 w-full self-start" {...mediaMotion}>
+            {proseMediaLeft}
+          </motion.div>
+          <motion.div
+            className={`min-w-0 w-full max-w-full self-start ${PROSE_BLOCK}`}
+            {...proseMotion}
+          >
+            <ProjectMarkdown reduceMotion={reduceMotion} scrollRoot={scrollRoot}>
+              {proseMediaLeftBody}
+            </ProjectMarkdown>
+          </motion.div>
+        </div>
+        {proseMediaLeftBelow ? (
+          <motion.div
+            className="mt-6 w-full md:mt-8 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:object-contain"
+            {...fallbackReveal}
+          >
+            {proseMediaLeftBelow}
+          </motion.div>
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+function mediaCropStyle(crop: MediaCrop): CSSProperties | undefined {
+  const left = crop.left ?? 0
+  const right = crop.right ?? 0
+  const visible = 1 - left - right
+  if (visible <= 0 || (left === 0 && right === 0)) return undefined
+  return {
+    width: `${100 / visible}%`,
+    maxWidth: 'none',
+    transform: `translateX(-${left * 100}%)`,
+  }
+}
+
 function SectionMediaPanel({
   item,
   reveal,
   playbackRate = 1,
   embedded = false,
   showControls = true,
+  crop,
 }: {
   item: SectionMedia
   reveal: Record<string, unknown>
   playbackRate?: number
   embedded?: boolean
   showControls?: boolean
+  crop?: MediaCrop
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -911,7 +1189,24 @@ function SectionMediaPanel({
       {...reveal}
     >
       {item.kind === 'image' ? (
-        <img src={item.src} alt={item.alt} className="block h-auto w-full object-contain" />
+        (() => {
+          const cropStyle = crop ? mediaCropStyle(crop) : undefined
+          if (cropStyle) {
+            return (
+              <div className="overflow-hidden">
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  className="block h-auto object-contain"
+                  style={cropStyle}
+                />
+              </div>
+            )
+          }
+          return (
+            <img src={item.src} alt={item.alt} className="block h-auto w-full object-contain" />
+          )
+        })()
       ) : (
         <video
           ref={videoRef}
@@ -936,9 +1231,9 @@ const BLUEPRINT_BORDER_FILL = 'bg-[color:var(--color-blueprint-hairline)]'
 /**
  * Timeline beat per card (no arrows):
  * Caption → Number flash → Borders → Text
- * Base times at 1×; TIMELINE_SPEED scales playback (1.5 = 50% faster).
+ * Base times at 1×; TIMELINE_SPEED scales playback (1.5 = 50% faster, 1.8 = 1.2× vs prior 1.5).
  */
-const TIMELINE_SPEED = 1.5
+const TIMELINE_SPEED = 1.8
 const timelineT = (seconds: number) => seconds / TIMELINE_SPEED
 const TIMELINE_BASE_STEP = timelineT(3.5)
 const TIMELINE_CAPTION_OFFSET = timelineT(0)
@@ -1231,6 +1526,7 @@ function FeatureFigure({
   media,
   reduceMotion,
   scrollRoot,
+  stacked = false,
 }: {
   index: number
   staggerIndex: number
@@ -1239,7 +1535,49 @@ function FeatureFigure({
   media?: SectionMedia
   reduceMotion: boolean | null
   scrollRoot?: RefObject<HTMLElement | null>
+  stacked?: boolean
 }) {
+  const caption = (
+    <figcaption className="flex flex-row gap-4">
+      <div className={`w-8 shrink-0 opacity-60 tabular-nums ${HOME_BODY_MONO}`}>{index}</div>
+      <div className={`min-w-0 ${stacked ? 'max-w-none' : 'max-w-[40vw] lg:max-w-none'}`}>
+        {title ? (
+          <div className="mb-1 font-medium uppercase text-black opacity-90 dark:text-[#f2f2f2]">
+            {title}
+          </div>
+        ) : null}
+        {description ? <div className={HOME_BODY_FREE}>{description}</div> : null}
+      </div>
+    </figcaption>
+  )
+
+  if (stacked) {
+    return (
+      <motion.figure
+        className="relative m-0 min-w-0 overflow-visible bg-transparent not-italic"
+        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.5,
+          ease: 'easeOut',
+          delay: reduceMotion ? 0 : staggerIndex * 0.12,
+        }}
+      >
+        {media?.kind === 'image' ? (
+          <div className="mb-6 w-full">
+            <img
+              src={media.src}
+              alt={media.alt}
+              className="mx-auto block h-auto w-full max-w-full object-contain"
+            />
+          </div>
+        ) : null}
+        {caption}
+      </motion.figure>
+    )
+  }
+
   return (
     <BlueprintTimelineCard
       as="figure"
@@ -1254,17 +1592,7 @@ function FeatureFigure({
           <img src={media.src} alt={media.alt} className="block h-auto w-full object-contain" />
         </div>
       ) : null}
-      <figcaption className="flex flex-row gap-4">
-        <div className={`w-8 shrink-0 opacity-60 tabular-nums ${HOME_BODY_MONO}`}>{index}</div>
-        <div className="min-w-0 max-w-[40vw] lg:max-w-none">
-          {title ? (
-            <div className="mb-1 font-medium uppercase text-black opacity-90 dark:text-[#f2f2f2]">
-              {title}
-            </div>
-          ) : null}
-          {description ? <div>{description}</div> : null}
-        </div>
-      </figcaption>
+      {caption}
     </BlueprintTimelineCard>
   )
 }
@@ -1294,6 +1622,10 @@ type TestProjectBodyProps = {
   headerExtra?: ReactNode
   /** Optional visual injected into the lead (“The Impact”) block after prose/media. */
   leadExtra?: ReactNode
+  /** Fractional crop applied to lead-block images (Impact overview, etc.). */
+  leadMediaCrop?: MediaCrop
+  /** Optional visuals keyed by markdown `###` section title, rendered after default section content. */
+  sectionExtras?: Record<string, ReactNode>
   /** Project-specific renderer that receives parsed Obsidian section content. */
   sectionContentOverrides?: Record<
     string,
@@ -1303,6 +1635,12 @@ type TestProjectBodyProps = {
   fullWidthSectionContainers?: string[]
   /** Reference-style row with feature boxes left and section media right. */
   featureMediaRightSections?: string[]
+  /** Prose body left, trailing inline/`section.media` assets right (2-column row). */
+  proseMediaRightSections?: string[]
+  /** Custom media left, section prose right (full-width 2-column row). */
+  proseMediaLeftBySection?: Record<string, ReactNode>
+  /** Full-width block rendered below a `proseMediaLeftBySection` row. */
+  proseMediaLeftBelowBySection?: Record<string, ReactNode>
   /**
    * Full-width media row that replaces default features + media for a section
    * (e.g. a phone carousel instead of the 7/3 feature–media grid).
@@ -1315,6 +1653,8 @@ type TestProjectBodyProps = {
   slideUpTextSections?: string[]
   /** Full-width feature/media rows that fade in after their section text. */
   delayedFeatureMediaSections?: string[]
+  /** Feature grids rendered as a single vertical stack (image above caption). */
+  stackedFeatureSections?: string[]
   /**
    * Optional per-feature images keyed by markdown `###` section title.
    * Index aligns with that section’s parsed feature list.
@@ -1343,6 +1683,8 @@ type TestProjectBodyProps = {
   }
   /** Scroll-spy ink follows this theme (synced with immersive section surfaces). */
   spyTheme?: 'light' | 'dark'
+  /** Markdown `###` section titles omitted from the bottom scroll spy (content still renders). */
+  scrollSpyHiddenSections?: string[]
 }
 
 /**
@@ -1363,16 +1705,23 @@ export function TestProjectBody({
   heroFirst = false,
   headerExtra,
   leadExtra,
+  leadMediaCrop,
+  sectionExtras,
   sectionContentOverrides,
   fullWidthSectionContainers,
   featureMediaRightSections,
+  proseMediaRightSections,
+  proseMediaLeftBySection,
+  proseMediaLeftBelowBySection,
   replaceFeatureMediaRight,
   slideUpTextSections,
   delayedFeatureMediaSections,
+  stackedFeatureSections,
   featureMediaBySection,
   featureStartIndexBySection,
   scrollBg,
   spyTheme,
+  scrollSpyHiddenSections,
 }: TestProjectBodyProps) {
   const resolvedHeroLayout: 'below' | 'above' | 'aside' =
     heroLayout ?? (heroFirst ? 'above' : 'below')
@@ -1399,10 +1748,11 @@ export function TestProjectBody({
       const hasProse = section.prose.trim().length > 0
       if (!hasProse && section.features.length === 0 && section.media.length === 0) return
       if (!section.title.trim()) return
+      if (scrollSpyHiddenSections?.includes(section.title)) return
       items.push({ id: `section-${i}`, label: section.title })
     })
     return items
-  }, [leadTitle, sections])
+  }, [leadTitle, sections, scrollSpyHiddenSections])
 
   const sectionElsRef = useRef<(HTMLElement | null)[]>([])
   const [activeSpyId, setActiveSpyId] = useState<string>(() => spyItems[0]?.id ?? '')
@@ -1664,29 +2014,14 @@ export function TestProjectBody({
       <div className="relative w-full">
         {sheetFullPage && spyItems.length > 0 && typeof document !== 'undefined'
           ? createPortal(
-              <nav
-                aria-label="Section"
-                className={`${SPY_BAR} bg-transparent ${
-                  spySurfaceDark ? 'text-[#f2f2f2]' : 'text-black'
-                }`}
-              >
-                <div className="pointer-events-auto relative z-[1] flex w-max items-stretch gap-2 bg-transparent">
-                  {spyItems.map((item) => {
-                    const active = item.id === activeSpyId
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        title={item.label}
-                        aria-label={item.label}
-                        aria-current={active ? 'true' : undefined}
-                        onClick={() => scrollToSpy(item.id)}
-                        className={spyItemClass(active, spySurfaceDark)}
-                      >
-                        <span>{item.label.toUpperCase()}</span>
-                      </button>
-                    )
-                  })}
+              <nav aria-label="Section" className={SPY_BAR}>
+                <div className="pointer-events-auto max-h-[inherit]">
+                  <ErdScrollSpyPill
+                    items={spyItems}
+                    activeId={activeSpyId}
+                    onSelect={scrollToSpy}
+                    surfaceDark={spySurfaceDark}
+                  />
                 </div>
               </nav>,
               document.body,
@@ -1724,7 +2059,12 @@ export function TestProjectBody({
                           </motion.div>
                         ) : null}
                         {leadMedia.map((item, i) => (
-                          <SectionMediaPanel key={`lead-media-${i}`} item={item} reveal={reveal} />
+                          <SectionMediaPanel
+                            key={`lead-media-${i}`}
+                            item={item}
+                            reveal={reveal}
+                            crop={leadMediaCrop}
+                          />
                         ))}
                         {lead ? (
                           <motion.div className={`${TEXT_COL} ${PROSE_BLOCK}`} {...reveal}>
@@ -1748,13 +2088,23 @@ export function TestProjectBody({
                           ) : null}
                         </motion.div>
                         {leadMedia.map((item, i) => (
-                          <SectionMediaPanel key={`lead-media-${i}`} item={item} reveal={reveal} />
+                          <SectionMediaPanel
+                            key={`lead-media-${i}`}
+                            item={item}
+                            reveal={reveal}
+                            crop={leadMediaCrop}
+                          />
                         ))}
                       </>
                     )
                   ) : leadMedia.length > 0 ? (
                     leadMedia.map((item, i) => (
-                      <SectionMediaPanel key={`lead-media-${i}`} item={item} reveal={reveal} />
+                      <SectionMediaPanel
+                        key={`lead-media-${i}`}
+                        item={item}
+                        reveal={reveal}
+                        crop={leadMediaCrop}
+                      />
                     ))
                   ) : null}
                   {leadExtra ? (
@@ -1784,7 +2134,12 @@ export function TestProjectBody({
                       </motion.div>
                     ) : null}
                     {leadMedia.map((item, i) => (
-                      <SectionMediaPanel key={`lead-media-${i}`} item={item} reveal={reveal} />
+                      <SectionMediaPanel
+                        key={`lead-media-${i}`}
+                        item={item}
+                        reveal={reveal}
+                        crop={leadMediaCrop}
+                      />
                     ))}
                     {lead ? (
                       <motion.div className={`${TEXT_COL} ${PROSE_BLOCK}`} {...reveal}>
@@ -1810,7 +2165,12 @@ export function TestProjectBody({
                       </motion.div>
                     ) : null}
                     {leadMedia.map((item, i) => (
-                      <SectionMediaPanel key={`lead-media-${i}`} item={item} reveal={reveal} />
+                      <SectionMediaPanel
+                        key={`lead-media-${i}`}
+                        item={item}
+                        reveal={reveal}
+                        crop={leadMediaCrop}
+                      />
                     ))}
                   </>
                 )}
@@ -1911,8 +2271,30 @@ export function TestProjectBody({
                       },
                     }
                   : reveal
+              const makeFadeUpReveal = (appearDelay: number) =>
+                slideUpTextSections?.includes(section.title) && !reduceMotion && scrollRoot
+                  ? {
+                      initial: { opacity: 0, y: 56 },
+                      whileInView: { opacity: 1, y: 0 },
+                      viewport: slideTextViewport,
+                      transition: {
+                        opacity: {
+                          delay: appearDelay,
+                          duration: 0.8,
+                          ease: slideTextEase,
+                        },
+                        y: {
+                          delay: appearDelay,
+                          duration: 0.8,
+                          ease: slideTextEase,
+                        },
+                      },
+                    }
+                  : reveal
               const titleReveal = makeSlideTextReveal(0)
               const proseReveal = makeSlideTextReveal(0.35)
+              const mediaReveal = makeFadeUpReveal(SLIDE_DELAYS.media)
+              const proseBodyReveal = makeFadeUpReveal(SLIDE_DELAYS.prose)
 
               const proseBlock = hasProse ? (
                 <ProjectMarkdown
@@ -1928,6 +2310,142 @@ export function TestProjectBody({
                 </ProjectMarkdown>
               ) : null
 
+              const isProseMediaRight =
+                proseMediaRightSections?.includes(section.title) === true && hasProse
+              const proseMediaLeft = proseMediaLeftBySection?.[section.title]
+              const proseMediaLeftBelow = proseMediaLeftBelowBySection?.[section.title]
+              const isProseMediaLeft = Boolean(proseMediaLeft) && hasProse
+              const proseMediaLeftSlideSync =
+                isProseMediaLeft &&
+                slideUpTextSections?.includes(section.title) === true
+              const proseMediaLeftH4 = isProseMediaLeft ? extractLeadFromProse(section.prose) : null
+              const proseMediaLeftSubhead = proseMediaLeftH4?.h4 ?? ''
+              const proseMediaLeftBody = proseMediaLeftH4
+                ? [proseMediaLeftH4.lead, proseMediaLeftH4.restProse].filter(Boolean).join('\n\n')
+                : section.prose
+              const proseMediaRightBlock = isProseMediaRight
+                ? (() => {
+                    const { leading, middle, trailing } = splitProseMediaLayout(
+                      splitInlineMediaParagraphs(section.prose),
+                    )
+                    const middleText = middle
+                      .map((chunk) => chunk.text)
+                      .join('\n\n')
+                      .trim()
+                    const proseComponents = createProjectMarkdownComponents({
+                      reduceMotion,
+                      scrollRoot,
+                    })
+                    const renderInlineMedia = (text: string, key: string) => (
+                      <ReactMarkdown
+                        key={key}
+                        rehypePlugins={[rehypeRaw]}
+                        components={proseComponents}
+                      >
+                        {text}
+                      </ReactMarkdown>
+                    )
+
+                    return (
+                      <>
+                        {leading.map((chunk, i) => (
+                          <motion.div
+                            key={`${section.title}-lead-media-${i}`}
+                            className={`${MEDIA_FULL} mt-6 md:mt-8 [&_img]:mx-auto [&_img]:max-w-full`}
+                            {...proseReveal}
+                          >
+                            {renderInlineMedia(chunk.text, `lead-${i}`)}
+                          </motion.div>
+                        ))}
+                        {middleText || trailing.length > 0 || section.media.length > 0 ? (
+                          <div
+                            className={`${MEDIA_FULL} mt-6 grid grid-cols-1 items-start gap-6 md:mt-8 md:grid-cols-2 md:gap-8`}
+                          >
+                            {middleText ? (
+                              <motion.div
+                                className={`min-w-0 ${PROSE_BLOCK} ${slideTextAlignmentClass} ${
+                                  section.title && !section.mediaFirst ? '-mt-[7px]' : ''
+                                }`.trim()}
+                                {...proseReveal}
+                              >
+                                {renderInlineMedia(middleText, 'middle')}
+                              </motion.div>
+                            ) : null}
+                            {trailing.length > 0 || section.media.length > 0 ? (
+                              <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-4">
+                                {trailing.map((chunk, i) => (
+                                  <motion.div
+                                    key={`${section.title}-trail-media-${i}`}
+                                    className={`min-w-0 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:object-contain ${
+                                      trailing.length === 1 && section.media.length === 0
+                                        ? 'col-span-2'
+                                        : ''
+                                    }`}
+                                    {...reveal}
+                                  >
+                                    {renderInlineMedia(chunk.text, `trail-${i}`)}
+                                  </motion.div>
+                                ))}
+                                {section.media.map((item, i) => (
+                                  <motion.div
+                                    key={`${section.title}-trail-panel-${i}`}
+                                    className="min-w-0"
+                                    {...reveal}
+                                  >
+                                    <SectionMediaPanel item={item} reveal={{}} embedded />
+                                  </motion.div>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </>
+                    )
+                  })()
+                : null
+              const proseMediaLeftBlock = isProseMediaLeft && !proseMediaLeftSlideSync ? (
+                (() => {
+                  const proseMediaLeftFullBleed =
+                    fullWidthSectionContainers?.includes(section.title) === true
+                  const rowShellClass = proseMediaLeftFullBleed
+                    ? `${MEDIA_FULL} relative left-1/2 mt-6 w-[100dvw] max-w-none -translate-x-1/2 px-4 sm:px-6 md:mt-8`
+                    : `${MEDIA_FULL} mt-6 md:mt-8`
+                  const rowGridClass = proseMediaLeftFullBleed
+                    ? 'mx-auto grid w-full max-w-[min(100%,76rem)] grid-cols-1 items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,min(100%,22rem))] md:items-center md:gap-5 lg:max-w-[min(100%,84rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]'
+                    : 'grid w-full grid-cols-1 items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,min(100%,22rem))] md:items-center md:gap-4'
+
+                  return (
+                    <div className={rowShellClass}>
+                      <div className={rowGridClass}>
+                        <motion.div className="min-w-0 w-full self-start" {...mediaReveal}>
+                          {proseMediaLeft}
+                        </motion.div>
+                        <motion.div
+                          className={`min-w-0 w-full max-w-full self-start ${PROSE_BLOCK}`}
+                          {...proseBodyReveal}
+                        >
+                          <ProjectMarkdown reduceMotion={reduceMotion} scrollRoot={scrollRoot}>
+                            {proseMediaLeftBody}
+                          </ProjectMarkdown>
+                        </motion.div>
+                      </div>
+                      {proseMediaLeftBelow ? (
+                        <motion.div className="mt-6 w-full md:mt-8 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:object-contain" {...reveal}>
+                          {proseMediaLeftBelow}
+                        </motion.div>
+                      ) : null}
+                    </div>
+                  )
+                })()
+              ) : null
+              const resolvedProseBlock = isProseMediaLeft
+                ? proseMediaLeftBlock
+                : isProseMediaRight
+                  ? proseMediaRightBlock
+                  : proseBlock
+              const resolvedMediaBlocks =
+                isProseMediaLeft || isProseMediaRight || isFeatureMediaRight ? null : mediaBlocks
+
               const featureLeftMedia = section.media.find((item) => item.kind === 'image')
               const featureRightMedia =
                 section.media.find((item) => item.kind === 'video') ??
@@ -1940,6 +2458,8 @@ export function TestProjectBody({
               const sectionFeatureStartIndex =
                 featureStartIndexBySection?.[section.title] ?? figureIndex + 1
               const sectionFeatureMedia = featureMediaBySection?.[section.title]
+              const isStackedFeatures =
+                stackedFeatureSections?.includes(section.title) === true
               const featureFigures = featureMediaReplacement
                 ? []
                 : section.features.map((feature, i) => {
@@ -1965,6 +2485,7 @@ export function TestProjectBody({
                     }
                     reduceMotion={reduceMotion}
                     scrollRoot={scrollRoot}
+                    stacked={isStackedFeatures}
                   />
                 )
               })
@@ -1991,8 +2512,12 @@ export function TestProjectBody({
               const featureBlock =
                 featureFigures.length > 0 && !isFeatureMediaRight ? (
                   <div
-                    className={`${MEDIA_ROW} grid ${MD_GUTTER} ${
-                      featureFigures.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
+                    className={`${MEDIA_ROW} grid ${
+                      isStackedFeatures
+                        ? 'grid-cols-1 gap-[100px]'
+                        : `${MD_GUTTER} ${
+                            featureFigures.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
+                          }`
                     }`}
                   >
                     {featureFigures}
@@ -2247,29 +2772,65 @@ export function TestProjectBody({
                           isFullWidthContainer ? `${MD_COLS} ${MD_GUTTER}` : 'contents'
                         }
                       >
-                    {section.title && !customSectionContent ? (
-                      <motion.h2
-                        className={`${TEXT_COL} mb-0 ${SECTION_H3} ${slideTextAlignmentClass}`}
-                        {...titleReveal}
-                      >
-                        {slideUpTextSections?.includes(section.title) && solutionTitleMatch ? (
-                          <>
-                            {solutionTitleMatch[1]}
-                            <span
-                              className={`text-yellow-300 transition-[text-shadow] duration-300 ${
-                                activeSpyId === spyId
-                                  ? '[text-shadow:0_0_12px_rgba(253,224,71,0.9)]'
-                                  : '[text-shadow:none]'
-                              }`}
-                            >
-                              {solutionTitleMatch[2]}
-                            </span>
-                          </>
-                        ) : (
-                          section.title
-                        )}
-                      </motion.h2>
-                    ) : null}
+                    {proseMediaLeftSlideSync && !customSectionContent ? (
+                      <ProseMediaLeftSlideSection
+                        scrollRoot={scrollRoot}
+                        reduceMotion={reduceMotion}
+                        slideTextAlignmentClass={slideTextAlignmentClass}
+                        sectionTitle={section.title}
+                        solutionTitleMatch={
+                          slideUpTextSections?.includes(section.title)
+                            ? solutionTitleMatch
+                            : null
+                        }
+                        showSolutionTitleGlow={activeSpyId === spyId}
+                        subhead={proseMediaLeftSubhead}
+                        proseMediaLeft={proseMediaLeft}
+                        proseMediaLeftBody={proseMediaLeftBody}
+                        proseMediaLeftBelow={proseMediaLeftBelow}
+                        fullBleed={isFullWidthContainer}
+                        titleReveal={titleReveal}
+                        subheadReveal={proseReveal}
+                        mediaReveal={mediaReveal}
+                        proseReveal={proseBodyReveal}
+                        fallbackReveal={reveal}
+                      />
+                    ) : (
+                      <>
+                        {section.title && !customSectionContent ? (
+                          <motion.h2
+                            className={`${TEXT_COL} mb-0 ${SECTION_H3} ${slideTextAlignmentClass}`}
+                            {...titleReveal}
+                          >
+                            {slideUpTextSections?.includes(section.title) && solutionTitleMatch ? (
+                              <>
+                                {solutionTitleMatch[1]}
+                                <span
+                                  className={`text-yellow-300 transition-[text-shadow] duration-300 ${
+                                    activeSpyId === spyId
+                                      ? '[text-shadow:0_0_12px_rgba(253,224,71,0.9)]'
+                                      : '[text-shadow:none]'
+                                  }`}
+                                >
+                                  {solutionTitleMatch[2]}
+                                </span>
+                              </>
+                            ) : (
+                              section.title
+                            )}
+                          </motion.h2>
+                        ) : null}
+
+                        {isProseMediaLeft && proseMediaLeftSubhead && !customSectionContent ? (
+                          <motion.div
+                            className={`${TEXT_COL} ${PROSE_BLOCK} -mt-[7px] ${slideTextAlignmentClass}`.trim()}
+                            {...proseReveal}
+                          >
+                            <h4>{proseMediaLeftSubhead}</h4>
+                          </motion.div>
+                        ) : null}
+                      </>
+                    )}
 
                     {customSectionContent ? (
                       <div
@@ -2279,21 +2840,28 @@ export function TestProjectBody({
                       </div>
                     ) : section.mediaFirst ? (
                       <>
-                        {featureMediaReplacement ? null : isFeatureMediaRight ? null : mediaBlocks}
-                        {proseBlock}
+                        {featureMediaReplacement ? null : isFeatureMediaRight ? null : resolvedMediaBlocks}
+                        {resolvedProseBlock}
                         {featureMediaReplacementBlock}
                         {featureBlock}
                         {featureMediaRightBlock}
                       </>
                     ) : (
                       <>
-                        {proseBlock}
+                        {resolvedProseBlock}
                         {featureMediaReplacementBlock}
                         {featureBlock}
                         {featureMediaRightBlock}
-                        {featureMediaReplacement ? null : isFeatureMediaRight ? null : mediaBlocks}
+                        {featureMediaReplacement ? null : isFeatureMediaRight ? null : resolvedMediaBlocks}
                       </>
                     )}
+                    {!customSectionContent &&
+                    sectionExtras?.[section.title] &&
+                    !proseMediaLeftBySection?.[section.title] ? (
+                      <div className={`${MEDIA_FULL} mt-8 md:mt-10`}>
+                        {sectionExtras[section.title]}
+                      </div>
+                    ) : null}
                       </div>
                     </div>
                   </div>

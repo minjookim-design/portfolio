@@ -1,0 +1,309 @@
+/* HOVR case study — test-home-3 / ERD skin (does not affect published `/hovr`). */
+
+/* Animate ink tokens on theme toggle (custom props don't interpolate unless registered). */
+@property --erd-hovr-ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1a1917;
+}
+
+@property --erd-hovr-ink-muted {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(26 25 23 / 0.72);
+}
+
+@property --erd-hovr-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e11d48;
+}
+
+@property --erd-hovr-fallback-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+.erd-project-popup-shell .erd-project-popup-sheet {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet {
+  --erd-hovr-ink: #1a1917;
+  --erd-hovr-ink-muted: rgb(26 25 23 / 0.72);
+  --erd-hovr-accent: #e11d48;
+  --erd-hovr-fallback-bg: #ffffff;
+  color: var(--erd-hovr-ink);
+  transition:
+    --erd-hovr-ink 0.45s ease-in-out,
+    --erd-hovr-ink-muted 0.45s ease-in-out,
+    --erd-hovr-accent 0.45s ease-in-out,
+    --erd-hovr-fallback-bg 0.45s ease-in-out,
+    background-color 0.45s ease-in-out,
+    color 0.45s ease-in-out;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet--surface-light {
+  --erd-hovr-ink: #1a1917;
+  --erd-hovr-ink-muted: rgb(26 25 23 / 0.72);
+  --erd-hovr-accent: #e11d48;
+  --erd-hovr-fallback-bg: #ffffff;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet--surface-dark {
+  --erd-hovr-ink: #f2f0e6;
+  --erd-hovr-ink-muted: rgb(242 240 230 / 0.72);
+  --erd-hovr-accent: #fb7185;
+  --erd-hovr-fallback-bg: #1a1917;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet .pb-24 {
+  background-color: var(--active-section-bg, var(--erd-hovr-fallback-bg));
+  color: var(--erd-hovr-ink);
+  transition:
+    background-color 0.45s ease-in-out,
+    color 0.45s ease-in-out;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet .pb-24 .erd-hovr-hero-section {
+  background: transparent;
+  color: var(--erd-hovr-ink);
+}
+
+/* Typography — SUIT Variable throughout (test-home-3 rhythm). */
+.erd-project-popup-shell .erd-hovr-page {
+  --erd-hovr-font: 'SUIT Variable', sans-serif;
+  color: var(--erd-hovr-ink);
+  font-family: var(--erd-hovr-font);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.erd-project-popup-shell .erd-hovr-page *,
+.erd-project-popup-shell .erd-hovr-page *::before,
+.erd-project-popup-shell .erd-hovr-page *::after {
+  font-family: var(--erd-hovr-font) !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-sheet {
+  line-height: 1.2;
+}
+
+/* Override Tailwind ink utilities so light/dark surface always wins. */
+.erd-project-popup-shell .erd-hovr-sheet .text-black,
+.erd-project-popup-shell .erd-hovr-sheet [class*='dark:text-[#f2f2f2]'],
+.erd-project-popup-shell .erd-hovr-sheet [class*='dark:text-white'],
+.erd-project-popup-shell .erd-hovr-sheet [class*='text-[color:var(--color-muted'] {
+  color: var(--erd-hovr-ink) !important;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet .text-black\/50,
+.erd-project-popup-shell .erd-hovr-sheet .text-zinc-400,
+.erd-project-popup-shell .erd-hovr-sheet .text-zinc-500,
+.erd-project-popup-shell .erd-hovr-sheet [class*='text-zinc-'] {
+  color: var(--erd-hovr-ink-muted) !important;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet--surface-dark .bg-zinc-300,
+.erd-project-popup-shell .erd-hovr-sheet--surface-dark .dark\:bg-zinc-700 {
+  background-color: rgb(242 240 230 / 28%) !important;
+}
+
+.erd-project-popup-shell .erd-hovr-sheet--surface-light .bg-zinc-300 {
+  background-color: rgb(26 25 23 / 18%) !important;
+}
+
+/* Section titles + prose — match hero square text system. */
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] {
+  color: var(--erd-hovr-accent) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 0.45rem !important;
+  text-transform: uppercase !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] {
+  margin-top: 0 !important;
+  color: var(--erd-hovr-ink) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.35 !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] > h4:first-child,
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] h4 {
+  color: var(--erd-hovr-ink) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 0.4rem !important;
+  text-transform: uppercase !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] p,
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] li {
+  color: var(--erd-hovr-ink-muted) !important;
+  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.35 !important;
+  opacity: 1;
+  padding-top: 0.35rem !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[29px]'] + [class*='-mt-[7px]'] p:first-of-type {
+  padding-top: 0 !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[14pt]'] h4,
+.erd-project-popup-shell .erd-hovr-page .pb-24 h4[class*='text-[14pt]'],
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*="[&_h4]:text-[14pt]"] h4 {
+  color: var(--erd-hovr-ink) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[12pt]'] {
+  color: var(--erd-hovr-ink-muted) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.35 !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[12pt]'] p,
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[12pt]'] li {
+  color: var(--erd-hovr-ink-muted) !important;
+  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.35 !important;
+}
+
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[12pt]'] strong,
+.erd-project-popup-shell .erd-hovr-page .pb-24 [class*='text-[12pt]'] h4 {
+  color: var(--erd-hovr-ink) !important;
+}
+
+/* Hero carries title/overview — hide the duplicate TestProjectBody title header. */
+.erd-project-popup-shell .erd-hovr-page .pb-24 > .relative + div {
+  display: none;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid {
+  background: transparent;
+  gap: 0;
+  height: fit-content;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid.erd-shop-row {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, auto);
+  }
+
+  .erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid .erd-hovr-hero-adjacent-square,
+  .erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid .erd-shop-square.erd-hovr-hero-adjacent-square {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  .erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid .erd-hovr-hero-card,
+  .erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-grid .erd-shop-card.erd-hovr-hero-card {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-card {
+  cursor: default;
+  overflow: hidden;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-card::after {
+  display: none;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-card .erd-shop-card-media {
+  inset: 0;
+  overflow: hidden;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-video {
+  filter: none;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1 !important;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-card:hover .erd-shop-card-media {
+  transform: none;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-adjacent-square {
+  background: transparent;
+  color: var(--erd-hovr-ink);
+  overflow: hidden;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-adjacent-square .erd-shop-square-name {
+  font-size: clamp(0.6875rem, 0.55rem + 0.55vw, 0.875rem);
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-awards {
+  margin-top: 0.85rem;
+  min-width: 0;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-awards-list {
+  color: var(--erd-hovr-ink-muted);
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(0.5625rem, 0.45rem + 0.35vw, 0.6875rem);
+  gap: 0.28rem;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-transform: none;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-adjacent-square .erd-shop-square-experience {
+  width: 50%;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-square-dek {
+  color: var(--erd-hovr-ink-muted);
+  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem);
+  text-transform: none;
+  white-space: normal;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-meta-list {
+  margin-top: 0.75rem;
+}
+
+.erd-project-popup-shell .erd-hovr-page .erd-hovr-hero-adjacent-square .erd-shop-square-experience-meta {
+  color: var(--erd-hovr-ink-muted);
+  opacity: 1;
+  text-transform: none;
+  white-space: normal;
+}

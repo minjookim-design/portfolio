@@ -17,26 +17,29 @@ function readStoredOn(): boolean {
   }
 }
 
+import { isErdHomePathname } from '../pages/testHome3/erdHomePaths'
+
 export function BlueprintModeOverlay() {
   const { pathname } = useLocation()
   const [on, setOn] = useState(readStoredOn)
-  const hideOnStandaloneDeck =
+  const hideChrome =
     pathname === '/hovr-deck' ||
     pathname.startsWith('/hovr-deck/') ||
     pathname === '/piik-deck' ||
-    pathname.startsWith('/piik-deck/')
+    pathname.startsWith('/piik-deck/') ||
+    isErdHomePathname(pathname)
 
   useEffect(() => {
     setOn(readStoredOn())
   }, [pathname])
 
   useEffect(() => {
-    const enabled = on && !hideOnStandaloneDeck
+    const enabled = on && !hideChrome
     document.documentElement.classList.toggle('blueprint-enabled', enabled)
     return () => {
       document.documentElement.classList.remove('blueprint-enabled')
     }
-  }, [on, hideOnStandaloneDeck])
+  }, [on, hideChrome])
 
   const toggle = useCallback(() => {
     setOn((prev) => {
@@ -51,7 +54,7 @@ export function BlueprintModeOverlay() {
     })
   }, [])
 
-  if (hideOnStandaloneDeck) return null
+  if (hideChrome) return null
 
   const gridLayer =
     on && typeof document !== 'undefined'

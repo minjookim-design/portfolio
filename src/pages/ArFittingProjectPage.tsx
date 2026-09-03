@@ -92,7 +92,7 @@ export function PiikCaseStudyMediaBlock({ src, onMediaClick, playbackRate }: { s
 }
 
 /** Primary media (left) + optional image/GIF (right). Row height follows the left asset; right scales to fit that height. */
-function ArCaseStudyMediaWithBeside({
+export function ArCaseStudyMediaWithBeside({
   primarySrc,
   besideSrc,
   gapPx,

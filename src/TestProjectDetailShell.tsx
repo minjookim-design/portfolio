@@ -9,7 +9,9 @@ import {
   useReducedMotion,
   useSpring,
   useTransform,
+  type Transition,
 } from 'framer-motion'
+import { ErdProjectCloseButton } from './pages/testHome3/ErdChrome'
 import {
   PortfolioPopupTitleBar,
   POPUP_ENTER_SCALE,
@@ -24,6 +26,18 @@ import {
 } from './testMd3Layout'
 
 const EASE = [0.4, 0, 0.2, 1] as const
+/** Soft ease-in-out for ERD appear / sheet enter. */
+const ERD_APPLE_EASE = [0.45, 0, 0.55, 1] as const
+const ERD_SHEET_ENTER_SCALE = 0.98
+const ERD_SHEET_ENTER_TRANSITION: Transition = {
+  duration: 0.9,
+  ease: ERD_APPLE_EASE,
+}
+const ERD_CHROME_ENTER_TRANSITION: Transition = {
+  duration: 0.7,
+  ease: ERD_APPLE_EASE,
+  delay: 0.18,
+}
 /** Scroll distance (px) to fully expand sheet → page. */
 const EXPAND_SCROLL_PX = 160
 /** Expand progress at which chrome treats the sheet as a full page. */
@@ -34,6 +48,14 @@ const BACK_CONTROL = 'pointer-events-auto system-core-button'
 
 const PORTFOLIO_POPUP_SHEET_BORDER =
   'border-[0.5px] border-[color:var(--color-blueprint-hairline)]'
+
+/** test-home-3 inset sheet — matches shop-card padding + room for floating pill nav. */
+const ERD_SHEET_EXPAND = {
+  marginX: 32,
+  marginBottom: 32,
+  marginTop: 88,
+  radius: 0,
+} as const
 
 function CloseGlyph() {
   return (
@@ -64,14 +86,20 @@ type TestProjectDetailShellProps = {
   sheetClassName?: string
   /** Inline styles on the expanding sheet (e.g. `--active-section-bg`). */
   sheetStyle?: CSSProperties
-  /** Win95 title bar + popup shell chrome (About Me style). */
-  popupChrome?: 'portfolio'
-  /** Title for portfolio popup chrome. */
+  /** Win95 title bar (`portfolio`) or test-home-3 pill nav (`erd`). */
+  popupChrome?: 'portfolio' | 'erd'
+  /** Title for portfolio / ERD popup chrome. */
   popupTitle?: string
   /** Override portfolio title bar surface (e.g. project brand color). */
   popupTitleBarClassName?: string
   /** Override portfolio title bar label color. */
   popupTitleBarTitleClassName?: string
+  /** When `popupChrome` is set, portal to `document.body` (default `true`). */
+  popupPortal?: boolean
+  /** Optional classes on the fixed overlay root (e.g. `erd-site`). */
+  overlayClassName?: string
+  /** Full test-home-3 nav for ERD popup chrome (replaces default close/title pill). */
+  erdPopupNav?: ReactNode
 }
 
 /**
@@ -89,6 +117,9 @@ export function TestProjectDetailShell({
   popupTitle,
   popupTitleBarClassName,
   popupTitleBarTitleClassName,
+  popupPortal = true,
+  overlayClassName,
+  erdPopupNav,
 }: TestProjectDetailShellProps) {
   const navigate = useNavigate()
   const localScrollRef = useRef<HTMLDivElement>(null)
@@ -97,15 +128,18 @@ export function TestProjectDetailShell({
   const sheetChrome = useTestProjectSheetChrome()
   const setSheetFullPage = sheetChrome?.setSheetFullPage
   const portfolioPopup = popupChrome === 'portfolio'
+  const erdPopup = popupChrome === 'erd'
+  const popupOverlay = portfolioPopup || erdPopup
   const [showPopupTitleBar, setShowPopupTitleBar] = useState(true)
 
   const expandRaw = useMotionValue(0)
   const expand = useSpring(expandRaw, { stiffness: 140, damping: 28, mass: 0.85 })
 
-  const marginX = useTransform(expand, [0, 1], [MD_SHEET_EXPAND.marginX, 0])
-  const marginBottom = useTransform(expand, [0, 1], [MD_SHEET_EXPAND.marginBottom, 0])
-  const marginTop = useTransform(expand, [0, 1], [MD_SHEET_EXPAND.marginTop, 0])
-  const radius = MD_SHEET_EXPAND.radius
+  const sheetExpand = erdPopup ? ERD_SHEET_EXPAND : MD_SHEET_EXPAND
+  const marginX = useTransform(expand, [0, 1], [sheetExpand.marginX, 0])
+  const marginBottom = useTransform(expand, [0, 1], [sheetExpand.marginBottom, 0])
+  const marginTop = useTransform(expand, [0, 1], [sheetExpand.marginTop, 0])
+  const radius = sheetExpand.radius
   const stageFade = useTransform(expand, [0, 1], [1, 0])
 
   useEffect(() => {
@@ -134,21 +168,64 @@ export function TestProjectDetailShell({
   }
 
   const shell = (
-    <div
-      className={
-        portfolioPopup
+    <motion.div
+      className={[
+        popupOverlay
           ? 'fixed inset-0 z-[var(--portfolio-popup-z)] flex flex-col bg-transparent text-white'
-          : 'fixed inset-0 z-[100] flex flex-col bg-transparent text-white'
-      }
+          : 'fixed inset-0 z-[100] flex flex-col bg-transparent text-white',
+        overlayClassName ?? '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      initial={erdPopup && !reduceMotion ? { opacity: 0 } : false}
+      animate={{ opacity: 1 }}
+      transition={erdPopup && !reduceMotion ? { duration: 0.45, ease: ERD_APPLE_EASE } : undefined}
     >
       {/* Soft scrim over the live homepage; clears as the sheet expands to full page. */}
       <motion.div
-        className="pointer-events-none absolute inset-0 bg-black/45"
+        className={`pointer-events-none absolute inset-0 ${erdPopup ? 'bg-black/60' : 'bg-black/45'}`}
         style={{ opacity: stageFade }}
         aria-hidden
       />
 
-      {!portfolioPopup ? (
+      {erdPopup && erdPopupNav ? (
+        <motion.div
+          className="pointer-events-none absolute inset-x-0 top-0 z-[80]"
+          initial={reduceMotion ? false : { opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={ERD_CHROME_ENTER_TRANSITION}
+        >
+          <div className="pointer-events-auto">{erdPopupNav}</div>
+        </motion.div>
+      ) : null}
+
+      {erdPopup ? (
+        <motion.div
+          className="erd-project-close-wrap pointer-events-none fixed top-0 z-[81] flex justify-end"
+          initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={ERD_CHROME_ENTER_TRANSITION}
+        >
+          <ErdProjectCloseButton
+            className="pointer-events-auto"
+            onClick={handleClose}
+            label={backLabel}
+          />
+        </motion.div>
+      ) : null}
+
+      {erdPopup && !erdPopupNav && popupTitle && showPopupTitleBar ? (
+        <div className="erd-project-popup-header pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center px-4 pt-5 md:px-8 md:pt-7">
+          <nav className="erd-nav-pill erd-project-popup-pill pointer-events-auto" aria-label="Project">
+            <button type="button" className="erd-nav-pill-link" onClick={handleClose}>
+              {backLabel}
+            </button>
+            <span className="erd-nav-pill-logo">{popupTitle}</span>
+          </nav>
+        </div>
+      ) : null}
+
+      {!popupOverlay ? (
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center ${MD_TOP_APP_BAR}`}
         >
@@ -159,14 +236,24 @@ export function TestProjectDetailShell({
       ) : null}
 
       <motion.div
-        {...(portfolioPopup ? { 'data-portfolio-popup': true } : {})}
-        className={`theme-surface-transition relative flex min-h-0 flex-1 flex-col overflow-hidden @container/project-popup ${MD_INK} ${
-          portfolioPopup ? `${PORTFOLIO_POPUP_SHEET_BORDER} origin-bottom-right` : ''
-        } ${sheetClassName ?? MD_DETAIL_SHEET}`}
+        {...(popupOverlay ? { 'data-portfolio-popup': true } : {})}
+        className={[
+          'theme-surface-transition relative flex min-h-0 flex-1 flex-col overflow-hidden @container/project-popup',
+          !erdPopup ? MD_INK : '',
+          portfolioPopup ? `${PORTFOLIO_POPUP_SHEET_BORDER} origin-bottom-right` : '',
+          erdPopup ? 'erd-project-popup-sheet origin-center' : '',
+          sheetClassName ?? MD_DETAIL_SHEET,
+        ]
+          .filter(Boolean)
+          .join(' ')}
         initial={
-          portfolioPopup && !reduceMotion ? { scale: POPUP_ENTER_SCALE, opacity: 0 } : false
+          popupOverlay && !reduceMotion
+            ? erdPopup
+              ? { scale: ERD_SHEET_ENTER_SCALE, opacity: 0, y: 36 }
+              : { scale: POPUP_ENTER_SCALE, opacity: 0 }
+            : false
         }
-        animate={{ scale: 1, opacity: 1 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
         style={{
           marginLeft: marginX,
           marginRight: marginX,
@@ -176,8 +263,10 @@ export function TestProjectDetailShell({
           ...sheetStyle,
         }}
         transition={
-          portfolioPopup && !reduceMotion
-            ? POPUP_ENTER_TRANSITION
+          popupOverlay && !reduceMotion
+            ? erdPopup
+              ? ERD_SHEET_ENTER_TRANSITION
+              : POPUP_ENTER_TRANSITION
             : { duration: 0.45, ease: EASE }
         }
       >
@@ -202,10 +291,10 @@ export function TestProjectDetailShell({
           {children}
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 
-  if (portfolioPopup && typeof document !== 'undefined') {
+  if (popupOverlay && popupPortal && typeof document !== 'undefined') {
     return createPortal(shell, document.body)
   }
 

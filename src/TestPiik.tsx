@@ -78,9 +78,9 @@ const PIIK_BG_COLOR_INDEX: Record<string, number> = {
 }
 
 const PIIK_SECTION_BG: Record<string, string> = {
-  'Listening to Our Users': PIIK_BG_LISTENING,
+  'User Analysis': PIIK_BG_LISTENING,
   'The Catalyst': PIIK_BG_CATALYST,
-  'Why Do Our Users Want More Features?': PIIK_BG_RESEARCH,
+  'Cross-Cultural UX': PIIK_BG_RESEARCH,
   'Unpacking the Solution 01': PIIK_BG_SOLUTION_1,
   'Unpacking the Solution 02': PIIK_BG_SOLUTION_2,
   'Unpacking the Solution 03': PIIK_BG_SOLUTION_3,
@@ -88,9 +88,9 @@ const PIIK_SECTION_BG: Record<string, string> = {
 }
 
 const PIIK_SECTION_THEME: Record<string, 'light' | 'dark'> = {
-  'Listening to Our Users': 'light',
+  'User Analysis': 'light',
   'The Catalyst': 'dark',
-  'Why Do Our Users Want More Features?': 'dark',
+  'Cross-Cultural UX': 'dark',
   'Unpacking the Solution 01': 'dark',
   'Unpacking the Solution 02': 'dark',
   'Unpacking the Solution 03': 'dark',
@@ -170,14 +170,15 @@ function FitToWidthShell({
 }
 
 /** Map a marker's visual center into `root`'s local SVG coordinate space. */
-function markerPointInRoot(marker: HTMLElement, root: HTMLElement) {
-  const markerRect = marker.getBoundingClientRect()
+/** Top-center of a bar, in `root` local layout coords (accounts for CSS scale). */
+function barTopCenterInRoot(bar: HTMLElement, root: HTMLElement) {
+  const barRect = bar.getBoundingClientRect()
   const rootRect = root.getBoundingClientRect()
   const scaleX = root.offsetWidth > 0 ? rootRect.width / root.offsetWidth : 1
   const scaleY = root.offsetHeight > 0 ? rootRect.height / root.offsetHeight : 1
   return {
-    x: (markerRect.left + markerRect.width / 2 - rootRect.left) / scaleX,
-    y: (markerRect.top + markerRect.height / 2 - rootRect.top) / scaleY,
+    x: (barRect.left + barRect.width / 2 - rootRect.left) / scaleX,
+    y: (barRect.top - rootRect.top) / scaleY,
   }
 }
 
@@ -232,41 +233,14 @@ const PIIK_FEATURE_TITLE =
 const PIIK_META_SUIT =
   "font-['SUIT_Variable',sans-serif] text-[clamp(0.5625rem,1.2vw,0.75rem)] font-bold not-italic uppercase leading-[1.2] tracking-[-0.02em] text-black/45 dark:text-white/45"
 
-const PIIK_RESEARCH_CARDS = [
-  {
-    eyebrow: '01 · Method',
-    title: 'Naver Blog analysis',
-    body: (
-      <>
-        Studied Korea&apos;s dominant publishing platform — a visible, exhaustive editing suite that
-        has shaped creator expectations for decades.
-      </>
-    ),
-  },
-  {
-    eyebrow: '02 · Finding',
-    title: 'Minimalism ≠ power',
-    body: (
-      <>
-        For Korean users, minimalism often reads as a lack of functionality. They expect a
-        &quot;versatile toolbox&quot; with high-density, high-precision control.
-      </>
-    ),
-  },
-  {
-    eyebrow: '03 · Pivot',
-    title: 'Design objective',
-    body: (
-      <>
-        Shifted from a simple UI tweak to building a{' '}
-        <strong className="font-bold">high-density, fail-safe creative environment.</strong>
-      </>
-    ),
-  },
-] as const
+const PIIK_RESEARCH_EYEBROWS = ['01 · Method', '02 · Finding', '03 · Pivot'] as const
 
-/** Research findings — Naver reference + three insight cards (deck Slide06). */
-function PiikResearchFindings() {
+/** Research findings — Naver reference + insight cards driven by section features. */
+export function PiikResearchFindings({
+  features,
+}: {
+  features: TestProjectSectionContent['features']
+}) {
   const reduceMotion = useReducedMotion()
 
   return (
@@ -289,9 +263,9 @@ function PiikResearchFindings() {
       </motion.figure>
 
       <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-3">
-        {PIIK_RESEARCH_CARDS.map((card, i) => (
+        {features.map((feature, i) => (
           <motion.div
-            key={card.eyebrow}
+            key={`${feature.title}-${i}`}
             className="border border-[#c0bcb0] px-4 py-4 dark:border-white/15"
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -302,9 +276,11 @@ function PiikResearchFindings() {
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <p className={PIIK_META_SUIT}>{card.eyebrow}</p>
-            <p className={`${PIIK_FEATURE_TITLE} mt-3`}>{card.title}</p>
-            <p className={`${TEST_PROJECT_PROSE_CLASS} mt-2 m-0`}>{card.body}</p>
+            <p className={PIIK_META_SUIT}>{PIIK_RESEARCH_EYEBROWS[i] ?? String(i + 1).padStart(2, '0')}</p>
+            <p className={`${PIIK_FEATURE_TITLE} mt-3`}>{feature.title}</p>
+            {feature.description ? (
+              <p className={`${TEST_PROJECT_PROSE_CLASS} mt-2 m-0`}>{feature.description}</p>
+            ) : null}
           </motion.div>
         ))}
       </div>
@@ -313,7 +289,7 @@ function PiikResearchFindings() {
 }
 
 /** Deck-style problem rows — vertical stack, article-column width/alignment. */
-function PiikCoreChallengeProblems({
+export function PiikCoreChallengeProblems({
   features,
 }: {
   features: TestProjectSectionContent['features']
@@ -385,7 +361,7 @@ function PiikCoreChallengeProblems({
 }
 
 /** Solution 01 — feature copy on top; full-bleed carousel below. */
-function PiikSolution01FeatureMedia({
+export function PiikSolution01FeatureMedia({
   features,
   featureStartIndex = 1,
 }: {
@@ -394,11 +370,14 @@ function PiikSolution01FeatureMedia({
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [canPrev, setCanPrev] = useState(false)
-  const [canNext, setCanNext] = useState(true)
+  const [canNext, setCanNext] = useState(false)
+  const [hasOverflow, setHasOverflow] = useState(false)
 
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current
     if (!el) return
+    const overflow = el.scrollWidth > el.clientWidth + 4
+    setHasOverflow(overflow)
     setCanPrev(el.scrollLeft > 4)
     setCanNext(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
   }, [])
@@ -409,7 +388,17 @@ function PiikSolution01FeatureMedia({
     if (!el) return
     const ro = new ResizeObserver(() => updateArrows())
     ro.observe(el)
-    return () => ro.disconnect()
+    Array.from(el.querySelectorAll('video')).forEach((video) => {
+      video.addEventListener('loadedmetadata', updateArrows)
+    })
+    const raf = requestAnimationFrame(updateArrows)
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      Array.from(el.querySelectorAll('video')).forEach((video) => {
+        video.removeEventListener('loadedmetadata', updateArrows)
+      })
+    }
   }, [updateArrows])
 
   const scrollByDir = (dir: -1 | 1) => {
@@ -419,6 +408,14 @@ function PiikSolution01FeatureMedia({
     const delta = slide ? slide.offsetWidth + 16 : el.clientWidth * 0.45
     el.scrollBy({ left: dir * delta, behavior: 'smooth' })
   }
+
+  const carouselArrowClass = (enabled: boolean) =>
+    [
+      'pointer-events-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-0',
+      'bg-black/55 text-lg leading-none text-white backdrop-blur-[2px]',
+      'transition-opacity duration-200',
+      enabled ? 'cursor-pointer opacity-100 hover:bg-black/70' : 'cursor-default opacity-35',
+    ].join(' ')
 
   return (
     <div className="relative left-1/2 flex w-[100dvw] max-w-none -translate-x-1/2 flex-col gap-6 px-4 sm:px-6">
@@ -451,32 +448,34 @@ function PiikSolution01FeatureMedia({
 
       <figure className="relative m-0 w-full min-w-0 self-stretch">
         <div className="relative w-full min-w-0">
-          <div className="pointer-events-none absolute inset-x-0 top-0 bottom-8 z-10 flex items-center justify-between px-2">
-            {canPrev ? (
+          {hasOverflow ? (
+            <div className="pointer-events-none absolute inset-x-0 top-[38%] z-20 flex -translate-y-1/2 items-center justify-between px-1 sm:px-2">
               <button
                 type="button"
                 aria-label="Previous slides"
-                className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-base text-white"
-                onClick={() => scrollByDir(-1)}
+                aria-disabled={!canPrev}
+                disabled={!canPrev}
+                className={carouselArrowClass(canPrev)}
+                onClick={() => {
+                  if (canPrev) scrollByDir(-1)
+                }}
               >
                 ‹
               </button>
-            ) : (
-              <span />
-            )}
-            {canNext ? (
               <button
                 type="button"
                 aria-label="Next slides"
-                className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-base text-white"
-                onClick={() => scrollByDir(1)}
+                aria-disabled={!canNext}
+                disabled={!canNext}
+                className={carouselArrowClass(canNext)}
+                onClick={() => {
+                  if (canNext) scrollByDir(1)
+                }}
               >
                 ›
               </button>
-            ) : (
-              <span />
-            )}
-          </div>
+            </div>
+          ) : null}
           <div
             ref={scrollerRef}
             onScroll={updateArrows}
@@ -495,6 +494,7 @@ function PiikSolution01FeatureMedia({
                     loop
                     muted
                     playsInline
+                    onLoadedMetadata={updateArrows}
                     className="h-full w-full object-contain"
                   />
                 </div>
@@ -523,8 +523,8 @@ export function PiikImpactStoryGraph({
 } = {}) {
   const reduceMotion = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
-  const beforeBarRef = useRef<HTMLSpanElement>(null)
-  const afterBarRef = useRef<HTMLSpanElement>(null)
+  const beforeBarRef = useRef<HTMLDivElement>(null)
+  const afterBarRef = useRef<HTMLDivElement>(null)
   const [line, setLine] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(
     null,
   )
@@ -534,8 +534,8 @@ export function PiikImpactStoryGraph({
     const before = beforeBarRef.current
     const after = afterBarRef.current
     if (!root || !before || !after) return
-    const start = markerPointInRoot(before, root)
-    const end = markerPointInRoot(after, root)
+    const start = barTopCenterInRoot(before, root)
+    const end = barTopCenterInRoot(after, root)
     setLine({
       x1: start.x,
       y1: start.y,
@@ -707,6 +707,7 @@ export function PiikImpactStoryGraph({
             </motion.span>
             <div className="relative">
               <motion.div
+                ref={beforeBarRef}
                 className={beforeBarClass}
                 {...reveal(
                   { scaleY: 1 },
@@ -714,11 +715,6 @@ export function PiikImpactStoryGraph({
                   { duration: beforeBarDuration, ease: GRAPH_EASE, delay: beforeBarDelay },
                 )}
               >
-                <span
-                  ref={beforeBarRef}
-                  className="pointer-events-none absolute top-0 left-1/2 size-0 -translate-x-1/2"
-                  aria-hidden
-                />
                 <span className={`${barLabelClass} text-white dark:text-zinc-900`}>
                   16 Tickets
                 </span>
@@ -819,6 +815,7 @@ export function PiikImpactStoryGraph({
             </motion.span>
             <div className="relative">
               <motion.div
+                ref={afterBarRef}
                 className={afterBarClass}
                 {...reveal(
                   { scaleY: 1 },
@@ -826,11 +823,6 @@ export function PiikImpactStoryGraph({
                   { delay: afterBarDelay, duration: afterBarDuration, ease: GRAPH_EASE },
                 )}
               >
-                <span
-                  ref={afterBarRef}
-                  className="pointer-events-none absolute top-0 left-1/2 size-0 -translate-x-1/2"
-                  aria-hidden
-                />
                 <span className={`${barLabelClass} text-white`}>4 Tickets</span>
               </motion.div>
             </div>
@@ -1049,8 +1041,8 @@ export function TestPiik() {
           scrollRoot={scrollRef}
           leadExtra={<PiikImpactStoryGraph />}
           fullWidthSectionContainers={[
-            'Listening to Our Users',
-            'Why Do Our Users Want More Features?',
+            'User Analysis',
+            'Cross-Cultural UX',
             'Unpacking the Solution 01',
             'Unpacking the Solution 02',
             'Unpacking the Solution 03',
@@ -1060,15 +1052,17 @@ export function TestPiik() {
             'Unpacking the Solution 03',
           ]}
           replaceFeatureMediaRight={{
-            'Listening to Our Users': () => (
+            'User Analysis': () => (
               <div className="relative left-1/2 w-[100dvw] max-w-none -translate-x-1/2 px-4 sm:px-6">
                 <PiikFeedbackEmailCollage mode="inView" className="max-w-[36.4rem]" />
               </div>
             ),
-            'The Core Challenge: Restrictive MVP': (section) => (
+            'The Core Challenge': (section) => (
               <PiikCoreChallengeProblems features={section.features} />
             ),
-            'Why Do Our Users Want More Features?': () => <PiikResearchFindings />,
+            'Cross-Cultural UX': (section) => (
+              <PiikResearchFindings features={section.features} />
+            ),
             'Unpacking the Solution 01': (section) => (
               <PiikSolution01FeatureMedia features={section.features} featureStartIndex={1} />
             ),
@@ -1079,8 +1073,8 @@ export function TestPiik() {
             'Unpacking the Solution 03',
           ]}
           delayedFeatureMediaSections={[
-            'The Core Challenge: Restrictive MVP',
-            'Why Do Our Users Want More Features?',
+            'The Core Challenge',
+            'Cross-Cultural UX',
             'Unpacking the Solution 01',
             'Unpacking the Solution 02',
             'Unpacking the Solution 03',
