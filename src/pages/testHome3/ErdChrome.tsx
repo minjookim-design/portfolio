@@ -171,7 +171,12 @@ export function ErdHeader({
           {PILL_NAV_LINKS.map((item) => {
             if (item.kind === 'about') {
               return (
-                <button key={item.label} type="button" className="erd-nav-pill-link" onClick={onAboutOpen}>
+                <button
+                  key={item.label}
+                  type="button"
+                  className="erd-nav-pill-link erd-nav-pill-link--about"
+                  onClick={onAboutOpen}
+                >
                   {item.label}
                 </button>
               )

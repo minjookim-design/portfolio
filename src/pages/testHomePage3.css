@@ -219,6 +219,12 @@
   padding: 0 calc(clamp(0.45rem, 0.2rem + 1.2vw, 2rem) * var(--erd-nav-scale, 1));
 }
 
+@media (max-width: 767px) {
+  .erd-site .erd-nav-pill-link--about {
+    display: none;
+  }
+}
+
 .erd-site .erd-nav-pill-logo {
   align-items: flex-end;
   align-self: flex-end;
