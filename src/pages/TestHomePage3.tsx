@@ -219,11 +219,21 @@ function ShopVideoCard({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovered, setHovered] = useState(false)
   const [videoReady, setVideoReady] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const hasHoverVideo = Boolean(hoverVideo)
-  const showVideo = hasHoverVideo && hovered && videoReady
+  const playWithoutHover = isMobile && hasHoverVideo
+  const showVideo = hasHoverVideo && videoReady && (playWithoutHover || hovered)
   const mediaVariants = reveal === 'down' ? erdShopCardMediaVariantsDown : erdShopCardMediaVariantsUp
   const mediaRiseVariants =
     reveal === 'down' ? erdShopCardMediaRiseVariantsDown : erdShopCardMediaRiseVariantsUp
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     if (!hoverVideo) return
@@ -246,16 +256,26 @@ function ShopVideoCard({
     setVideoReady(false)
   }, [image, hoverVideo])
 
+  useEffect(() => {
+    if (!playWithoutHover || !hoverVideo) return
+    const video = videoRef.current
+    if (!video) return
+    video.playbackRate = videoPlaybackRate
+    void video.play().catch(() => {})
+  }, [playWithoutHover, hoverVideo, videoPlaybackRate, image])
+
   const handleMouseEnter = useCallback(() => {
+    if (playWithoutHover) return
     setHovered(true)
     if (!hoverVideo) return
     const video = videoRef.current
     if (!video) return
     video.playbackRate = videoPlaybackRate
     void video.play().catch(() => {})
-  }, [hoverVideo, videoPlaybackRate])
+  }, [hoverVideo, videoPlaybackRate, playWithoutHover])
 
   const handleMouseLeave = useCallback(() => {
+    if (playWithoutHover) return
     setHovered(false)
     setVideoReady(false)
     if (!hoverVideo) return
@@ -265,13 +285,13 @@ function ShopVideoCard({
     requestAnimationFrame(() => {
       video.currentTime = 0
     })
-  }, [hoverVideo])
+  }, [hoverVideo, playWithoutHover])
 
   const isInternalLink = href.startsWith('/') && !href.startsWith('//')
   const cardClassName = [
     'erd-shop-card',
     hasHoverVideo ? 'erd-shop-card--video-hover' : '',
-    hovered ? 'is-hovered' : '',
+    playWithoutHover || hovered ? 'is-hovered' : '',
     showVideo ? 'is-video-ready' : '',
     className ?? '',
   ]
@@ -291,8 +311,9 @@ function ShopVideoCard({
               muted
               playsInline
               loop
+              autoPlay={playWithoutHover}
               preload="auto"
-              aria-label={`${label} hover preview`}
+              aria-label={`${label} ${playWithoutHover ? 'preview' : 'hover preview'}`}
               data-video-src={hoverVideo}
             />
           ) : null}
@@ -340,14 +361,14 @@ function ErdShopSquare() {
   const textInitial = reduceMotion ? false : 'hidden'
 
   return (
-    <motion.div
+          <motion.div
       id="about"
       className="erd-shop-square"
       variants={erdShopSquareVariants}
-      role="region"
+            role="region"
       aria-label="About Minjoo Kim"
     >
-          <motion.div
+      <motion.div
         className="erd-shop-square-inner"
         variants={erdShopSquareInnerVariants}
         initial={textInitial}
@@ -419,7 +440,7 @@ export function TestHomePage3({
     if (!el) return
     requestAnimationFrame(() => {
       el.scrollIntoView({
-        behavior: reduceMotion ? 'auto' : 'smooth',
+      behavior: reduceMotion ? 'auto' : 'smooth',
         block: 'center',
       })
     })
@@ -436,7 +457,7 @@ export function TestHomePage3({
           pillEntrance={erdNavEntranceVariants}
           aboutSectionId="about"
           aboutPath={homePath}
-        />
+                    />
                   ) : null}
 
       <main className="erd-main min-h-screen" aria-hidden={projectOpen}>
