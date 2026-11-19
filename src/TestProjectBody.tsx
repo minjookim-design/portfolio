@@ -408,6 +408,12 @@ function createProjectMarkdownComponents(options?: {
 
       return <p className="mb-4">{children}</p>
     },
+    h1: ({ children }) => (
+      <h1 className={`${TEXT_COL} mb-0 ${SECTION_H3}`}>{children}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className={`${TEXT_COL} mb-0 ${SECTION_H3}`}>{children}</h2>
+    ),
   }
 }
 
@@ -1685,6 +1691,8 @@ type TestProjectBodyProps = {
   spyTheme?: 'light' | 'dark'
   /** Markdown `###` section titles omitted from the bottom scroll spy (content still renders). */
   scrollSpyHiddenSections?: string[]
+  /** Render these `###` titles as `h1` instead of `h2`. */
+  h1SectionTitles?: string[]
 }
 
 /**
@@ -1722,6 +1730,7 @@ export function TestProjectBody({
   scrollBg,
   spyTheme,
   scrollSpyHiddenSections,
+  h1SectionTitles,
 }: TestProjectBodyProps) {
   const resolvedHeroLayout: 'below' | 'above' | 'aside' =
     heroLayout ?? (heroFirst ? 'above' : 'below')
@@ -1903,7 +1912,7 @@ export function TestProjectBody({
   let figureIndex = 0
 
   const heroBlock = hero ? (
-    <div className="relative h-full min-h-0 w-full overflow-hidden rounded-none">{hero}</div>
+    <div className="relative w-full overflow-visible rounded-none">{hero}</div>
   ) : null
 
   const metaStack = (
@@ -2568,7 +2577,7 @@ export function TestProjectBody({
                   transition: {
                     duration: 0.5,
                     ease: 'easeOut' as const,
-                    delay: featureRevealBaseDelay + secondFeatureDelay + 0.5,
+                    delay: featureRevealBaseDelay + secondFeatureDelay,
                   },
                 },
               }
@@ -2580,7 +2589,7 @@ export function TestProjectBody({
                   transition: {
                     duration: 0.5,
                     ease: 'easeOut' as const,
-                    delay: featureRevealBaseDelay + secondFeatureDelay,
+                    delay: featureRevealBaseDelay + secondFeatureDelay + 0.5,
                   },
                 },
               }
@@ -2709,7 +2718,9 @@ export function TestProjectBody({
                         <figcaption className="flex flex-row items-start gap-3 font-['SUIT_Variable',sans-serif] text-[11pt] leading-[1.2] tracking-[-0.02em] text-[color:var(--color-muted,#666666)] dark:text-white/75 md:w-[42.857%]">
                           <motion.span
                             className="w-6 shrink-0 tabular-nums text-yellow-300"
-                            {...sequentialNumberGlow(secondFeatureDelay)}
+                            {...sequentialNumberGlow(
+                              secondFeatureDelay + (shareRightPairReveal ? 0.5 : 0),
+                            )}
                           >
                             {sectionFeatureStartIndex + 1}
                           </motion.span>
@@ -2733,6 +2744,9 @@ export function TestProjectBody({
               const customSectionContent = customSectionRenderer?.(section)
               const isFullWidthContainer =
                 fullWidthSectionContainers?.includes(section.title) === true
+              const SectionTitleTag = h1SectionTitles?.includes(section.title)
+                ? motion.h1
+                : motion.h2
 
               return (
                 <section
@@ -2798,7 +2812,7 @@ export function TestProjectBody({
                     ) : (
                       <>
                         {section.title && !customSectionContent ? (
-                          <motion.h2
+                          <SectionTitleTag
                             className={`${TEXT_COL} mb-0 ${SECTION_H3} ${slideTextAlignmentClass}`}
                             {...titleReveal}
                           >
@@ -2818,7 +2832,7 @@ export function TestProjectBody({
                             ) : (
                               section.title
                             )}
-                          </motion.h2>
+                          </SectionTitleTag>
                         ) : null}
 
                         {isProseMediaLeft && proseMediaLeftSubhead && !customSectionContent ? (

@@ -1,7 +1,7 @@
 export const ERD_PRODUCTION_HOME = '/'
 export const ERD_SANDBOX_HOME = '/test-home-3'
 
-const ERD_PROJECT_SEGMENTS = ['hovr', 'piik-ai', 'ar-fitting-room', 'about'] as const
+const ERD_PROJECT_SEGMENTS = ['hovr', 'piik-ai', 'ar-fitting-room', 'about', 'jojo'] as const
 
 /** Build `/segment` or `/base/segment` without double slashes. */
 export function erdHomePath(basePath: string, segment: string): string {
@@ -17,6 +17,7 @@ export function erdHomeRoot(basePath: string): string {
 
 export function isErdHomePathname(pathname: string): boolean {
   if (pathname === '/' || pathname === '') return true
+  if (pathname === '/more' || pathname.startsWith('/more/')) return true
   if (pathname === ERD_SANDBOX_HOME || pathname.startsWith(`${ERD_SANDBOX_HOME}/`)) {
     return true
   }

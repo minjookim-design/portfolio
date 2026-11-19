@@ -1,12 +1,124 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AboutMePopupPanel } from '../../components/AboutMePopup'
 import { usePageTheme } from '../../context/PageThemeContext'
+import { useErdHomePaths } from './useErdHomePaths'
 
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true'
 export const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
+export const EMAIL = 'minjoo.kim.kor@gmail.com'
+
+export function ErdHeroMetaList({
+  items,
+}: {
+  items: readonly { label: string; value: string }[]
+}) {
+  if (items.length === 0) return null
+  return (
+    <ul className="rc-prev erd-hovr-hero-meta-list">
+      {items.map((item) => {
+        const isCurrent = item.label.toLowerCase() === 'outcome'
+        return (
+          <li key={item.label}>
+            <span className={`rc-prev-dot${isCurrent ? ' is-current' : ''}`} aria-hidden />
+            <span className={`rc-prev-role${isCurrent ? ' is-current' : ''}`}>{item.label}</span>
+            <span className="rc-prev-meta">{item.value}</span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export function ErdProjectFooter() {
+  return (
+    <footer className="rc-footer">
+      <a className="rc-footer-email" href={`mailto:${EMAIL}`}>
+        {EMAIL}
+      </a>
+    </footer>
+  )
+}
+
+function RcBrandMark() {
+  return (
+    <span className="rc-brand-mark">
+      <img src="/me/me1.png" alt="" className="rc-brand-img rc-brand-img--default" decoding="async" />
+      <img src="/me/me2.png" alt="" aria-hidden className="rc-brand-img rc-brand-img--hover" decoding="async" />
+    </span>
+  )
+}
+
+function RcThemeGlyph({ dark }: { dark: boolean }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      {dark ? (
+        <circle cx="8" cy="8" r="5" fill="currentColor" />
+      ) : (
+        <>
+          <circle cx="8" cy="8" r="2.25" fill="currentColor" />
+          <path
+            fill="currentColor"
+            d="M7.5 0h1v3h-1zM7.5 13h1v3h-1zM0 7.5h3v1H0zM13 7.5h3v1h-3zM2.05 2.05l.7-.7 2.12 2.12-.7.7zM11.13 11.13l.7-.7 2.12 2.12-.7.7zM2.05 13.95l2.12-2.12.7.7-2.12 2.12zM11.13 4.87l2.12-2.12.7.7-2.12 2.12z"
+          />
+        </>
+      )}
+    </svg>
+  )
+}
+
+export function ErdProjectTop({ visible, homeTo }: { visible: boolean; homeTo: string }) {
+  const { isDark, toggleTheme } = usePageTheme()
+
+  return (
+    <header className={`rc-top${visible ? ' is-visible' : ''}`} aria-hidden={!visible}>
+      <Link to={homeTo} className="rc-brand" aria-label="Minjoo Kim" tabIndex={visible ? undefined : -1}>
+        <RcBrandMark />
+      </Link>
+      <button
+        type="button"
+        className="rc-theme"
+        aria-label={isDark ? 'Switch to light appearance' : 'Switch to dark appearance'}
+        tabIndex={visible ? undefined : -1}
+        onClick={toggleTheme}
+      >
+        <RcThemeGlyph dark={isDark} />
+      </button>
+    </header>
+  )
+}
+
+export function ErdProjectRail({ visible }: { visible: boolean; homeTo: string }) {
+  const { pathname } = useLocation()
+  const moreActive = pathname === '/more' || pathname.startsWith('/more/')
+
+  return (
+    <nav
+      className={`rc-rail${visible ? ' is-visible' : ''}`}
+      aria-label="Sections"
+      aria-hidden={!visible}
+    >
+      <Link to="/" className={`rc-nav-btn${pathname === '/' ? ' is-active' : ''}`}>
+        Work
+      </Link>
+      <Link
+        to="/more"
+        className={`rc-nav-btn${moreActive ? ' is-active' : ''}`}
+        aria-current={moreActive ? 'page' : undefined}
+      >
+        More
+      </Link>
+      <a className="rc-nav-btn" href={RESUME_URL} target="_blank" rel="noreferrer">
+        Resume
+      </a>
+      <a className="rc-nav-btn" href={LINKEDIN_URL} target="_blank" rel="noreferrer">
+        LinkedIn
+      </a>
+    </nav>
+  )
+}
 
 const PILL_NAV_LINKS = [
   { label: 'About Me', kind: 'about' as const },
@@ -52,13 +164,8 @@ function CloseIcon() {
 
 function ProjectCloseIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path
-        d="M3 3l8 8M11 3 3 11"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.25" />
     </svg>
   )
 }
@@ -73,11 +180,14 @@ export function ErdProjectCloseButton({
   className?: string
 }) {
   return (
-    <div className={`erd-nav-pill erd-project-close-pill${className ? ` ${className}` : ''}`}>
-      <button type="button" className="erd-project-close-btn" onClick={onClick} aria-label={label}>
-        <ProjectCloseIcon />
-      </button>
-    </div>
+    <button
+      type="button"
+      className={`rc-theme${className ? ` ${className}` : ''}`}
+      onClick={onClick}
+      aria-label={label}
+    >
+      <ProjectCloseIcon />
+    </button>
   )
 }
 

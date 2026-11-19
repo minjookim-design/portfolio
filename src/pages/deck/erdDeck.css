@@ -1,0 +1,505 @@
+/* Deck surfaces — extends .erd-site from testHomePage3.css */
+
+.erd-deck {
+  --erd-deck-ink: #1a1917;
+  --erd-deck-ink-muted: rgb(26 25 23 / 0.72);
+  --erd-deck-accent: #e11d48;
+  /* Match published HOVR sheet hairlines (testHome3Hovr.css). */
+  --erd-deck-hairline: rgb(26 25 23 / 0.18);
+  --erd-deck-muted: var(--erd-deck-ink-muted);
+  --erd-deck-stage: #ffffff;
+  --erd-deck-panel: #ffffff;
+  /* Nav chrome stays on homepage ERD pill scale (Univers). */
+  --erd-nav-scale: 0.9984;
+  --erd-nav-control-h: calc(clamp(1.625rem, 1.4rem + 0.55vw, 1.875rem) * var(--erd-nav-scale));
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--erd-deck-stage);
+  color: var(--erd-deck-ink);
+  font-family: 'UniversLTPro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-optical-sizing: auto;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 768px) {
+  .erd-deck {
+    --erd-nav-scale: 0.832;
+  }
+}
+
+.erd-site.erd-site--dark .erd-deck,
+.erd-deck.erd-site--dark {
+  --erd-deck-ink: #f2f0e6;
+  --erd-deck-ink-muted: rgb(242 240 230 / 0.72);
+  --erd-deck-accent: #fb7185;
+  --erd-deck-hairline: rgb(242 240 230 / 0.28);
+  --erd-deck-muted: var(--erd-deck-ink-muted);
+  --erd-deck-stage: #1a1917;
+  --erd-deck-panel: #1a1917;
+  background: var(--erd-deck-stage);
+  color: var(--erd-deck-ink);
+}
+
+.erd-deck-header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem clamp(0.75rem, 2vw, 1.5rem) 0.5rem;
+}
+
+.erd-deck .erd-deck-nav-pill {
+  max-width: min(100%, calc(100vw - 8rem));
+  overflow-x: auto;
+}
+
+/* Active project tab — same fill as homepage pill-link hover. */
+.erd-deck .erd-nav-pill-link.is-active {
+  background: #fff;
+  color: var(--erd-black);
+}
+
+.erd-deck button.erd-nav-pill-link {
+  appearance: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+/*
+ * Phase nav must match published ErdScrollSpyPill (portaled to body).
+ * Inside .erd-site, `button { font: inherit; padding: 0 }` overrides spy styles —
+ * restore the published SUIT / 5.4pt metrics and unscaled control height.
+ */
+.erd-deck .erd-scroll-spy-item-pill {
+  --erd-nav-control-h: 1.875rem;
+  --erd-scroll-spy-control-h: calc(1.875rem * 0.6);
+  max-width: min(calc(100vw - 2rem), 10.8rem);
+  min-height: var(--erd-scroll-spy-control-h);
+  padding: 0.075rem;
+}
+
+.erd-deck .erd-scroll-spy-item-pill-btn {
+  font-family: 'SUIT_Variable', sans-serif;
+  font-size: 5.4pt;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.375;
+  min-height: calc(var(--erd-scroll-spy-control-h) - 0.15rem);
+  padding: 0 0.5rem;
+  text-transform: uppercase;
+}
+
+/* Counter = exact homepage nav-pill-link type. */
+.erd-deck-counter {
+  margin: 0;
+  flex-shrink: 0;
+  font-family: inherit;
+  font-optical-sizing: auto;
+  font-size: calc(
+    clamp(calc(0.625rem - 1pt), calc(0.52rem + 0.28vw - 1pt), calc(0.6875rem - 1pt)) *
+      var(--erd-nav-scale, 1)
+  );
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--erd-deck-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.erd-deck-main {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 0 clamp(0.65rem, 1.8vw, 1.25rem) 0.65rem;
+}
+
+.erd-deck-stage {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: var(--erd-deck-panel);
+}
+
+.erd-deck-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem clamp(0.75rem, 2vw, 1.5rem) 0.85rem;
+}
+
+.erd-deck-dots {
+  display: flex;
+  max-width: 55vw;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.erd-deck-dot {
+  height: 0.28rem;
+  width: 0.28rem;
+  border: none;
+  border-radius: 9999px;
+  padding: 0;
+  background: color-mix(in srgb, var(--erd-black) 22%, transparent);
+  cursor: pointer;
+  transform-origin: var(--transform-origin, center center);
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.erd-site.erd-site--dark .erd-deck-dot,
+.erd-deck.erd-site--dark .erd-deck-dot {
+  background: rgb(242 240 230 / 0.22);
+}
+
+.erd-deck-dot:hover {
+  opacity: 0.85;
+}
+
+.erd-deck-dot.is-active {
+  width: 1rem;
+  background: var(--erd-black);
+}
+
+.erd-site.erd-site--dark .erd-deck-dot.is-active,
+.erd-deck.erd-site--dark .erd-deck-dot.is-active {
+  background: var(--erd-cream);
+}
+
+/* Prev / Next — same pill + link type as homepage chrome. */
+.erd-deck button.erd-deck-control-pill {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  padding: calc(clamp(0.28rem, 0.45vw, 0.4rem) * var(--erd-nav-scale));
+}
+
+.erd-deck button.erd-deck-control-pill:disabled {
+  cursor: default;
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.erd-deck button.erd-deck-control-pill .erd-nav-pill-link {
+  pointer-events: none;
+}
+
+.erd-deck-slide {
+  --erd-hovr-font: 'SUIT Variable', 'SUIT_Variable', sans-serif;
+  --erd-hovr-ink: var(--erd-deck-slide-fg, var(--erd-deck-ink));
+  --erd-hovr-ink-muted: var(--erd-deck-slide-muted, var(--erd-deck-ink-muted));
+  --erd-hovr-accent: var(--erd-deck-slide-accent, var(--erd-deck-accent));
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--erd-deck-slide-hairline, var(--erd-deck-hairline));
+  background: var(--erd-deck-slide-bg, #fff);
+  color: var(--erd-hovr-ink);
+  font-family: var(--erd-hovr-font);
+  font-size: 16px;
+  line-height: 1.2;
+  -webkit-font-smoothing: antialiased;
+}
+
+.erd-deck-slide *,
+.erd-deck-slide *::before,
+.erd-deck-slide *::after {
+  font-family: var(--erd-hovr-font) !important;
+}
+
+.erd-deck-slide--hero .erd-deck-slide-body {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Deck title hero — same 2-up grid as published HOVR project hero. */
+.erd-deck .erd-hovr-hero-grid {
+  background: transparent;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .erd-deck .erd-hovr-hero-grid.erd-shop-row {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+  }
+
+  .erd-deck .erd-hovr-hero-grid .erd-shop-card,
+  .erd-deck .erd-hovr-hero-grid .erd-shop-square {
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .erd-deck .erd-hovr-hero-grid .erd-hovr-hero-adjacent-square,
+  .erd-deck .erd-hovr-hero-grid .erd-shop-square.erd-hovr-hero-adjacent-square {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  .erd-deck .erd-hovr-hero-grid .erd-hovr-hero-card,
+  .erd-deck .erd-hovr-hero-grid .erd-shop-card.erd-hovr-hero-card {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+}
+
+.erd-deck .erd-hovr-hero-adjacent-square {
+  background: transparent;
+  color: var(--erd-hovr-ink, var(--erd-deck-ink));
+  overflow: hidden;
+  padding: clamp(1rem, 2.5vh, 1.5rem) clamp(1rem, 3vw, 2rem);
+}
+
+.erd-deck .erd-hovr-hero-adjacent-square .erd-shop-square-name {
+  font-size: clamp(0.6875rem, 0.55rem + 0.55vw, 0.875rem);
+}
+
+.erd-deck .erd-hovr-hero-adjacent-square .erd-shop-square-experience {
+  width: 50%;
+}
+
+.erd-deck .erd-hovr-hero-square-dek {
+  color: var(--erd-hovr-ink-muted, var(--erd-deck-ink-muted));
+  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem);
+  text-transform: none;
+  white-space: normal;
+}
+
+.erd-deck .erd-hovr-hero-meta-list {
+  margin-top: 0.75rem;
+}
+
+.erd-deck .erd-hovr-hero-adjacent-square .erd-shop-square-experience-meta {
+  color: var(--erd-hovr-ink-muted, var(--erd-deck-ink-muted));
+  opacity: 1;
+  text-transform: none;
+  white-space: normal;
+}
+
+.erd-deck .erd-hovr-hero-card {
+  cursor: default;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.erd-deck .erd-hovr-hero-card::after {
+  display: none;
+}
+
+.erd-deck .erd-hovr-hero-card .erd-shop-card-media {
+  height: 100%;
+  inset: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.erd-deck .erd-hovr-hero-video {
+  display: block;
+  filter: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  width: 100%;
+}
+
+.erd-deck-slide-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--erd-deck-slide-hairline, var(--erd-deck-hairline));
+  padding: 0.4rem clamp(1rem, 3vw, 2rem);
+}
+
+.erd-deck-slide-body {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: clamp(0.85rem, 2.5vh, 1.6rem) clamp(1rem, 3vw, 2rem);
+}
+
+.erd-deck-slide-footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--erd-deck-slide-hairline, var(--erd-deck-hairline));
+  padding: 0.5rem clamp(1rem, 3vw, 2rem);
+}
+
+.erd-deck-slide-header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.erd-deck-slide-header-meta p {
+  margin: 0;
+  font-size: clamp(0.5rem, 0.4rem + 0.3vw, 0.625rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-ink-muted);
+}
+
+/*
+ * Type scale from published HOVR project page (`testHome3Hovr.css`):
+ * - display/name → .erd-shop-square-name (hero)
+ * - title/section → section title 0.6875rem accent uppercase
+ * - subhead → h4 0.8125rem uppercase
+ * - body → prose clamp(0.625rem … 0.75rem)
+ * - meta → experience-role
+ * - overline/label → experience-label / section title
+ * - caption → experience-meta / awards
+ */
+.erd-deck-type-display {
+  font-optical-sizing: auto;
+  font-size: clamp(0.6875rem, 0.55rem + 0.55vw, 0.875rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-ink, var(--erd-deck-ink));
+}
+
+.erd-deck-type-display-xl {
+  font-optical-sizing: auto;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-ink, var(--erd-deck-ink));
+}
+
+.erd-deck-type-title {
+  font-optical-sizing: auto;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-accent, var(--erd-deck-accent));
+}
+
+.erd-deck-type-subhead {
+  font-optical-sizing: auto;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-ink, var(--erd-deck-ink));
+}
+
+.erd-deck-type-body {
+  font-optical-sizing: auto;
+  font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: var(--erd-hovr-ink-muted, var(--erd-deck-ink-muted));
+  text-transform: none;
+}
+
+.erd-deck-type-meta {
+  font-optical-sizing: auto;
+  font-size: clamp(0.5625rem, 0.45rem + 0.35vw, 0.6875rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-ink, var(--erd-deck-ink));
+}
+
+.erd-deck-type-overline,
+.erd-deck-type-label {
+  font-optical-sizing: auto;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--erd-hovr-accent, var(--erd-deck-accent));
+}
+
+.erd-deck-type-caption {
+  font-optical-sizing: auto;
+  font-size: clamp(0.5625rem, 0.45rem + 0.35vw, 0.6875rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  text-transform: none;
+  color: var(--erd-hovr-ink-muted, var(--erd-deck-ink-muted));
+}
+
+.erd-deck-frame {
+  --erd-hovr-font: 'SUIT Variable', 'SUIT_Variable', sans-serif;
+  --erd-hovr-ink: var(--erd-deck-ink);
+  --erd-hovr-ink-muted: var(--erd-deck-ink-muted);
+  --erd-hovr-accent: var(--erd-deck-accent);
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--erd-deck-hairline);
+  background: #fff;
+  color: var(--erd-hovr-ink);
+  font-family: var(--erd-hovr-font);
+  font-size: 16px;
+  line-height: 1.2;
+  -webkit-font-smoothing: antialiased;
+}
+
+.erd-deck-frame *,
+.erd-deck-frame *::before,
+.erd-deck-frame *::after {
+  font-family: var(--erd-hovr-font) !important;
+}
+
+.erd-site.erd-site--dark .erd-deck-frame,
+.erd-deck.erd-site--dark .erd-deck-frame {
+  background: #1a1917;
+  color: var(--erd-deck-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .erd-deck-dot,
+  .erd-deck .erd-nav-pill-link {
+    transition: none;
+  }
+}

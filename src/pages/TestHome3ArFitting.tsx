@@ -2,7 +2,7 @@
  * AR Fitting Room case study under `/test-home-3/ar-fitting-room`.
  * Clones HOVR ERD popup chrome / skin / scroll-spy. Published `/projects/ar-fitting-room` unchanged.
  */
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useRef, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import arFittingMarkdown from '../../_content/AR Fitting Room.md?raw'
 import {
@@ -20,7 +20,7 @@ import {
   MD_SURFACE_CONTAINER_LOW,
 } from '../testMd3Layout'
 import { usePageTheme } from '../context/PageThemeContext'
-import { ErdSiteNav } from './testHome3/ErdChrome'
+import { ErdHeroMetaList } from './testHome3/ErdChrome'
 import { useErdHomePaths } from './testHome3/useErdHomePaths'
 import { ArFittingStatsGraph } from './ArFittingStatsGraph'
 import { ArCaseStudyMediaWithBeside } from './ArFittingProjectPage'
@@ -128,10 +128,11 @@ const AR_SECTION_THEME: Record<string, 'light' | 'dark'> = {
 }
 
 const AR_HERO_MEDIA = {
-  light: '/arfittingroom/Thumbnail-light-sq.mp4',
-  dark: '/arfittingroom/Thumbnail-dark-sq.mp4',
+  light: '/arfittingroom/Thumbnail-light.jpg',
+  dark: '/arfittingroom/Thumbnail-dark.jpg',
 } as const
 const AR_DISPLAY_NAME = 'AR Fitting Room'
+const AR_PROJECT_LINE = 'Award-Winning'
 
 const ERD_HERO_EASE = [0.45, 0, 0.55, 1] as const
 const ERD_HERO_TILE_TRANSITION = {
@@ -141,33 +142,26 @@ const ERD_HERO_TILE_TRANSITION = {
 
 function ErdArFittingHero({
   title,
-  headline,
-  awards,
-  categories,
+  role,
+  subtitle,
+  tagline,
 }: {
   title: string
-  headline?: string
-  awards?: string[]
-  categories?: string[]
+  role?: string
+  subtitle?: string
+  tagline?: string
 }) {
   const reduceMotion = useReducedMotion()
   const { isDark } = usePageTheme()
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const heroVideo = AR_HERO_MEDIA[isDark ? 'dark' : 'light']
+  const heroImage = AR_HERO_MEDIA[isDark ? 'dark' : 'light']
 
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    video.src = heroVideo
-    video.load()
-    video.playbackRate = 1.6
-    void video.play().catch(() => {})
-  }, [heroVideo])
+  const heroMeta = [
+    subtitle ? { label: 'Focus', value: subtitle } : null,
+    tagline ? { label: 'Outcome', value: tagline } : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item))
 
   const tileInitial = reduceMotion ? false : { opacity: 0, y: 28, scale: 0.985 }
   const tileAnimate = { opacity: 1, y: 0, scale: 1 }
-  const awardList = (awards ?? []).filter(Boolean)
-  const categoryLine = (categories ?? []).filter(Boolean).join(' · ')
 
   return (
     <section
@@ -184,23 +178,17 @@ function ErdArFittingHero({
         <div className="erd-shop-square-inner">
           <div className="erd-shop-square-intro">
             <p className="erd-shop-square-name">{AR_DISPLAY_NAME}</p>
-            {categoryLine ? <p className="erd-shop-square-greeting">{categoryLine}</p> : null}
-            {awardList.length > 0 ? (
-              <div className="erd-hovr-hero-awards">
-                <ul className="erd-hovr-hero-awards-list">
-                  {awardList.map((award) => (
-                    <li key={award}>{award}</li>
-                  ))}
-                </ul>
-              </div>
+            {[AR_PROJECT_LINE, role].filter(Boolean).length > 0 ? (
+              <p className="erd-shop-square-greeting">
+                {[AR_PROJECT_LINE, role].filter(Boolean).join(' · ')}
+              </p>
             ) : null}
           </div>
-          <div className="erd-shop-square-experience">
-            <p className="erd-shop-square-experience-label">Overview</p>
-            {headline ? (
-              <p className="erd-shop-square-greeting erd-hovr-hero-square-dek">{headline}</p>
-            ) : null}
-          </div>
+          {heroMeta.length > 0 ? (
+            <div className="erd-shop-square-experience">
+              <ErdHeroMetaList items={heroMeta} />
+            </div>
+          ) : null}
         </div>
       </motion.div>
 
@@ -211,16 +199,11 @@ function ErdArFittingHero({
         transition={{ ...ERD_HERO_TILE_TRANSITION, delay: reduceMotion ? 0 : 0.34 }}
       >
         <div className="erd-shop-card-media">
-          <video
-            ref={videoRef}
-            className="erd-shop-card-video erd-hovr-hero-video"
-            src={heroVideo}
-            muted
-            playsInline
-            loop
-            autoPlay
-            preload="auto"
-            aria-label={`${title} preview`}
+          <img
+            className="erd-hovr-hero-video"
+            src={heroImage}
+            alt={`${title} preview`}
+            decoding="async"
           />
         </div>
       </motion.div>
@@ -290,7 +273,7 @@ function parseObsidianMarkdown(raw: unknown): ArVault {
   const categories = parseFrontmatterStringList(frontmatter, 'category')
 
   const impactHook =
-    /^###\s+Impact\s*\r?\n+####\s+(.+)$/m.exec(body)?.[1]?.trim() ??
+    /^###\s+Overview\s*\r?\n+####\s+(.+)$/m.exec(body)?.[1]?.trim() ??
     parseFrontmatterScalar(frontmatter, 'highlight')
 
   const enriched = enrichVaultBody(title, role, body.trim())
@@ -346,16 +329,14 @@ export function TestHome3ArFitting({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(AR_BG_HERO)
-  const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('light')
 
-  const handleScrollBg = useCallback((nextBg: string, nextTheme: 'light' | 'dark') => {
+  const handleScrollBg = useCallback((nextBg: string, _nextTheme: 'light' | 'dark') => {
     setBgColor((previous) => (previous === nextBg ? previous : nextBg))
-    setActiveTheme((previous) => (previous === nextTheme ? previous : nextTheme))
   }, [])
 
   try {
     const vault = parseObsidianMarkdown(arFittingMarkdown)
-    const surfaceDark = isDark || activeTheme === 'dark'
+    const surfaceDark = isDark
     const currentColors = isDark ? darkModeColors : lightModeColors
     const activeColorIndex = AR_BG_COLOR_INDEX[bgColor] ?? 0
     const heroBackgroundColor = isDark ? heroDarkModeColor : heroLightModeColor
@@ -371,9 +352,8 @@ export function TestHome3ArFitting({
         backLabel="Close"
         popupChrome="erd"
         popupPortal={false}
-        erdPopupNav={<ErdSiteNav logoTo={homePath} aboutSectionId="about" aboutPath={homePath} />}
         overlayClassName={`erd-site erd-site--${isDark ? 'dark' : 'light'} erd-project-popup-shell`}
-        sheetClassName={`erd-hovr-page erd-hovr-sheet rounded-none ${
+        sheetClassName={`erd-hovr-page erd-hovr-sheet erd-hovr-text-measure rounded-none ${
           surfaceDark ? 'dark erd-hovr-sheet--surface-dark' : 'erd-hovr-sheet--surface-light'
         }`}
         sheetStyle={
@@ -473,12 +453,12 @@ export function TestHome3ArFitting({
           hero={
             <ErdArFittingHero
               title={vault.title}
-              headline={vault.highlight || vault.headline}
-              awards={vault.awards}
-              categories={vault.categories}
+              role={vault.role}
+              subtitle={vault.categories.join(' · ')}
+              tagline={vault.awards.join(' · ')}
             />
           }
-          spyTheme={isDark ? 'dark' : activeTheme}
+          spyTheme={isDark ? 'dark' : 'light'}
           scrollBg={{
             hero: AR_BG_HERO,
             heroTheme: 'light',

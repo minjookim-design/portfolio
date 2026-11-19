@@ -1,6 +1,6 @@
 /**
  * Blueprint layout mode: grid overlay + `html.blueprint-enabled` outlines.
- * Fixed SYSTEM GRID toggle — bottom-right on every route including `/deck`.
+ * Fixed SYSTEM GRID toggle — hidden on ERD home and all deck routes.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -19,15 +19,24 @@ function readStoredOn(): boolean {
 
 import { isErdHomePathname } from '../pages/testHome3/erdHomePaths'
 
-export function BlueprintModeOverlay() {
-  const { pathname } = useLocation()
-  const [on, setOn] = useState(readStoredOn)
-  const hideChrome =
+function isDeckPathname(pathname: string): boolean {
+  return (
+    pathname === '/deck' ||
+    pathname.startsWith('/deck/') ||
     pathname === '/hovr-deck' ||
     pathname.startsWith('/hovr-deck/') ||
     pathname === '/piik-deck' ||
-    pathname.startsWith('/piik-deck/') ||
-    isErdHomePathname(pathname)
+    pathname.startsWith('/piik-deck/')
+  )
+}
+
+export function BlueprintModeOverlay() {
+  const { pathname } = useLocation()
+  const [on, setOn] = useState(readStoredOn)
+  const isRampTestHome =
+    pathname === '/test-home-ramp' || pathname.startsWith('/test-home-ramp/')
+  const hideChrome =
+    isDeckPathname(pathname) || isErdHomePathname(pathname) || isRampTestHome
 
   useEffect(() => {
     setOn(readStoredOn())

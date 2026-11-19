@@ -15,7 +15,7 @@ tags:
   - 
   -
 ---
-### Impact
+### Overview
 
 #### An Augmented Reality (AR) mirror device aimed at enhancing the online shopping experience for individuals with mobility challenges.
 

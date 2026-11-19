@@ -27,7 +27,7 @@ import {
   MD_SURFACE_CONTAINER_LOW,
 } from '../testMd3Layout'
 import { usePageTheme } from '../context/PageThemeContext'
-import { ErdSiteNav } from './testHome3/ErdChrome'
+import { ErdHeroMetaList } from './testHome3/ErdChrome'
 import { useErdHomePaths } from './testHome3/useErdHomePaths'
 import './testHomePage3.css'
 import './testHome3Hovr.css'
@@ -119,8 +119,8 @@ const PIIK_SECTION_THEME: Record<string, 'light' | 'dark'> = {
 }
 
 const PIIK_HERO_MEDIA = {
-  light: '/piikai/Thumbnail-light-sq.mp4',
-  dark: '/piikai/Thumbnail-dark-sq.mp4',
+  light: '/piikai/piikai-4k.mp4',
+  dark: '/piikai/piikai-4k-dark.mp4',
 } as const
 const PIIK_DISPLAY_NAME = 'Piik AI'
 const PIIK_PROJECT_LINE = 'Creator Editor'
@@ -191,16 +191,7 @@ function ErdPiikHero({
             {headline ? (
               <p className="erd-shop-square-greeting erd-hovr-hero-square-dek">{headline}</p>
             ) : null}
-            {heroMeta.length > 0 ? (
-              <ul className="erd-shop-square-experience-list erd-hovr-hero-meta-list">
-                {heroMeta.map((item) => (
-                  <li key={item.label}>
-                    <span className="erd-shop-square-experience-role">{item.label}</span>
-                    <span className="erd-shop-square-experience-meta">{item.value}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <ErdHeroMetaList items={heroMeta} />
           </div>
         </div>
       </motion.div>
@@ -314,16 +305,14 @@ export function TestHome3Piik({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(PIIK_BG_HERO)
-  const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('light')
 
-  const handleScrollBg = useCallback((nextBg: string, nextTheme: 'light' | 'dark') => {
+  const handleScrollBg = useCallback((nextBg: string, _nextTheme: 'light' | 'dark') => {
     setBgColor((previous) => (previous === nextBg ? previous : nextBg))
-    setActiveTheme((previous) => (previous === nextTheme ? previous : nextTheme))
   }, [])
 
   try {
     const vault = parseObsidianMarkdown(piikMarkdown)
-    const surfaceDark = isDark || activeTheme === 'dark'
+    const surfaceDark = isDark
     const currentColors = isDark ? darkModeColors : lightModeColors
     const activeColorIndex = PIIK_BG_COLOR_INDEX[bgColor] ?? 0
     const heroBackgroundColor = isDark ? heroDarkModeColor : heroLightModeColor
@@ -339,7 +328,6 @@ export function TestHome3Piik({
         backLabel="Close"
         popupChrome="erd"
         popupPortal={false}
-        erdPopupNav={<ErdSiteNav logoTo={homePath} aboutSectionId="about" aboutPath={homePath} />}
         overlayClassName={`erd-site erd-site--${isDark ? 'dark' : 'light'} erd-project-popup-shell`}
         sheetClassName={`erd-hovr-page erd-hovr-sheet rounded-none ${
           surfaceDark ? 'dark erd-hovr-sheet--surface-dark' : 'erd-hovr-sheet--surface-light'
@@ -413,7 +401,7 @@ export function TestHome3Piik({
               tagline={vault.tagline}
             />
           }
-          spyTheme={isDark ? 'dark' : activeTheme}
+          spyTheme={isDark ? 'dark' : 'light'}
           scrollBg={{
             hero: PIIK_BG_HERO,
             heroTheme: 'light',

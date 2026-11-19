@@ -11,7 +11,7 @@ import {
   useTransform,
   type Transition,
 } from 'framer-motion'
-import { ErdProjectCloseButton } from './pages/testHome3/ErdChrome'
+import { ErdProjectCloseButton, ErdProjectFooter, ErdProjectRail, ErdProjectTop } from './pages/testHome3/ErdChrome'
 import {
   PortfolioPopupTitleBar,
   POPUP_ENTER_SCALE,
@@ -131,6 +131,7 @@ export function TestProjectDetailShell({
   const erdPopup = popupChrome === 'erd'
   const popupOverlay = portfolioPopup || erdPopup
   const [showPopupTitleBar, setShowPopupTitleBar] = useState(true)
+  const [railVisible, setRailVisible] = useState(false)
 
   const expandRaw = useMotionValue(0)
   const expand = useSpring(expandRaw, { stiffness: 140, damping: 28, mass: 0.85 })
@@ -146,6 +147,7 @@ export function TestProjectDetailShell({
     expandRaw.set(0)
     setSheetFullPage?.(false)
     setShowPopupTitleBar(true)
+    setRailVisible(false)
     return () => {
       setSheetFullPage?.(null)
     }
@@ -199,20 +201,8 @@ export function TestProjectDetailShell({
         </motion.div>
       ) : null}
 
-      {erdPopup ? (
-        <motion.div
-          className="erd-project-close-wrap pointer-events-none fixed top-0 z-[81] flex justify-end"
-          initial={reduceMotion ? false : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={ERD_CHROME_ENTER_TRANSITION}
-        >
-          <ErdProjectCloseButton
-            className="pointer-events-auto"
-            onClick={handleClose}
-            label={backLabel}
-          />
-        </motion.div>
-      ) : null}
+      {erdPopup ? <ErdProjectTop visible={railVisible} homeTo={backTo} /> : null}
+      {erdPopup ? <ErdProjectRail visible={railVisible} homeTo={backTo} /> : null}
 
       {erdPopup && !erdPopupNav && popupTitle && showPopupTitleBar ? (
         <div className="erd-project-popup-header pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center px-4 pt-5 md:px-8 md:pt-7">
@@ -278,17 +268,39 @@ export function TestProjectDetailShell({
             titleClassName={popupTitleBarTitleClassName}
           />
         ) : null}
+        {erdPopup ? (
+          <motion.div
+            className={`erd-project-close-wrap pointer-events-none absolute top-0 z-[81] flex justify-end${railVisible ? ' is-hidden' : ''}`}
+            initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={ERD_CHROME_ENTER_TRANSITION}
+          >
+            <ErdProjectCloseButton
+              className="pointer-events-auto"
+              onClick={handleClose}
+              label={backLabel}
+            />
+          </motion.div>
+        ) : null}
         <div
           ref={scrollRef}
           className="min-h-0 flex-1 overflow-y-auto scroll-smooth"
           onScroll={() => {
-            if (reduceMotion) return
             const el = scrollRef.current
             if (!el) return
+            setRailVisible(el.scrollTop > 0)
+            if (reduceMotion) return
             expandRaw.set(Math.min(1, Math.max(0, el.scrollTop / EXPAND_SCROLL_PX)))
           }}
         >
-          {children}
+          {erdPopup ? (
+            <div className="erd-project-popup-scroll-body">
+              {children}
+              <ErdProjectFooter />
+            </div>
+          ) : (
+            children
+          )}
         </div>
       </motion.div>
     </motion.div>

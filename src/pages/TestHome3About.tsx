@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { TestProjectBody } from '../TestProjectBody'
 import { TestProjectDetailShell } from '../TestProjectDetailShell'
 import { usePageTheme } from '../context/PageThemeContext'
-import { ErdSiteNav } from './testHome3/ErdChrome'
+import { ErdHeroMetaList } from './testHome3/ErdChrome'
 import { useErdHomePaths } from './testHome3/useErdHomePaths'
 import './testHomePage3.css'
 import './testHome3Hovr.css'
@@ -154,16 +154,12 @@ function ErdAboutHero() {
           <div className="erd-shop-square-experience">
             <p className="erd-shop-square-experience-label">Overview</p>
             <p className="erd-shop-square-greeting erd-hovr-hero-square-dek">{ABOUT_OVERVIEW}</p>
-            <ul className="erd-shop-square-experience-list erd-hovr-hero-meta-list">
-              {ABOUT_EXPERIENCE.slice(0, 2).map((job) => (
-                <li key={`${job.company}-${job.period}`}>
-                  <span className="erd-shop-square-experience-role">{job.role}</span>
-                  <span className="erd-shop-square-experience-meta">
-                    {job.company} · {job.period}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <ErdHeroMetaList
+              items={ABOUT_EXPERIENCE.slice(0, 2).map((job) => ({
+                label: job.role,
+                value: `${job.company} · ${job.period}`,
+              }))}
+            />
           </div>
         </div>
       </motion.div>
@@ -197,14 +193,12 @@ export function TestHome3About({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(ABOUT_BG_HERO)
-  const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('light')
 
-  const handleScrollBg = useCallback((nextBg: string, nextTheme: 'light' | 'dark') => {
+  const handleScrollBg = useCallback((nextBg: string, _nextTheme: 'light' | 'dark') => {
     setBgColor((previous) => (previous === nextBg ? previous : nextBg))
-    setActiveTheme((previous) => (previous === nextTheme ? previous : nextTheme))
   }, [])
 
-  const surfaceDark = isDark || activeTheme === 'dark'
+  const surfaceDark = isDark
   const currentColors = isDark ? darkModeColors : lightModeColors
   const activeColorIndex = ABOUT_BG_COLOR_INDEX[bgColor] ?? 0
   const heroBackgroundColor = isDark ? heroDarkModeColor : heroLightModeColor
@@ -220,7 +214,6 @@ export function TestHome3About({
       backLabel="Close"
       popupChrome="erd"
       popupPortal={false}
-      erdPopupNav={<ErdSiteNav logoTo={homePath} aboutSectionId="about" aboutPath={homePath} />}
       overlayClassName={`erd-site erd-site--${isDark ? 'dark' : 'light'} erd-project-popup-shell`}
       sheetClassName={`erd-hovr-page erd-hovr-sheet rounded-none ${
         surfaceDark ? 'dark erd-hovr-sheet--surface-dark' : 'erd-hovr-sheet--surface-light'
@@ -240,7 +233,7 @@ export function TestHome3About({
         scrollRoot={scrollRef}
         heroLayout="above"
         hero={<ErdAboutHero />}
-        spyTheme={isDark ? 'dark' : activeTheme}
+        spyTheme={isDark ? 'dark' : 'light'}
         scrollBg={{
           hero: ABOUT_BG_HERO,
           heroTheme: 'light',

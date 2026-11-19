@@ -8,7 +8,7 @@ import { HomePageClassic } from './pages/HomePageClassic'
 import { TestHome3Hovr } from './pages/TestHome3Hovr'
 import { TestHome3Piik } from './pages/TestHome3Piik'
 import { TestHome3ArFitting } from './pages/TestHome3ArFitting'
-import { TestHome3About } from './pages/TestHome3About'
+import { TestHome3Jojo } from './pages/TestHome3Jojo'
 import { isErdHomePathname } from './pages/testHome3/erdHomePaths'
 import { TestPage } from './pages/TestPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -22,6 +22,7 @@ import { FooterEmail } from './components/FooterEmail'
 
 import { TestPiik } from './TestPiik'
 import { TestHome } from './TestHome'
+import { TestHomeRamp } from './pages/TestHomeRamp'
 import { Hovr } from './pages/Hovr'
 import { HovrDeck } from './HovrDeck'
 import { PiikDeck } from './PiikDeck'
@@ -41,6 +42,9 @@ function AppShell() {
     pathname === '/piik-deck' ||
     pathname.startsWith('/piik-deck/')
   const isErdHome = isErdHomePathname(pathname)
+  const isErdDeck = pathname === '/deck' || isStandaloneDeck
+  const isRampTestHome =
+    pathname === '/test-home-ramp' || pathname.startsWith('/test-home-ramp/')
   const isHomeShellRoute =
     pathname === '/' ||
     pathname === '' ||
@@ -50,28 +54,48 @@ function AppShell() {
     pathname.startsWith('/test-home/') ||
     pathname === '/test-home-classic' ||
     pathname.startsWith('/test-home-classic/') ||
-    pathname === '/deck' ||
-    isStandaloneDeck
+    isRampTestHome ||
+    isErdDeck
+  const isDocumentScrollHome =
+    pathname === '/' ||
+    pathname === '' ||
+    pathname === '/more' ||
+    pathname === '/more/' ||
+    pathname === '/test-home-ramp'
 
   return (
     <HomeMobileProjectProvider>
       <div
-        className={`theme-surface-transition relative h-screen min-h-[100dvh] w-full min-w-0 max-w-[100vw] overflow-x-hidden overflow-y-hidden ${
-          isErdHome ? 'bg-white' : 'bg-[var(--color-bg-base,#faf7f0)]'
+        className={`theme-surface-transition relative w-full min-w-0 max-w-[100vw] ${
+          isDocumentScrollHome
+            ? 'min-h-[100dvh] overflow-x-clip overflow-y-visible'
+            : 'h-screen min-h-[100dvh] overflow-x-hidden overflow-y-hidden'
+        } ${
+          isErdHome || isErdDeck || isRampTestHome
+            ? 'bg-white'
+            : 'bg-[var(--color-bg-base,#faf7f0)]'
         }`}
       >
-        {!isErdHome && <MobileProjectBackButton />}
-        {!isStandaloneDeck && !isErdHome && <ThemeToggle />}
+        {!isErdHome && !isErdDeck && !isRampTestHome && <MobileProjectBackButton />}
+        {!isStandaloneDeck && !isErdHome && !isErdDeck && !isRampTestHome && <ThemeToggle />}
         {!isHomeShellRoute && <FooterEmail variant="fixed" />}
         <Routes>
           <Route path="/" element={<HomePage />}>
             <Route path="hovr" element={<TestHome3Hovr />} />
             <Route path="piik-ai" element={<TestHome3Piik />} />
             <Route path="ar-fitting-room" element={<TestHome3ArFitting />} />
-            <Route path="about" element={<TestHome3About />} />
+            <Route path="jojo" element={<TestHome3Jojo />} />
+            <Route path="about" element={<Navigate to="/more" replace />} />
+            <Route path="more">
+              <Route path="hovr" element={<TestHome3Hovr />} />
+              <Route path="piik-ai" element={<TestHome3Piik />} />
+              <Route path="ar-fitting-room" element={<TestHome3ArFitting />} />
+              <Route path="jojo" element={<TestHome3Jojo />} />
+            </Route>
           </Route>
           <Route path="test" element={<TestPage />} />
           <Route path="test-home" element={<TestHome />} />
+          <Route path="test-home-ramp" element={<TestHomeRamp />} />
           <Route path="test-home-classic" element={<HomePageClassic />}>
             <Route
               path="hovr"
@@ -83,7 +107,7 @@ function AppShell() {
           <Route path="test-home-3/hovr" element={<Navigate to="/hovr" replace />} />
           <Route path="test-home-3/piik-ai" element={<Navigate to="/piik-ai" replace />} />
           <Route path="test-home-3/ar-fitting-room" element={<Navigate to="/ar-fitting-room" replace />} />
-          <Route path="test-home-3/about" element={<Navigate to="/about" replace />} />
+          <Route path="test-home-3/about" element={<Navigate to="/more" replace />} />
           <Route
             path="project/ar-fitting-room"
             element={<Navigate to="/ar-fitting-room" replace />}

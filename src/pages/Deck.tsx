@@ -4,17 +4,22 @@ import { HOVR_SECTIONS } from './HovrProjectPage'
 import { PIIK_SECTIONS, PiikCaseStudyCarouselBlock } from './PiikProjectPage'
 import { AR_FITTING_SECTIONS } from './arFittingHomeData'
 import { toDeckVisualSections } from './deck/toDeckVisualSections'
-import { CHOSUN_DISPLAY } from '../typography/chosunDisplay'
+import {
+  ErdDeckShell,
+  ERD_DECK_BODY,
+  ERD_DECK_CAPTION,
+  ERD_DECK_DISPLAY,
+  ERD_DECK_DISPLAY_XL,
+  ERD_DECK_OVERLINE,
+  ERD_DECK_SUBHEAD,
+} from './deck/erdDeckChrome'
 
-const CREAM = 'bg-[#faf7f0]'
-const DECK_BORDER = 'border-[0.5px] border-[#c0bcb0]'
+const CREAM = 'bg-white'
+const DECK_BORDER = 'border border-[color:var(--erd-deck-hairline)]'
 /** Deck `SectionSlide` only: consistent media band height across slides (pair / carousel / single). */
 const DECK_SECTION_MEDIA_FRAME =
   'flex min-h-[min(38dvh,340px)] min-w-0 flex-1 flex-col overflow-hidden'
-const MONO = "font-['IBM_Plex_Mono',monospace]"
-/** Deck `TitleSlide` hero H1 only (+2px vs default clamp). */
-const DECK_TITLE_H1 =
-  `${CHOSUN_DISPLAY} mt-6 max-w-full text-[clamp(calc(2.1rem+2px),calc(7.5vw+2px),calc(3.75rem+2px))] font-normal leading-[0.92] tracking-[-0.06em] text-black not-italic dark:text-neutral-100 sm:mt-8 md:text-[calc(3.25rem+2px)]`
+const DECK_TITLE_H1 = `${ERD_DECK_DISPLAY} mt-6 max-w-full sm:mt-8`
 
 /** `toDeckVisualSections` ids: top-level `takeaway` or expanded `takeaway--…`. */
 function deckSectionIsTakeaway(sectionId: string): boolean {
@@ -91,7 +96,7 @@ export type DeckProject = {
 export const deckData: DeckProject[] = [
   {
     id: 'hovr',
-    navLabel: '[ HOVR ]',
+    navLabel: 'HOVR',
     name: 'HOVR',
     heroDisplayName: 'HOVR Admin',
     year: '2024',
@@ -119,7 +124,7 @@ export const deckData: DeckProject[] = [
   },
   {
     id: 'piik',
-    navLabel: '[ Piik AI ]',
+    navLabel: 'Piik AI',
     name: 'Piik AI',
     year: '2024',
     role: 'UX/UI Designer',
@@ -146,7 +151,7 @@ export const deckData: DeckProject[] = [
   },
   {
     id: 'ar-fitting',
-    navLabel: '[ AR Fitting Room ]',
+    navLabel: 'AR Fitting Room',
     name: 'AR Fitting Room',
     year: '2024',
     role: 'UX/UI Designer',
@@ -176,7 +181,7 @@ export const deckData: DeckProject[] = [
   },
   {
     id: 'framer-components',
-    navLabel: '[ Framer Components ]',
+    navLabel: 'Framer Components',
     name: 'Framer Components',
     year: '2024',
     role: 'Component Designer & Creator (Independent)',
@@ -210,8 +215,7 @@ export const deckData: DeckProject[] = [
 
 const SWIPE_PX = 48
 
-const PSI_COLUMN_HEADER =
-  `${CHOSUN_DISPLAY} text-[9px] font-normal uppercase leading-tight tracking-[-0.06em] text-black/70 sm:text-[10px]`
+const PSI_COLUMN_HEADER = ERD_DECK_OVERLINE
 
 function PsiColumn({
   label,
@@ -224,26 +228,26 @@ function PsiColumn({
 }) {
   return (
     <div className={`flex min-h-0 min-w-0 flex-col ${CREAM}`}>
-      <div className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-1.5 sm:px-3`}>
+      <div className={`${DECK_BORDER} border-b border-[color:var(--erd-deck-hairline)] px-2.5 py-1.5 sm:px-3`}>
         <p className={PSI_COLUMN_HEADER}>{label}</p>
       </div>
       <div className="flex flex-col gap-3 px-2.5 py-3 sm:gap-4 sm:px-3 sm:py-4">
         {textOnly ? null : (
           <>
             <p
-              className={`${CHOSUN_DISPLAY} text-[clamp(1.75rem,4vw,2.75rem)] font-normal leading-none tracking-[-0.06em] text-black`}
+              className={ERD_DECK_DISPLAY}
             >
               {block.metric}
             </p>
             <h3
-              className={`${CHOSUN_DISPLAY} text-[clamp(1.05rem,2.2vw,1.35rem)] font-normal leading-[1.12] tracking-[-0.06em] text-black`}
+              className={ERD_DECK_SUBHEAD}
             >
               {block.heading}
             </h3>
           </>
         )}
         <p
-          className={`${MONO} whitespace-pre-line text-[11px] font-normal leading-[1.55] text-black/78 sm:text-[12px]`}
+          className={`${ERD_DECK_BODY} whitespace-pre-line`}
         >
           {block.body}
         </p>
@@ -255,10 +259,10 @@ function PsiColumn({
 function TitleSlideMetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className={`flex min-h-0 flex-col px-3 py-3 sm:px-4 sm:py-3.5 ${CREAM}`}>
-      <p className={`${MONO} text-[8px] font-medium uppercase tracking-[0.16em] text-black/45 dark:text-white/50`}>
+      <p className={ERD_DECK_OVERLINE}>
         {label}
       </p>
-      <p className={`${MONO} mt-1.5 text-[10px] font-normal leading-snug text-black dark:text-white/95 sm:text-[11px]`}>
+      <p className={`${ERD_DECK_BODY} mt-1.5`}>
         {value}
       </p>
     </div>
@@ -274,10 +278,10 @@ function TitleSlide({ project, ordinal }: { project: DeckProject; ordinal: strin
         <div className="flex w-full min-w-0 flex-1 flex-col justify-between gap-6 sm:gap-8">
           <div className="flex min-h-0 w-full min-w-0 flex-col">
             <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-              <p className={`${MONO} text-[9px] font-normal uppercase tracking-[0.2em] text-black/50 dark:text-white/55`}>
-                [ TITLE · {ordinal} ]
+              <p className={ERD_DECK_OVERLINE}>
+                Title · {ordinal}
               </p>
-              <p className={`${MONO} text-[9px] font-normal tabular-nums uppercase tracking-[0.14em] text-black/40 dark:text-white/45`}>
+              <p className={`${ERD_DECK_CAPTION} tabular-nums`}>
                 {project.year}
               </p>
             </div>
@@ -287,7 +291,7 @@ function TitleSlide({ project, ordinal }: { project: DeckProject; ordinal: strin
             </h1>
 
             <p
-              className={`${MONO} mt-5 max-w-[min(100%,52ch)] text-[11px] font-normal leading-[1.45] tracking-[0.02em] text-black/78 dark:text-white/80 sm:mt-6 sm:text-[12px]`}
+              className={`${ERD_DECK_BODY} mt-5 max-w-[min(100%,52ch)] sm:mt-6`}
             >
               {project.heroMetaLine}
             </p>
@@ -295,7 +299,7 @@ function TitleSlide({ project, ordinal }: { project: DeckProject; ordinal: strin
 
           <div className="mt-auto w-full max-w-[52ch] shrink-0">
             <div
-              className={`grid grid-cols-1 divide-y divide-[#c0bcb0] overflow-hidden rounded-none ${DECK_BORDER} border border-[#c0bcb0] sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-white/20`}
+              className={`grid grid-cols-1 divide-y divide-[color:var(--erd-deck-hairline)] overflow-hidden rounded-none ${DECK_BORDER} border border-[color:var(--erd-deck-hairline)] sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-white/20`}
             >
               <TitleSlideMetaCell label="Year" value={project.year} />
               <TitleSlideMetaCell label="Role" value={project.role} />
@@ -311,12 +315,12 @@ function TitleSlide({ project, ordinal }: { project: DeckProject; ordinal: strin
 function PsiSlide({ project }: { project: DeckProject }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-2 sm:px-3`}>
-        <p className={`${MONO} text-[9px] font-medium uppercase tracking-[0.14em] text-black/50 sm:text-[10px]`}>
+      <div className={`${DECK_BORDER} border-b border-[color:var(--erd-deck-hairline)] px-2.5 py-2 sm:px-3`}>
+        <p className={ERD_DECK_OVERLINE}>
           {project.name} · Problem · Solution · Impact
         </p>
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-[0.5px] bg-[#c0bcb0] p-[0.5px] md:grid-cols-3">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-[0.5px] bg-[color:var(--erd-deck-hairline)] p-[0.5px] md:grid-cols-3">
         <PsiColumn label="PROBLEM" block={project.psi.problem} textOnly={project.psiLayout === 'text'} />
         <PsiColumn label="SOLUTION" block={project.psi.solution} textOnly={project.psiLayout === 'text'} />
         <PsiColumn label="IMPACT" block={project.psi.impact} textOnly={project.psiLayout === 'text'} />
@@ -343,27 +347,27 @@ function SectionSlide({ project, section }: { project: DeckProject; section: Dec
       className="flex min-h-0 flex-1 flex-col"
     >
       <div
-        className={`${DECK_BORDER} border-b border-[#c0bcb0] px-2.5 py-2 sm:px-4 sm:py-3 ${
+        className={`${DECK_BORDER} border-b border-[color:var(--erd-deck-hairline)] px-2.5 py-2 sm:px-4 sm:py-3 ${
           longScrollInvert ? 'transition-[background-color] duration-300' : ''
-        } ${takeawayOnly ? 'min-h-0 flex-1 overflow-y-auto' : ''} ${inv ? 'bg-[#111]' : CREAM}`}
+        } ${takeawayOnly ? 'min-h-0 flex-1 overflow-y-auto' : ''} ${inv ? 'bg-[var(--erd-deck-ink,#1a1917)]' : CREAM}`}
       >
         <p
-          className={`${MONO} text-[9px] font-medium uppercase tracking-[0.12em] sm:text-[10px] ${
-            inv ? 'text-white/55' : 'text-black/45'
+          className={`${ERD_DECK_OVERLINE} ${
+            inv ? 'text-[color:var(--erd-hovr-ink-muted)]' : ''
           }`}
         >
           {project.name} · {section.label}
         </p>
         <h2
-          className={`${CHOSUN_DISPLAY} mt-1 text-[clamp(1.5rem,4.5vw,2.5rem)] font-normal leading-[1.05] tracking-[-0.06em] ${
-            inv ? 'text-white' : 'text-black'
+          className={`${ERD_DECK_SUBHEAD} mt-1 ${
+            inv ? 'text-[color:var(--erd-hovr-ink)]' : ''
           }`}
         >
           {section.heading}
         </h2>
         <p
-          className={`${MONO} mt-2 max-w-[60ch] text-[11px] font-normal leading-relaxed sm:text-[12px] ${
-            inv ? 'text-white/78' : 'text-black/72'
+          className={`${ERD_DECK_BODY} mt-2 max-w-[60ch] ${
+            inv ? 'text-[color:var(--erd-hovr-ink-muted)]' : ''
           }`}
         >
           {section.body}
@@ -371,7 +375,7 @@ function SectionSlide({ project, section }: { project: DeckProject; section: Dec
       </div>
       {!hideMediaPanel ? (
         <div
-          className={`${DECK_SECTION_MEDIA_FRAME} ${DECK_BORDER} m-2 border border-[#c0bcb0] sm:m-3 md:m-4`}
+          className={`${DECK_SECTION_MEDIA_FRAME} ${DECK_BORDER} m-2 border border-[color:var(--erd-deck-hairline)] sm:m-3 md:m-4`}
         >
           <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-black/[0.04] p-1 sm:p-2">
             {section.carousel && section.carousel.length > 0 ? (
@@ -456,13 +460,13 @@ function SectionSlide({ project, section }: { project: DeckProject; section: Dec
 function QaSlide({ project }: { project: DeckProject }) {
   return (
     <div className={`flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-10 text-center`}>
-      <p className={`${MONO} text-[9px] font-medium uppercase tracking-[0.2em] text-black/40`}>Close</p>
+      <p className={ERD_DECK_OVERLINE}>Close</p>
       <p
-        className={`${CHOSUN_DISPLAY} mt-4 text-[clamp(2.5rem,10vw,5rem)] font-normal leading-none tracking-[-0.06em] text-black`}
+        className={`${ERD_DECK_DISPLAY_XL} mt-4`}
       >
         Q&amp;A
       </p>
-      <p className={`${MONO} mt-4 text-[11px] font-normal text-black/55 sm:text-[12px]`}>
+      <p className={`${ERD_DECK_BODY} mt-4`}>
         {project.name} · Discussion
       </p>
     </div>
@@ -472,6 +476,7 @@ function QaSlide({ project }: { project: DeckProject }) {
 export function Deck() {
   const [projectIndex, setProjectIndex] = useState(0)
   const [slideIndex, setSlideIndex] = useState(0)
+  const [direction, setDirection] = useState(1)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
 
   const project = deckData[projectIndex]
@@ -480,10 +485,12 @@ export function Deck() {
   const kind = slideKind(slideIndex, n)
 
   const next = useCallback(() => {
+    setDirection(1)
     setSlideIndex((s) => Math.min(s + 1, totalSlides - 1))
   }, [totalSlides])
 
   const prev = useCallback(() => {
+    setDirection(-1)
     setSlideIndex((s) => Math.max(s - 1, 0))
   }, [])
 
@@ -523,6 +530,7 @@ export function Deck() {
   }
 
   const selectProject = (pi: number) => {
+    setDirection(1)
     setProjectIndex(pi)
     setSlideIndex(0)
   }
@@ -541,95 +549,47 @@ export function Deck() {
           : 'Q&A'
 
   return (
-    <div
-      className={`fixed inset-0 z-0 flex min-h-[100dvh] w-full min-w-0 flex-col ${CREAM} text-black`}
+    <ErdDeckShell
+      tabs={deckData.map((p, pi) => ({
+        id: p.id,
+        label: p.navLabel,
+        active: pi === projectIndex,
+        onSelect: () => selectProject(pi),
+      }))}
+      counter={`${counter} · ${project.navLabel} · ${footerLabel}`}
+      canPrev={canPrev}
+      canNext={canNext}
+      onPrev={prev}
+      onNext={next}
+      direction={direction}
+      slideKey={`${project.id}-${slideIndex}`}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      dots={Array.from({ length: totalSlides }, (_, i) => ({
+        id: `${project.id}-${i}`,
+        label: `Slide ${i + 1}`,
+        active: i === slideIndex,
+        onSelect: () => {
+          setDirection(i > slideIndex ? 1 : -1)
+          setSlideIndex(i)
+        },
+      }))}
     >
-      <header
-        className={`flex shrink-0 flex-wrap items-center gap-2 ${CREAM} ${DECK_BORDER} border-b border-[#c0bcb0] px-2 py-2 sm:gap-3 sm:px-3 sm:py-2.5`}
-      >
-        <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2" aria-label="Projects">
-          {deckData.map((p, pi) => {
-            const active = pi === projectIndex
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => selectProject(pi)}
-                aria-current={active ? 'page' : undefined}
-                className={`${MONO} shrink-0 rounded-none border border-transparent px-2 py-1.5 text-left text-[10px] font-normal uppercase leading-snug tracking-[0.06em] outline-none transition-colors sm:text-[11px] ${
-                  active
-                    ? 'bg-black text-white dark:bg-white dark:text-black'
-                    : 'bg-transparent text-black/80 hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white dark:text-white/80 dark:hover:bg-white dark:hover:text-black dark:focus-visible:bg-white dark:focus-visible:text-black'
-                }`}
-              >
-                {p.navLabel}
-              </button>
-            )
-          })}
-        </nav>
-      </header>
-
-      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="erd-deck-frame h-full min-h-0">
         <div
-          className={`relative flex min-h-0 flex-1 flex-col px-2 py-2 sm:px-3 sm:py-3 md:px-5 md:py-4 ${
-            kind === 'title' ? 'overflow-hidden' : 'overflow-auto'
-          }`}
+          className={`flex min-h-0 flex-1 flex-col ${kind === 'title' ? 'h-full min-h-0 overflow-hidden' : 'overflow-auto'}`}
         >
-          <div
-            className={`relative z-[1] mx-auto flex w-full max-w-[1200px] flex-1 flex-col ${CREAM} ${DECK_BORDER} border border-[#c0bcb0] ${
-              kind === 'title' ? 'min-h-[80%]' : 'min-h-[min(100%,480px)]'
-            }`}
-          >
-            <div
-              key={`${project.id}-${slideIndex}`}
-              className={`flex min-h-0 flex-1 flex-col ${kind === 'title' ? 'h-full min-h-0 overflow-hidden' : ''}`}
-            >
-              {kind === 'title' ? (
-                <TitleSlide project={project} ordinal={String(slideIndex + 1).padStart(2, '0')} />
-              ) : kind === 'psi' ? (
-                <PsiSlide project={project} />
-              ) : kind === 'section' && section ? (
-                <SectionSlide project={project} section={section} />
-              ) : (
-                <QaSlide project={project} />
-              )}
-            </div>
-          </div>
+          {kind === 'title' ? (
+            <TitleSlide project={project} ordinal={String(slideIndex + 1).padStart(2, '0')} />
+          ) : kind === 'psi' ? (
+            <PsiSlide project={project} />
+          ) : kind === 'section' && section ? (
+            <SectionSlide project={project} section={section} />
+          ) : (
+            <QaSlide project={project} />
+          )}
         </div>
-
-        <footer
-          className={`flex shrink-0 flex-wrap items-center justify-between gap-3 ${DECK_BORDER} border-t border-[#c0bcb0] px-2.5 py-2.5 sm:px-4 sm:py-3`}
-        >
-          <span className={`${MONO} text-[9px] font-normal uppercase tracking-[0.08em] text-black/50 sm:text-[10px]`}>
-            {project.navLabel} · {footerLabel}
-          </span>
-          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
-            <span className={`${MONO} text-[10px] font-medium tabular-nums text-black sm:text-[11px]`} aria-live="polite">
-              {counter}
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={!canPrev}
-                onClick={prev}
-                className={`${MONO} ${DECK_BORDER} border border-[#c0bcb0] bg-transparent px-2.5 py-1.5 text-[10px] font-normal tracking-[0.06em] text-black transition-opacity hover:bg-black/[0.03] disabled:pointer-events-none disabled:opacity-30 sm:px-3 sm:text-[11px]`}
-              >
-                [ PREV ]
-              </button>
-              <button
-                type="button"
-                disabled={!canNext}
-                onClick={next}
-                className={`${MONO} ${DECK_BORDER} border border-[#c0bcb0] bg-transparent px-2.5 py-1.5 text-[10px] font-normal tracking-[0.06em] text-black transition-opacity hover:bg-black/[0.03] disabled:pointer-events-none disabled:opacity-30 sm:px-3 sm:text-[11px]`}
-              >
-                [ NEXT ]
-              </button>
-            </div>
-          </div>
-        </footer>
       </div>
-    </div>
+    </ErdDeckShell>
   )
 }

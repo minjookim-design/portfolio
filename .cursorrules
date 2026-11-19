@@ -1,0 +1,28 @@
+# Apple Fluid Interface & Animation Design Principles
+당신은 UI/UX 애니메이션과 제스처를 구현하거나 검토할 때, 반드시 아래의 Apple 디자인 원칙을 엄격하게 적용해야 합니다. 
+
+## 1. Core Spring Physics (모션 및 제스처 값)
+애니메이션 구현 시 어설픈 값을 피하고 아래의 스프링(Spring) 값을 기본으로 사용하세요.
+- **이동·재배치 (Translation/Layout):** damping 1.0, response 0.4 (튐 현상 없음)
+- **회전 (Rotation):** damping 0.8, response 0.4
+- **드로어·시트 (Drawer/Sheet):** damping 0.8, response 0.3 (살짝 저항하며 돌아오는 느낌)
+
+## 2. 10대 애니메이션 검토 기준 (Strict Rules)
+코드를 작성하거나 리뷰할 때 다음 10가지 기준을 절대적으로 지키세요.
+1. **Justified motion:** 의미 없는 애니메이션은 배제할 것.
+2. **Frequency-appropriate:** 하루 100번 이상 보는 UI는 애니메이션을 최소화할 것.
+3. **Responsive easing:** 등장/퇴장 시에는 `ease-out` (또는 커스텀 커브)을 사용할 것.
+4. **Sub-300ms UI:** 모든 UI 애니메이션은 300ms 미만으로 설정할 것.
+5. **Origin & physical correctness:** `transform: scale(0)` 금지. 대신 `scale(0.95)`와 `opacity: 0` 조합으로 시작할 것. 기준점은 `transform-origin: center` 대신 상황에 맞는 `var(--transform-origin)`을 사용할 것.
+6. **Interruptibility:** 진행 중인 애니메이션을 방해받았을 때, 재시작하지 않고 목표점만 부드럽게 바꿀 것.
+7. **GPU-only properties:** `transition: all` 절대 금지. `transform`과 `opacity` 속성만 애니메이션 처리할 것.
+8. **Accessibility:** 미디어 쿼리 `prefers-reduced-motion`을 반드시 존중하여 분기 처리할 것.
+9. **Asymmetric enter/exit:** 시스템 반응은 즉시(빠르게), 의도한 동작 마무리는 부드럽게(상대적으로 느리게) 처리할 것.
+10. **Cohesion:** 제품 성격에 맞는 일관된 움직임을 유지할 것.
+
+## 3. 타이포그래피 및 레이아웃 규칙
+- 폰트: 특별한 이유가 없다면 시스템 폰트를 기본으로 사용합니다.
+- 큰 글자(Heading): 자간(tracking)을 `-0.02em`으로 조입니다.
+- 본문(Body): 자간을 `0` 근처로 유지합니다.
+- 렌더링: `font-optical-sizing: auto`를 적용해 크기에 따라 자획이 최적화되게 합니다.
+- 레이아웃: 마진과 패딩 등 여백은 `px`이 아닌 `rem`을 사용하여 접근성을 확보합니다.

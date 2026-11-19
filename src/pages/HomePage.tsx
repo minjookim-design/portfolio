@@ -1,8 +1,8 @@
 /**
- * Production homepage at `/` — ERD archive (former `/test-home-3`) + project overlays.
+ * Production homepage at `/` — Ramp editorial layout (same as `/test-home-ramp`) + project overlays.
  */
-import { TestHomePage3 } from './TestHomePage3'
+import { TestHomeRamp } from './TestHomeRamp'
 
 export function HomePage() {
-  return <TestHomePage3 />
+  return <TestHomeRamp />
 }
