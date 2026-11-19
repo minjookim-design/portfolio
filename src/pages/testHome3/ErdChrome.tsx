@@ -4,7 +4,6 @@ import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AboutMePopupPanel } from '../../components/AboutMePopup'
 import { usePageTheme } from '../../context/PageThemeContext'
-import { useErdHomePaths } from './useErdHomePaths'
 
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/minjoo-kim-kor/?skipRedirect=true'
 export const RESUME_URL = 'https://drive.google.com/file/d/1WRFvCfASQgqN4Utfcp4b-aEZtw2FzHY3/view'
