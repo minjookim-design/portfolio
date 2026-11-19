@@ -305,14 +305,16 @@ export function TestHome3Piik({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(PIIK_BG_HERO)
+  const [sectionTheme, setSectionTheme] = useState<'light' | 'dark'>('light')
 
-  const handleScrollBg = useCallback((nextBg: string, _nextTheme: 'light' | 'dark') => {
+  const handleScrollBg = useCallback((nextBg: string, nextTheme: 'light' | 'dark') => {
     setBgColor((previous) => (previous === nextBg ? previous : nextBg))
+    setSectionTheme((previous) => (previous === nextTheme ? previous : nextTheme))
   }, [])
 
   try {
     const vault = parseObsidianMarkdown(piikMarkdown)
-    const surfaceDark = isDark
+    const surfaceDark = isDark || sectionTheme === 'dark'
     const currentColors = isDark ? darkModeColors : lightModeColors
     const activeColorIndex = PIIK_BG_COLOR_INDEX[bgColor] ?? 0
     const heroBackgroundColor = isDark ? heroDarkModeColor : heroLightModeColor
@@ -401,7 +403,7 @@ export function TestHome3Piik({
               tagline={vault.tagline}
             />
           }
-          spyTheme={isDark ? 'dark' : 'light'}
+          spyTheme={surfaceDark ? 'dark' : 'light'}
           scrollBg={{
             hero: PIIK_BG_HERO,
             heroTheme: 'light',

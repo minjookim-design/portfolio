@@ -612,14 +612,16 @@ export function TestHome3Hovr({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { isDark } = usePageTheme()
   const [bgColor, setBgColor] = useState(HOVR_BG_HERO)
+  const [sectionTheme, setSectionTheme] = useState<'light' | 'dark'>('light')
 
-  const handleScrollBg = useCallback((bgClass: string, _theme: 'light' | 'dark') => {
+  const handleScrollBg = useCallback((bgClass: string, nextTheme: 'light' | 'dark') => {
     setBgColor((prev) => (prev === bgClass ? prev : bgClass))
+    setSectionTheme((prev) => (prev === nextTheme ? prev : nextTheme))
   }, [])
 
   try {
     const vault = parseObsidianMarkdown(hovrMarkdown)
-    const surfaceDark = isDark
+    const surfaceDark = isDark || sectionTheme === 'dark'
     const currentColors = isDark ? darkModeColors : lightModeColors
     const activeColorIndex = HOVR_BG_COLOR_INDEX[bgColor] ?? 0
     const heroBackgroundColor = isDark ? heroDarkModeColor : heroLightModeColor
@@ -686,7 +688,7 @@ export function TestHome3Hovr({
               tagline={vault.tagline}
             />
           }
-          spyTheme={isDark ? 'dark' : 'light'}
+          spyTheme={surfaceDark ? 'dark' : 'light'}
           scrollBg={{
             hero: HOVR_BG_HERO,
             heroTheme: 'light',

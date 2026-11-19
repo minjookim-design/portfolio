@@ -262,11 +262,11 @@ export function PiikResearchFindings({
         />
       </motion.figure>
 
-      <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid w-full grid-cols-1 items-stretch gap-3 md:grid-cols-3">
         {features.map((feature, i) => (
           <motion.div
             key={`${feature.title}-${i}`}
-            className="border border-[#c0bcb0] px-4 py-4 dark:border-white/15"
+            className="flex h-full min-h-0 flex-col gap-3 border border-[#c0bcb0] p-4 dark:border-white/15"
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -276,10 +276,12 @@ export function PiikResearchFindings({
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <p className={PIIK_META_SUIT}>{PIIK_RESEARCH_EYEBROWS[i] ?? String(i + 1).padStart(2, '0')}</p>
-            <p className={`${PIIK_FEATURE_TITLE} mt-3`}>{feature.title}</p>
+            <p className={`${PIIK_META_SUIT} m-0`}>{PIIK_RESEARCH_EYEBROWS[i] ?? String(i + 1).padStart(2, '0')}</p>
+            <p className={`${PIIK_FEATURE_TITLE} m-0`}>{feature.title}</p>
             {feature.description ? (
-              <p className={`${TEST_PROJECT_PROSE_CLASS} mt-2 m-0`}>{feature.description}</p>
+              <p className={`${TEST_PROJECT_PROSE_CLASS} m-0 flex-1`}>
+                {feature.description.replace(/\*\*(.*?)\*\*/g, '$1')}
+              </p>
             ) : null}
           </motion.div>
         ))}
