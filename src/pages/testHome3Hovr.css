@@ -277,6 +277,8 @@ html:has(.erd-project-popup-shell) .rc-page .rc-rail {
   background-color: var(--active-section-bg, var(--erd-hovr-fallback-bg, #ffffff));
   box-sizing: border-box;
   min-height: 100%;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
   padding-top: 100px;
 }
 
@@ -294,7 +296,7 @@ html:has(.erd-project-popup-shell) .rc-page .rc-rail {
   gap: 1.25rem;
   justify-content: flex-end;
   margin-top: 5rem;
-  padding: 0 1.5rem 2.5rem;
+  padding: 0 0 2.5rem;
   width: 100%;
 }
 
