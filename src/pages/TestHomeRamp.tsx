@@ -511,8 +511,28 @@ export function TestHomeRamp() {
     pageRef.current?.scrollTo(0, 0)
   }, [isMore])
 
+  useEffect(() => {
+    if (pathname !== '/') return
+    window.scrollTo(0, 0)
+    pageRef.current?.scrollTo(0, 0)
+  }, [pathname])
+
   function goHome() {
     navigate('/')
+  }
+
+  function scrollWorkHomeToTop() {
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth'
+    window.scrollTo({ top: 0, behavior })
+    pageRef.current?.scrollTo({ top: 0, behavior })
+  }
+
+  function onWorkNavClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== '/') return
+    event.preventDefault()
+    scrollWorkHomeToTop()
   }
 
   return (
@@ -553,6 +573,7 @@ export function TestHomeRamp() {
             to="/"
             className={`rc-nav-btn${!isMore ? ' is-active' : ''}`}
             aria-current={!isMore ? 'page' : undefined}
+            onClick={onWorkNavClick}
           >
             Work
           </Link>

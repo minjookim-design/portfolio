@@ -215,16 +215,24 @@ html:has(.erd-project-popup-shell) .rc-page .rc-rail {
 .erd-project-popup-shell.erd-site .rc-nav-btn.is-active {
   background: transparent;
   color: var(--ramp-ghost);
-  font-weight: 700;
+  font-weight: 600;
+  text-shadow:
+    0 0 0.35rem color-mix(in srgb, var(--ramp-ghost) 55%, transparent),
+    0 0 0.85rem color-mix(in srgb, var(--ramp-accent) 40%, transparent);
 }
 
 .erd-project-popup-shell.erd-site .rc-nav-btn.is-active:hover {
-  background: var(--ramp-surface-raised);
+  background: color-mix(in srgb, var(--ramp-accent) 18%, transparent);
   color: var(--ramp-ghost);
 }
 
 .erd-project-popup-shell.erd-site--dark .rc-nav-btn.is-active {
+  background: transparent;
   color: var(--ramp-accent);
+  font-weight: 600;
+  text-shadow:
+    0 0 0.35rem color-mix(in srgb, var(--ramp-accent) 90%, transparent),
+    0 0 0.85rem color-mix(in srgb, var(--ramp-accent) 55%, transparent);
 }
 
 .erd-project-popup-shell.erd-site--dark .rc-nav-btn.is-active:hover {
