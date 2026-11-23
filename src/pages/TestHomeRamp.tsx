@@ -222,7 +222,7 @@ const PROJECTS: readonly Project[] = [
   {
     id: 'jojo',
     name: 'Jojo',
-    tag: 'Degree project',
+    tag: 'Conversational AI',
     href: '/jojo',
     summary:
       'A personalized AI companion that stimulates active thinking and turns focus into measurable progress.',
